@@ -1,0 +1,2 @@
+git remote add origin https://github.com/equipe-albatroz/AeroGA.git
+git remote set-url origin https://Krigsrosa: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@github.com/equipe-albatroz/AeroGA.git
