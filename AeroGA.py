@@ -1,3 +1,15 @@
+'''
+Albatroz AeroDesign Genetic Algorithm (AeroGA)
+
+Algoritmo Metaheurístico para Otimização do MDO da Equipe Albatroz.
+
+Mais detalhes sobre a construção do algoritmo podem ser encontradas no arquivo README.md
+
+Author: Krigor Rosa
+Email: krigorsilva13@gmail.com
+
+'''
+
 import numpy as np
 from ypstruct import structure
 

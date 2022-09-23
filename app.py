@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from ypstruct import structure
-import ga
+import AeroGA
 import test
 
 # Sphere Test Function
@@ -9,24 +9,24 @@ def sphere(x):
     return sum(x**2)
 
 # Problem Definition
-problem = structure()
-problem.fitness = sphere
-problem.nvar = 5
-problem.lb = [-10, 0.2,  0, -5, 0.06]
-problem.ub = [ 10, 0.4,  1,  5, 0.45]
+problem = structure()                                  # Creating the Problem Structure
+problem.fitness = sphere                               # Fitness Function
+problem.nvar = 5                                       # Variables number
+problem.lb = [-10, 0.2,  0, -5, 0.06]                  # Lower Bounds
+problem.ub = [ 10, 0.4,  1,  5, 0.45]                  # Upper Bounds
 
 # GA Parameters
-params = structure()
-params.max_iterations = 100
-params.npop = 50
-params.beta = 1
+params = structure()                                   # Creating the Parameters Structure
+params.max_iterations = 100                            # Number of Max Iterations
+params.npop = 50                                       # Number of the Population
+params.beta = 1 
 params.pc = 1
 params.gamma = 0.1
-params.mu = 0.1  # mutation rate
-params.sigma = 0.1 # step of the mutation
+params.mu = 0.1                                        # Mutation Rate
+params.sigma = 0.1                                     # Step of the Mutation
 
 # Run GA
-out = ga.optimize(problem, params)
+out = AeroGA.optimize(problem, params)                     # Running the Simulation
 
 # Results
 plt.plot(out.bestfit)
