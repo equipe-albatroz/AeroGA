@@ -11,6 +11,7 @@ Email: krigorsilva13@gmail.com
 
 import numpy as np
 from ypstruct import structure
+import matplotlib.pyplot as plt
 
 def optimize(problem, params, methods):
 
@@ -28,7 +29,6 @@ def optimize(problem, params, methods):
     # Parameters
     max_iterations = params.max_iterations
     npop = params.npop
-    beta = params.beta
     pc = params.pc
     nc = int(np.round(pc*npop/2)*2)
     gamma = params.gamma
@@ -58,31 +58,22 @@ def optimize(problem, params, methods):
     # Main Loop
     for iterations in range(max_iterations):
 
-        if selection_method == "roulette":
-            fits = np.array([x.fit for x in pop])                                # Lista todos os valores de fitness
-            avg_fit = np.mean(fits)                                              # Média dos valores de fitness
-            if avg_fit != 0:
-                fits = fits/avg_fit
-            probs = np.exp(-beta*fits)
-        elif selection_method == "rank":   
-            aux = sorted(pop, key=lambda x: x.fit)
-            fits = np.array([x.fit for x in aux])                                # Lista todos os valores de fitness
-            inds = list(range(0,len(fits)))
-            avg_ind = np.mean(inds) 
-            if avg_ind != 0:
-                inds = inds/avg_ind
-            probs = np.exp(-beta*inds)                                          # Calcula a probabilidade de cada indivíduo com base em fç exponencial
-
         popc = []
         for _ in range(nc//2):
 
             # Perform Roulette Wheel Selection
             if selection_method == "roulette":
-                parent1 = pop[roulette_wheel_selection(probs)]
-                parent2 = pop[roulette_wheel_selection(probs)]
-            elif selection_method == "rank":  
-                parent1 = aux[rank_selection(probs)]
-                parent2 = aux[rank_selection(probs)]
+                parent1 = pop[roulette_wheel_selection(pop)]
+                parent2 = pop[roulette_wheel_selection(pop)]
+            elif selection_method == "rank": 
+                parent1 = sorted(pop, key=lambda x: x.fit)[rank_selection(pop)]
+                parent2 = sorted(pop, key=lambda x: x.fit)[rank_selection(pop)]
+            elif selection_method == "tournament":
+                parent1 = pop[tournament_selection(pop)]
+                parent2 = pop[tournament_selection(pop)]
+            elif selection_method == "elitism":
+                parent1 = pop[elitism_selection(pop)]
+                parent2 = pop[elitism_selection(pop)]
 
             # Perform Crossover
             child1, child2 = crossover(parent1, parent2, gamma)
@@ -109,7 +100,6 @@ def optimize(problem, params, methods):
             popc.append(child1)
             popc.append(child2)
         
-
         # Merge, Sort and Select
         pop += popc
         pop = sorted(pop, key=lambda x: x.fit)
@@ -119,7 +109,7 @@ def optimize(problem, params, methods):
         bestfit[iterations] = bestsol.fit
 
         # Show Iteration Information
-        print("Iteration {}: Best Fit = {}".format(iterations, bestfit[iterations]))
+        print("Iteration {}: Best Fit = {}".format(iterations+1, bestfit[iterations]))
 
     # Output
     out = structure()
@@ -147,23 +137,24 @@ def apply_bound(x, lb, ub):
     x.chromosome = np.maximum(x.chromosome, lb)
     x.chromosome = np.minimum(x.chromosome, ub)
 
-def roulette_wheel_selection(p):
-    c = np.cumsum(p)                           # Retorna a soma cumulativa
-    r = sum(p)*np.random.rand()                # Gera valor aleatório para simular o giro da roleta
-    ind = np.argwhere(r <= c)                  # Retorna uma lista de índices dos valores que podem ser selecionados na roleta
-    return ind[0][0]                           # Retorna o primeiro valor dos que podem ser selecionados pela roleta
+def roulette_wheel_selection(pop):
+    fits = sum([x.fit for x in pop])                      # Realiza a soma de todos os valores de Fitness da População
+    probs = list(reversed([x.fit/fits for x in pop]))     # Cria lista de probabilidades em relação ao Fitness (lista invertida -> otimiz de minimização)
+    indice = np.random.choice(len(pop), p=probs)          # Escolha aleaória com base nas probabilidades
+    return indice                                        
 
-def rank_selection(p):
-    c = np.cumsum(p)                           # Retorna a soma cumulativa
-    r = sum(p)*np.random.rand()                # Gera valor aleatório para simular o giro da roleta
-    ind = np.argwhere(r <= c)                  # Retorna uma lista de índices dos valores que podem ser selecionados na roleta
-    return ind[0][0]                     # Retorna o primeiro valor dos que podem ser selecionados pela roleta
+def rank_selection(pop):
+    aux = list(reversed(range(1,len(pop)+1)))                 # Criação do rankeamento da população
+    probs = list(0 for i in range(0,len(pop)))                 
+    for i in range(0,len(pop)): probs[i] = aux[i]/sum(aux)    # Criação de lista com as probabilidados do ranking
+    indice = np.random.choice(len(pop), p=probs)              # Escolha aleaória com base nas probabilidades
+    return indice
 
 
-def tournament_selection(p):
+def tournament_selection(pop):
 
     return 1
 
-def elitism_selection(p):
+def elitism_selection(pop):
 
     return 1

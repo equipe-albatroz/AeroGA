@@ -16,31 +16,28 @@ problem.ub = [ 10, 0.4,  1,  5, 0.45]                  # Upper Bounds
 
 # GA Parameters
 params = structure()                                   # Creating the Parameters Structure
-params.max_iterations = 10                             # Number of Max Iterations
-params.npop = 10                                       # Number of the Population
+params.max_iterations = 100                            # Number of Max Iterations
+params.npop = 100                                      # Number of the Population
 params.pc = 1                                          # Proporção da população de filhos em relação aos pais
-params.beta = 1                                        # Taxa de variação linear do crossover
 params.gamma = 0.1                                     # Amplitude do crossover        
 params.mu = 0.1                                        # Mutation Rate
 params.sigma = 0.1                                     # Step of the Mutation
 
-
 # GA Methods
 methods = structure()
-methods.selection = "rank"
-methods.crossover = "normal"
-methods.mutation = "normal"
+methods.selection = "rank"                             # Available methods: "roulette", "rank", "tournament", "elitism" -> Read README.md for detailed info
+methods.crossover = "normal"                           # Available methods: "normal" -> Read README.md for detailed info
+methods.mutation = "normal"                            # Available methods: "normal" -> Read README.md for detailed info
 
 
 # Run GA
 out = AeroGA.optimize(problem, params, methods)                     # Running the Simulation
 
 
-print("pau")
 # Results
 plt.plot(out.bestfit)
 plt.semilogy(out.bestfit)
-plt.xlim(0, params.max_iterations)
+plt.xlim(0, params.max_iterations+1)
 plt.xlabel('Iterations')
 plt.ylabel('Best Fit')
 plt.title('Genetic Algorithm (GA)')
