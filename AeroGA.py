@@ -7,13 +7,17 @@ Mais detalhes sobre a construção do algoritmo podem ser encontradas no arquivo
 
 Author: Krigor Rosa
 Email: krigorsilva13@gmail.com
-
 '''
 
 import numpy as np
 from ypstruct import structure
 
-def optimize(problem, params):
+def optimize(problem, params, methods):
+
+    # Methods Information
+    selection_method = methods.selection
+    crossover_method = methods.crossover
+    mutation_method = methods.mutation
     
     # Problem Information
     fitness = problem.fitness
@@ -33,7 +37,7 @@ def optimize(problem, params):
 
     # Empty Individual Template
     empty_individual = structure()
-    empty_individual.position = None
+    empty_individual.chromosome = None
     empty_individual.fit = None
 
     # Best Solution Ever Found
@@ -43,8 +47,8 @@ def optimize(problem, params):
     # Initialize Population
     pop = empty_individual.repeat(npop)
     for i in range(npop):
-        pop[i].position = np.random.uniform(lb, ub, nvar)
-        pop[i].fit = fitness(pop[i].position)
+        pop[i].chromosome = np.random.uniform(lb, ub, nvar)
+        pop[i].fit = fitness(pop[i].chromosome)
         if pop[i].fit < bestsol.fit:
             bestsol = pop[i].deepcopy()
 
@@ -54,19 +58,32 @@ def optimize(problem, params):
     # Main Loop
     for iterations in range(max_iterations):
 
-        fits = np.array([x.fit for x in pop])
-        avg_fit = np.mean(fits)
-        if avg_fit != 0:
-            fits = fits/avg_fit
-        probs = np.exp(-beta*fits)
+        if selection_method == "roulette":
+            fits = np.array([x.fit for x in pop])                                # Lista todos os valores de fitness
+            avg_fit = np.mean(fits)                                              # Média dos valores de fitness
+            if avg_fit != 0:
+                fits = fits/avg_fit
+            probs = np.exp(-beta*fits)
+        elif selection_method == "rank":   
+            aux = sorted(pop, key=lambda x: x.fit)
+            fits = np.array([x.fit for x in aux])                                # Lista todos os valores de fitness
+            inds = list(range(0,len(fits)))
+            avg_ind = np.mean(inds) 
+            if avg_ind != 0:
+                inds = inds/avg_ind
+            probs = np.exp(-beta*inds)                                          # Calcula a probabilidade de cada indivíduo com base em fç exponencial
 
         popc = []
         for _ in range(nc//2):
 
             # Perform Roulette Wheel Selection
-            parent1 = pop[roulette_wheel_selection(probs)]
-            parent2 = pop[roulette_wheel_selection(probs)]
-            
+            if selection_method == "roulette":
+                parent1 = pop[roulette_wheel_selection(probs)]
+                parent2 = pop[roulette_wheel_selection(probs)]
+            elif selection_method == "rank":  
+                parent1 = aux[rank_selection(probs)]
+                parent2 = aux[rank_selection(probs)]
+
             # Perform Crossover
             child1, child2 = crossover(parent1, parent2, gamma)
 
@@ -79,12 +96,12 @@ def optimize(problem, params):
             apply_bound(child2, lb, ub)
 
             # Evaluate First Offspring
-            child1.fit = fitness(child1.position)
+            child1.fit = fitness(child1.chromosome)
             if child1.fit < bestsol.fit:
                 bestsol = child1.deepcopy()
 
             # Evaluate Second Offspring
-            child2.fit = fitness(child2.position)
+            child2.fit = fitness(child2.chromosome)
             if child2.fit < bestsol.fit:
                 bestsol = child2.deepcopy()
 
@@ -111,27 +128,42 @@ def optimize(problem, params):
     out.bestfit = bestfit
     return out
 
-def crossover(parent1, parent2, gamma=0.1):
+def crossover(parent1, parent2, gamma):
     child1 = parent1.deepcopy()
-    child2 = parent1.deepcopy()
-    alpha = np.random.uniform(-gamma, 1+gamma, *child1.position.shape)
-    child1.position = alpha*parent1.position + (1-alpha)*parent2.position
-    child2.position = alpha*parent2.position + (1-alpha)*parent1.position
+    child2 = parent2.deepcopy()
+    alpha = np.random.uniform(-gamma, 1+gamma, *child1.chromosome.shape)
+    child1.chromosome = alpha*parent1.chromosome + (1-alpha)*parent2.chromosome
+    child2.chromosome = alpha*parent2.chromosome + (1-alpha)*parent1.chromosome
     return child1, child2
 
 def mutate(x, mu, sigma):
     y = x.deepcopy()
-    flag = np.random.rand(*x.position.shape) <= mu # array de True e False indicando onde a mutação vai ocorrer
+    flag = np.random.rand(*x.chromosome.shape) <= mu # array de True e False indicando onde a mutação vai ocorrer
     ind = np.argwhere(flag)  # indica quais indices vao ser mutados
-    y.position[ind] += sigma*np.random.randn(*ind.shape) # aplica a mutação no indices
+    y.chromosome[ind] += mu + sigma*np.random.randn(*ind.shape) # aplica a mutação no indices
     return y
 
 def apply_bound(x, lb, ub):
-    x.position = np.maximum(x.position, lb)
-    x.position = np.minimum(x.position, ub)
+    x.chromosome = np.maximum(x.chromosome, lb)
+    x.chromosome = np.minimum(x.chromosome, ub)
 
 def roulette_wheel_selection(p):
-    c = np.cumsum(p)
-    r = sum(p)*np.random.rand()
-    ind = np.argwhere(r <= c)
-    return ind[0][0]
+    c = np.cumsum(p)                           # Retorna a soma cumulativa
+    r = sum(p)*np.random.rand()                # Gera valor aleatório para simular o giro da roleta
+    ind = np.argwhere(r <= c)                  # Retorna uma lista de índices dos valores que podem ser selecionados na roleta
+    return ind[0][0]                           # Retorna o primeiro valor dos que podem ser selecionados pela roleta
+
+def rank_selection(p):
+    c = np.cumsum(p)                           # Retorna a soma cumulativa
+    r = sum(p)*np.random.rand()                # Gera valor aleatório para simular o giro da roleta
+    ind = np.argwhere(r <= c)                  # Retorna uma lista de índices dos valores que podem ser selecionados na roleta
+    return ind[0][0]                     # Retorna o primeiro valor dos que podem ser selecionados pela roleta
+
+
+def tournament_selection(p):
+
+    return 1
+
+def elitism_selection(p):
+
+    return 1
