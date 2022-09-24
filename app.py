@@ -27,7 +27,7 @@ params.sigma = 0.1                                     # Step of the Mutation
 methods = structure()
 methods.selection = "rank"                             # Available methods: "roulette", "rank", "tournament", "elitism" -> Read README.md for detailed info
 methods.crossover = "normal"                           # Available methods: "normal" -> Read README.md for detailed info
-methods.mutation = "normal"                            # Available methods: "normal" -> Read README.md for detailed info
+methods.mutation = "default"                          # Available methods: "gaussian", "default" -> Read README.md for detailed info
 
 
 # Run GA

@@ -9,6 +9,7 @@ Author: Krigor Rosa
 Email: krigorsilva13@gmail.com
 '''
 
+from audioop import cross
 import numpy as np
 from ypstruct import structure
 import matplotlib.pyplot as plt
@@ -76,11 +77,16 @@ def optimize(problem, params, methods):
                 parent2 = pop[elitism_selection(pop)]
 
             # Perform Crossover
-            child1, child2 = crossover(parent1, parent2, gamma)
+            if crossover_method == "normal":
+                child1, child2 = crossover(parent1, parent2, gamma)
 
             # Perform Mutation
-            child1 = mutate(child1, mu, sigma)
-            child2 = mutate(child2, mu, sigma)
+            if mutation_method == "gaussian":
+                child1 = gaussian_mutation(child1, mu, sigma)
+                child2 = gaussian_mutation(child2, mu, sigma)
+            elif mutation_method == "default":
+                child1 = default_mutation(child1, mu)
+                child2 = default_mutation(child2, mu)
 
             # Apply Bounds
             apply_bound(child1, lb, ub)
@@ -126,21 +132,29 @@ def crossover(parent1, parent2, gamma):
     child2.chromosome = alpha*parent2.chromosome + (1-alpha)*parent1.chromosome
     return child1, child2
 
-def mutate(x, mu, sigma):
+def gaussian_mutation(x, mu, sigma):
     y = x.deepcopy()
-    flag = np.random.rand(*x.chromosome.shape) <= mu # array de True e False indicando onde a mutação vai ocorrer
-    ind = np.argwhere(flag)  # indica quais indices vao ser mutados
-    y.chromosome[ind] += mu + sigma*np.random.randn(*ind.shape) # aplica a mutação no indices
+    flag = np.random.rand(*x.chromosome.shape) <= mu          # Lista Booleana indicando em quais posições a mutação vai ocorrer
+    ind = np.argwhere(flag)                                   # Lista das posições a serem mutadas
+    y.chromosome[ind] += sigma*np.random.randn(*ind.shape)    # Aplicação da mutação nos alelos
     return y
 
+def default_mutation(x, mu):
+    y = x.deepcopy()
+    flag = np.random.rand(*x.chromosome.shape) <= mu          # Lista Booleana indicando em quais posições a mutação vai ocorrer
+    ind = np.argwhere(flag)                                   # Lista das posições a serem mutadas
+    y.chromosome[ind] += np.random.randn(*ind.shape)          # Aplicação da mutação nos alelos
+    return y
+
+
 def apply_bound(x, lb, ub):
-    x.chromosome = np.maximum(x.chromosome, lb)
-    x.chromosome = np.minimum(x.chromosome, ub)
+    x.chromosome = np.maximum(x.chromosome, lb)               # Aplica a restrição de bounds superior caso necessária em algum alelo
+    x.chromosome = np.minimum(x.chromosome, ub)               # Aplica a restrição de bounds inferior caso necessária em algum alelo
 
 def roulette_wheel_selection(pop):
-    fits = sum([x.fit for x in pop])                      # Realiza a soma de todos os valores de Fitness da População
-    probs = list(reversed([x.fit/fits for x in pop]))     # Cria lista de probabilidades em relação ao Fitness (lista invertida -> otimiz de minimização)
-    indice = np.random.choice(len(pop), p=probs)          # Escolha aleaória com base nas probabilidades
+    fits = sum([x.fit for x in pop])                          # Realiza a soma de todos os valores de Fitness da População
+    probs = list(reversed([x.fit/fits for x in pop]))         # Cria lista de probabilidades em relação ao Fitness (lista invertida -> otimiz de minimização)
+    indice = np.random.choice(len(pop), p=probs)              # Escolha aleaória com base nas probabilidades
     return indice                                        
 
 def rank_selection(pop):
