@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from ypstruct import structure
 import AeroGA
+import AeroGA_parallel
 
 # Sphere Test Function
 def sphere(x):
@@ -26,21 +27,21 @@ params.sigma = 0.1                                     # Step of the Mutation
 # GA Methods
 methods = structure()
 methods.selection = "rank"                             # Available methods: "roulette", "rank", "tournament", "elitism" -> Read README.md for detailed info
-methods.crossover = "normal"                           # Available methods: "normal" -> Read README.md for detailed info
-methods.mutation = "default"                          # Available methods: "gaussian", "default" -> Read README.md for detailed info
+methods.crossover = "arithmetic"                       # Available methods: "arithmetic", "1-point", "2-point" -> Read README.md for detailed info
+methods.mutation = "default"                           # Available methods: "gaussian", "default" -> Read README.md for detailed info
 
 
 # Run GA
-out = AeroGA.optimize(problem, params, methods)                     # Running the Simulation
+out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
+# out = AeroGA_parallel.optimize(problem, params, methods)        # Running the Simulation with parallel processing (not working yet)
 
 
 # Results
 plt.plot(out.bestfit)
-plt.semilogy(out.bestfit)
 plt.xlim(0, params.max_iterations+1)
 plt.xlabel('Iterations')
 plt.ylabel('Best Fit')
-plt.title('Genetic Algorithm (GA)')
+plt.title('Fitness x Iterations')
 plt.grid(True)
 plt.show()
 

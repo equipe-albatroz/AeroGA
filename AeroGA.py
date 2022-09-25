@@ -9,12 +9,14 @@ Author: Krigor Rosa
 Email: krigorsilva13@gmail.com
 '''
 
-from audioop import cross
+import time
 import numpy as np
 from ypstruct import structure
 import matplotlib.pyplot as plt
 
 def optimize(problem, params, methods):
+
+    t_inicial = time.time()
 
     # Methods Information
     selection_method = methods.selection
@@ -77,8 +79,12 @@ def optimize(problem, params, methods):
                 parent2 = pop[elitism_selection(pop)]
 
             # Perform Crossover
-            if crossover_method == "normal":
-                child1, child2 = crossover(parent1, parent2, gamma)
+            if crossover_method == "arithmetic":
+                child1, child2 = arithmetic_crossover(parent1, parent2, gamma)
+            elif crossover_method == "1-point":
+                child1, child2 = onepoint_crossover(parent1, parent2, gamma)
+            elif crossover_method == "2-point":
+                child1, child2 = twopoint_crossover(parent1, parent2, gamma)
 
             # Perform Mutation
             if mutation_method == "gaussian":
@@ -117,6 +123,8 @@ def optimize(problem, params, methods):
         # Show Iteration Information
         print("Iteration {}: Best Fit = {}".format(iterations+1, bestfit[iterations]))
 
+    print(f"Tempo de Execução: {time.time() - t_inicial}")
+
     # Output
     out = structure()
     out.pop = pop
@@ -124,7 +132,9 @@ def optimize(problem, params, methods):
     out.bestfit = bestfit
     return out
 
-def crossover(parent1, parent2, gamma):
+
+# Crossover methods
+def arithmetic_crossover(parent1, parent2, gamma):
     child1 = parent1.deepcopy()
     child2 = parent2.deepcopy()
     alpha = np.random.uniform(-gamma, 1+gamma, *child1.chromosome.shape)
@@ -132,6 +142,23 @@ def crossover(parent1, parent2, gamma):
     child2.chromosome = alpha*parent2.chromosome + (1-alpha)*parent1.chromosome
     return child1, child2
 
+def onepoint_crossover(parent1, parent2, gamma):
+    child1 = parent1.deepcopy()
+    child2 = parent2.deepcopy()
+    alpha = np.random.uniform(-gamma, 1+gamma, *child1.chromosome.shape)
+    child1.chromosome = alpha*parent1.chromosome + (1-alpha)*parent2.chromosome
+    child2.chromosome = alpha*parent2.chromosome + (1-alpha)*parent1.chromosome
+    return child1, child2
+
+def twopoint_crossover(parent1, parent2, gamma):
+    child1 = parent1.deepcopy()
+    child2 = parent2.deepcopy()
+    alpha = np.random.uniform(-gamma, 1+gamma, *child1.chromosome.shape)
+    child1.chromosome = alpha*parent1.chromosome + (1-alpha)*parent2.chromosome
+    child2.chromosome = alpha*parent2.chromosome + (1-alpha)*parent1.chromosome
+    return child1, child2
+
+# Mutation methods
 def gaussian_mutation(x, mu, sigma):
     y = x.deepcopy()
     flag = np.random.rand(*x.chromosome.shape) <= mu          # Lista Booleana indicando em quais posições a mutação vai ocorrer
@@ -146,11 +173,7 @@ def default_mutation(x, mu):
     y.chromosome[ind] += np.random.randn(*ind.shape)          # Aplicação da mutação nos alelos
     return y
 
-
-def apply_bound(x, lb, ub):
-    x.chromosome = np.maximum(x.chromosome, lb)               # Aplica a restrição de bounds superior caso necessária em algum alelo
-    x.chromosome = np.minimum(x.chromosome, ub)               # Aplica a restrição de bounds inferior caso necessária em algum alelo
-
+# Selection methods
 def roulette_wheel_selection(pop):
     fits = sum([x.fit for x in pop])                          # Realiza a soma de todos os valores de Fitness da População
     probs = list(reversed([x.fit/fits for x in pop]))         # Cria lista de probabilidades em relação ao Fitness (lista invertida -> otimiz de minimização)
@@ -172,3 +195,8 @@ def tournament_selection(pop):
 def elitism_selection(pop):
 
     return 1
+
+# To guarantee bounds limits
+def apply_bound(x, lb, ub):
+    x.chromosome = np.maximum(x.chromosome, lb)               # Aplica a restrição de bounds superior caso necessária em algum alelo
+    x.chromosome = np.minimum(x.chromosome, ub)               # Aplica a restrição de bounds inferior caso necessária em algum alelo
