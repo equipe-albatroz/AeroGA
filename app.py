@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+import seaborn as sns
 import matplotlib.pyplot as plt
 from ypstruct import structure
 import AeroGA
@@ -12,8 +14,9 @@ def sphere(x):
 problem = structure()                                  # Creating the Problem Structure
 problem.fitness = sphere                               # Fitness Function
 problem.nvar = 5                                       # Variables number
-problem.lb = [-10, 0.2,  0, -5, 0.06]                  # Lower Bounds
-problem.ub = [ 10, 0.4,  1,  5, 0.45]                  # Upper Bounds
+problem.lb = [-10, -10, -10, -5, -5]                  # Lower Bounds
+problem.ub = [ 10, 10, 10,  5, 5]                  # Upper Bounds
+integer = [1,2]                                   # Indice de números inteiros
 
 # GA Parameters
 params = structure()                                   # Creating the Parameters Structure
@@ -36,12 +39,31 @@ out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
 # out = AeroGA_parallel.optimize(problem, params, methods)        # Running the Simulation with parallel processing (not working yet)
 
 
-# Results
-plt.plot(out.bestfit)
-plt.xlim(0, params.max_iterations+1)
-plt.xlabel('Iterations')
-plt.ylabel('Best Fit')
-plt.title('Fitness x Iterations')
+# Gráficos - Linear das iterações
+# fig = plt.figure()
+# plt.plot(out.bestfit)
+# plt.xlim(0, params.max_iterations+1)
+# plt.xlabel('Iterations')
+# plt.ylabel('Best Fit')
+# plt.title('Fitness x Iterations')
+# plt.grid(True)
+# plt.show()
+
+# Gráficos - Box plot
+
+# arc2 = pd.DataFrame(out.archive)
+# print(arc2)
+
+# boxplot = arc2.boxplot()
+# boxplot.plot()
+# plt.show()
+
+fig = plt.figure()
+plt.boxplot(out.archive)
+plt.xlabel('Variáveis')
+plt.ylabel('Valores do GA')
+plt.title('Dispersão das Variáveis')
 plt.grid(True)
 plt.show()
 
+print(0)

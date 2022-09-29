@@ -1,6 +1,6 @@
 import numpy as np
+import pandas as pd
 from ypstruct import structure
-import numpy as np
 import matplotlib.pyplot as plt
 from ypstruct import structure
 
@@ -17,6 +17,9 @@ ub = [ 10, 0.4,  1,  5, 0.45]                  # Upper Bounds
 # Parameters
 maxit = 10
 npop = 10
+mu=0.5
+sigma=0.1
+beta = 1
 
 # Empty Individual Template
 empty_individual = structure()
@@ -27,55 +30,30 @@ empty_individual.fit = None
 bestsol = empty_individual.deepcopy()
 bestsol.fit = np.inf
 
-mu=0.5
-sigma=0.1
-beta = 1
+archive = []
 
 # Initialize Population
 pop = empty_individual.repeat(npop)
 for i in range(npop):
     pop[i].position = np.random.uniform(lb, ub, nvar)
     pop[i].fit = fitness(pop[i].position)
+    archive.append(pop[i].position)
     if pop[i].fit < bestsol.fit:
         bestsol = pop[i].deepcopy()
 
-aux = sorted(pop, key=lambda x: x.fit)
-fits = np.array([x.fit for x in aux])                                # Lista todos os valores de fitness
-
-#aux = list(range(0,len(fits)))
-
-print(pop)
-print(fits)
-# print(pop[2])
-# print(pop[2].position)
-# print(pop[2].position[1])
-
-# for i in range(0, nvar): print(pop[2].position[i])
 
 
-#print(pop[2].position.shape)
-#print(pop[2].position.shape)
-#print(*pop[2].position.shape)
-#print(np.random.uniform(-0.1, 1+0.1, 5))
-print(0)
+arc=structure().repeat(nvar)
+for i in range(0,len(pop)):
+    for j in range(0,nvar):
+        arc[j][i] = archive[i][j]
 
-# fits = np.array([x.fit for x in pop])
-# avg_fit = np.mean(fits)
-# if avg_fit != 0:
-#     fits = fits/avg_fit
-# probs = np.exp(-beta*fits)
+arc2=[]
+for i in range(0,nvar): arc2.append(dict(arc[i]))
 
-# c = np.cumsum(probs)                           # Retorna a soma cumulativa
-# r = sum(probs)*np.random.rand()
-# print(0)
+df_archive = pd.DataFrame(arc2).transpose()
 
-
-# p1 = pop[2].deepcopy()
-
-# y = p1.deepcopy()
-# flag = np.random.rand(*p1.position.shape) <= mu # array de True e False indicando onde a mutação vai ocorrer
-# ind = np.argwhere(flag)  # indica quais indices vao ser mutados
-# y.position[ind] += sigma*np.random.randn(*ind.shape) #aplica a mutação no indices
-
-
-# print(np.random.rand())
+ 
+fig = plt.figure(figsize =(10, 7))
+plt.boxplot(df_archive)
+plt.show()

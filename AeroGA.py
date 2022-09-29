@@ -11,6 +11,7 @@ Email: krigorsilva13@gmail.com
 
 import time
 import numpy as np
+import pandas as pd
 from ypstruct import structure
 import matplotlib.pyplot as plt
 
@@ -40,23 +41,31 @@ def optimize(problem, params, methods):
 
     # Empty Individual Template
     empty_individual = structure()
-    empty_individual.chromosome = None
+    empty_individual.chromossome = None
     empty_individual.fit = None
 
     # Best Solution Ever Found
     bestsol = empty_individual.deepcopy()
     bestsol.fit = np.inf
 
+    # Archive for all population created
+    archive = []
+
     # Initialize Population
     pop = empty_individual.repeat(npop)
     for i in range(npop):
-        pop[i].chromosome = np.random.uniform(lb, ub, nvar)
-        pop[i].fit = fitness(pop[i].chromosome)
+        pop[i].chromossome = np.random.uniform(lb, ub, nvar)
+        pop[i].fit = fitness(pop[i].chromossome)
+        archive.append(pop[i].chromossome)
         if pop[i].fit < bestsol.fit:
             bestsol = pop[i].deepcopy()
 
     # Best Fit of Iterations
     bestfit = np.empty(max_iterations)
+
+    # Error for each iteration
+    error = np.empty(max_iterations)
+    error[0] = 100
     
     # Main Loop
     for iterations in range(max_iterations):
@@ -64,13 +73,14 @@ def optimize(problem, params, methods):
         popc = []
         for _ in range(nc//2):
 
+            pop = sorted(pop, key=lambda x: x.fit)
             # Perform Roulette Wheel Selection
             if selection_method == "roulette":
                 parent1 = pop[roulette_wheel_selection(pop)]
                 parent2 = pop[roulette_wheel_selection(pop)]
             elif selection_method == "rank": 
-                parent1 = sorted(pop, key=lambda x: x.fit)[rank_selection(pop)]
-                parent2 = sorted(pop, key=lambda x: x.fit)[rank_selection(pop)]
+                parent1 = pop[rank_selection(pop)]
+                parent2 = pop[rank_selection(pop)]
             elif selection_method == "tournament":
                 parent1 = pop[tournament_selection(pop)]
                 parent2 = pop[tournament_selection(pop)]
@@ -99,18 +109,22 @@ def optimize(problem, params, methods):
             apply_bound(child2, lb, ub)
 
             # Evaluate First Offspring
-            child1.fit = fitness(child1.chromosome)
+            child1.fit = fitness(child1.chromossome)
             if child1.fit < bestsol.fit:
                 bestsol = child1.deepcopy()
 
             # Evaluate Second Offspring
-            child2.fit = fitness(child2.chromosome)
+            child2.fit = fitness(child2.chromossome)
             if child2.fit < bestsol.fit:
                 bestsol = child2.deepcopy()
 
             # Add Offsprings to popc
             popc.append(child1)
             popc.append(child2)
+
+            # Saving children data to archive
+            archive.append(child1.chromossome)
+            archive.append(child2.chromossome)
         
         # Merge, Sort and Select
         pop += popc
@@ -120,8 +134,11 @@ def optimize(problem, params, methods):
         # Store Best Fit
         bestfit[iterations] = bestsol.fit
 
+        # Calculating the error
+        if iterations >= 1: error[iterations] = round(((bestfit[iterations-1]-bestfit[iterations])/bestfit[iterations])*100,4)
+
         # Show Iteration Information
-        print("Iteration {}: Best Fit = {}".format(iterations+1, bestfit[iterations]))
+        print("Iteration {}: Best Fit = {}: Erro(%) = {}".format(iterations+1, bestfit[iterations], error[iterations]))
 
     print(f"Tempo de Execução: {time.time() - t_inicial}")
 
@@ -130,6 +147,9 @@ def optimize(problem, params, methods):
     out.pop = pop
     out.bestsol = bestsol
     out.bestfit = bestfit
+    out.error = error
+    out.archive = list(map(list,archive))
+    out.archive = np.array(out.archive).T.tolist()
     return out
 
 
@@ -137,40 +157,40 @@ def optimize(problem, params, methods):
 def arithmetic_crossover(parent1, parent2, gamma):
     child1 = parent1.deepcopy()
     child2 = parent2.deepcopy()
-    alpha = np.random.uniform(-gamma, 1+gamma, *child1.chromosome.shape)
-    child1.chromosome = alpha*parent1.chromosome + (1-alpha)*parent2.chromosome
-    child2.chromosome = alpha*parent2.chromosome + (1-alpha)*parent1.chromosome
+    alpha = np.random.uniform(-gamma, 1+gamma, *child1.chromossome.shape)
+    child1.chromossome = alpha*parent1.chromossome + (1-alpha)*parent2.chromossome
+    child2.chromossome = alpha*parent2.chromossome + (1-alpha)*parent1.chromossome
     return child1, child2
 
 def onepoint_crossover(parent1, parent2, gamma):
     child1 = parent1.deepcopy()
     child2 = parent2.deepcopy()
-    alpha = np.random.uniform(-gamma, 1+gamma, *child1.chromosome.shape)
-    child1.chromosome = alpha*parent1.chromosome + (1-alpha)*parent2.chromosome
-    child2.chromosome = alpha*parent2.chromosome + (1-alpha)*parent1.chromosome
+    alpha = np.random.uniform(-gamma, 1+gamma, *child1.chromossome.shape)
+    child1.chromossome = alpha*parent1.chromossome + (1-alpha)*parent2.chromossome
+    child2.chromossome = alpha*parent2.chromossome + (1-alpha)*parent1.chromossome
     return child1, child2
 
 def twopoint_crossover(parent1, parent2, gamma):
     child1 = parent1.deepcopy()
     child2 = parent2.deepcopy()
-    alpha = np.random.uniform(-gamma, 1+gamma, *child1.chromosome.shape)
-    child1.chromosome = alpha*parent1.chromosome + (1-alpha)*parent2.chromosome
-    child2.chromosome = alpha*parent2.chromosome + (1-alpha)*parent1.chromosome
+    alpha = np.random.uniform(-gamma, 1+gamma, *child1.chromossome.shape)
+    child1.chromossome = alpha*parent1.chromossome + (1-alpha)*parent2.chromossome
+    child2.chromossome = alpha*parent2.chromossome + (1-alpha)*parent1.chromossome
     return child1, child2
 
 # Mutation methods
 def gaussian_mutation(x, mu, sigma):
     y = x.deepcopy()
-    flag = np.random.rand(*x.chromosome.shape) <= mu          # Lista Booleana indicando em quais posições a mutação vai ocorrer
+    flag = np.random.rand(*x.chromossome.shape) <= mu          # Lista Booleana indicando em quais posições a mutação vai ocorrer
     ind = np.argwhere(flag)                                   # Lista das posições a serem mutadas
-    y.chromosome[ind] += sigma*np.random.randn(*ind.shape)    # Aplicação da mutação nos alelos
+    y.chromossome[ind] += sigma*np.random.randn(*ind.shape)    # Aplicação da mutação nos alelos
     return y
 
 def default_mutation(x, mu):
     y = x.deepcopy()
-    flag = np.random.rand(*x.chromosome.shape) <= mu          # Lista Booleana indicando em quais posições a mutação vai ocorrer
+    flag = np.random.rand(*x.chromossome.shape) <= mu          # Lista Booleana indicando em quais posições a mutação vai ocorrer
     ind = np.argwhere(flag)                                   # Lista das posições a serem mutadas
-    y.chromosome[ind] += np.random.randn(*ind.shape)          # Aplicação da mutação nos alelos
+    y.chromossome[ind] += np.random.randn(*ind.shape)          # Aplicação da mutação nos alelos
     return y
 
 # Selection methods
@@ -198,5 +218,5 @@ def elitism_selection(pop):
 
 # To guarantee bounds limits
 def apply_bound(x, lb, ub):
-    x.chromosome = np.maximum(x.chromosome, lb)               # Aplica a restrição de bounds superior caso necessária em algum alelo
-    x.chromosome = np.minimum(x.chromosome, ub)               # Aplica a restrição de bounds inferior caso necessária em algum alelo
+    x.chromossome = np.maximum(x.chromossome, lb)               # Aplica a restrição de bounds superior caso necessária em algum alelo
+    x.chromossome = np.minimum(x.chromossome, ub)               # Aplica a restrição de bounds inferior caso necessária em algum alelo
