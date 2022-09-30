@@ -21,7 +21,7 @@ integer = [1,2]                                   # Indice de números inteiros
 # GA Parameters
 params = structure()                                   # Creating the Parameters Structure
 params.max_iterations = 100                            # Number of Max Iterations
-params.npop = 100                                      # Number of the Population
+params.npop = 50                                      # Number of the Population
 params.pc = 1                                          # Proporção da população de filhos em relação aos pais
 params.gamma = 0.1                                     # Amplitude do crossover        
 params.mu = 0.1                                        # Mutation Rate
@@ -40,30 +40,20 @@ out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
 
 
 # Gráficos - Linear das iterações
-# fig = plt.figure()
-# plt.plot(out.bestfit)
-# plt.xlim(0, params.max_iterations+1)
-# plt.xlabel('Iterations')
-# plt.ylabel('Best Fit')
-# plt.title('Fitness x Iterations')
-# plt.grid(True)
-# plt.show()
+fig = plt.figure()
+plt.plot(out.bestfit)
+plt.xlim(0, params.max_iterations+1)
+plt.xlabel('Iterations')
+plt.ylabel('Best Fit')
+plt.title('Fitness x Iterations')
+plt.grid(True)
+plt.show()
 
 # Gráficos - Box plot
-
-# arc2 = pd.DataFrame(out.archive)
-# print(arc2)
-
-# boxplot = arc2.boxplot()
-# boxplot.plot()
-# plt.show()
-
 fig = plt.figure()
-plt.boxplot(out.archive)
+plt.boxplot(out.archive_scaled)
 plt.xlabel('Variáveis')
 plt.ylabel('Valores do GA')
 plt.title('Dispersão das Variáveis')
 plt.grid(True)
 plt.show()
-
-print(0)

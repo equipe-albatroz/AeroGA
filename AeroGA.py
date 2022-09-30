@@ -142,14 +142,18 @@ def optimize(problem, params, methods):
 
     print(f"Tempo de Execução: {time.time() - t_inicial}")
 
+    # Normalização dos dados da população
+    archive = np.array(list(map(list,archive))).T.tolist()
+    archive_scaled = normalize_data(archive,ub,lb)
+
     # Output
     out = structure()
     out.pop = pop
     out.bestsol = bestsol
     out.bestfit = bestfit
     out.error = error
-    out.archive = list(map(list,archive))
-    out.archive = np.array(out.archive).T.tolist()
+    out.archive = archive
+    out.archive_scaled = archive_scaled
     return out
 
 
@@ -220,3 +224,16 @@ def elitism_selection(pop):
 def apply_bound(x, lb, ub):
     x.chromossome = np.maximum(x.chromossome, lb)               # Aplica a restrição de bounds superior caso necessária em algum alelo
     x.chromossome = np.minimum(x.chromossome, ub)               # Aplica a restrição de bounds inferior caso necessária em algum alelo
+
+
+def normalize_data(lista,ub,lb):
+    lista_aux = [[None for _ in range(len(lista[1]))] for _ in range(len(ub))]
+    for i in range(0,5):
+        for j in range(len(lista[1])):
+            if lista[i][j] < 0:
+                alpha = -1
+            else:
+                alpha = 1
+            lista_aux[i][j] = alpha*((lista[i][j]-lb[i])/(ub[i]-lb[i]))
+    
+    return lista_aux
