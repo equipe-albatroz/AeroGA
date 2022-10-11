@@ -1,0 +1,7 @@
+# Ignorar arquivo .txt
+usefull_comands.txt
+
+# Ignorar o arquivo de teste
+test.py
+
+*.pyc
