@@ -2,6 +2,9 @@
 usefull_comands.txt
 
 # Ignorar o arquivo de teste
-test.py
+test.ipynb
 
+__pycache__
 *.pyc
+
+.ipynb_checkpoints
