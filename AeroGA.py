@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 from ypstruct import structure
 import matplotlib.pyplot as plt
+import copy
 
 def optimize(problem, params, methods):
 
@@ -29,6 +30,7 @@ def optimize(problem, params, methods):
     nvar = problem.nvar
     lb = problem.lb
     ub = problem.ub
+    integer = problem.integer
 
     # Parameters
     max_iterations = params.max_iterations
@@ -38,6 +40,7 @@ def optimize(problem, params, methods):
     gamma = params.gamma
     mu = params.mu
     sigma = params.sigma
+    sigma_int = params.sigma_int
 
     # Empty Individual Template
     empty_individual = structure()
@@ -51,10 +54,16 @@ def optimize(problem, params, methods):
     # Archive for all population created
     archive = []
 
+    # Separeting continuous variables indices from the integers
+    continuous = list(range(0,nvar))
+    cont = remove_index(continuous, integer)
+
     # Initialize Population
     pop = empty_individual.repeat(npop)
     for i in range(npop):
-        pop[i].chromossome = np.random.uniform(lb, ub, nvar)
+        pop[i].chromossome = np.random.uniform(lb,ub,nvar)
+        pop[i].chromossome[cont] = np.random.uniform(remove_index(lb,integer),remove_index(ub,integer),len(cont))
+        pop[i].chromossome[integer] = np.random.randint(remove_index(lb,cont),remove_index(ub,cont),len(integer))
         pop[i].fit = fitness(pop[i].chromossome)
         archive.append(pop[i].chromossome)
         if pop[i].fit < bestsol.fit:
@@ -90,16 +99,16 @@ def optimize(problem, params, methods):
 
             # Perform Crossover
             if crossover_method == "arithmetic":
-                child1, child2 = arithmetic_crossover(parent1, parent2, gamma)
+                child1, child2 = arithmetic_crossover(parent1, parent2, gamma, cont, integer)
             elif crossover_method == "1-point":
-                child1, child2 = onepoint_crossover(parent1, parent2, gamma)
+                child1, child2 = onepoint_crossover(parent1, parent2, gamma, cont, integer)
             elif crossover_method == "2-point":
-                child1, child2 = twopoint_crossover(parent1, parent2, gamma)
+                child1, child2 = twopoint_crossover(parent1, parent2, gamma, cont, integer)
 
             # Perform Mutation
             if mutation_method == "gaussian":
-                child1 = gaussian_mutation(child1, mu, sigma)
-                child2 = gaussian_mutation(child2, mu, sigma)
+                child1 = gaussian_mutation(child1, mu, sigma, sigma_int, cont, integer)
+                child2 = gaussian_mutation(child2, mu, sigma, sigma_int, cont, integer)
             elif mutation_method == "default":
                 child1 = default_mutation(child1, mu)
                 child2 = default_mutation(child2, mu)
@@ -138,7 +147,7 @@ def optimize(problem, params, methods):
         if iterations >= 1: error[iterations] = round(((bestfit[iterations-1]-bestfit[iterations])/bestfit[iterations])*100,4)
 
         # Show Iteration Information
-        print("Iteration {}: Best Fit = {}: Erro(%) = {}".format(iterations+1, bestfit[iterations], error[iterations]))
+        print("Iteration {}: Best Fit = {}".format(iterations+1, bestfit[iterations]))
 
     print(f"Tempo de Execução: {time.time() - t_inicial}")
 
@@ -158,35 +167,53 @@ def optimize(problem, params, methods):
 
 
 # Crossover methods
-def arithmetic_crossover(parent1, parent2, gamma):
+def arithmetic_crossover(parent1, parent2, gamma, cont, integer):
+    global npop
     child1 = parent1.deepcopy()
     child2 = parent2.deepcopy()
     alpha = np.random.uniform(-gamma, 1+gamma, *child1.chromossome.shape)
-    child1.chromossome = alpha*parent1.chromossome + (1-alpha)*parent2.chromossome
-    child2.chromossome = alpha*parent2.chromossome + (1-alpha)*parent1.chromossome
+    child1.chromossome[cont] = alpha[cont]*parent1.chromossome[cont] + (1-alpha[cont])*parent2.chromossome[cont]
+    child2.chromossome[cont] = alpha[cont]*parent2.chromossome[cont] + (1-alpha[cont])*parent1.chromossome[cont]
+    child1.chromossome[integer] = alpha[integer]*parent1.chromossome[integer] + (1-alpha[integer])*parent2.chromossome[integer]
+    child2.chromossome[integer] = alpha[integer]*parent2.chromossome[integer] + (1-alpha[integer])*parent1.chromossome[integer]
+    for i in integer:
+        child1.chromossome[i] = round(child1.chromossome[i])
+        child2.chromossome[i] = round(child2.chromossome[i])
     return child1, child2
 
-def onepoint_crossover(parent1, parent2, gamma):
+def onepoint_crossover(parent1, parent2, gamma, cont, integer):
+    global npop
     child1 = parent1.deepcopy()
     child2 = parent2.deepcopy()
     alpha = np.random.uniform(-gamma, 1+gamma, *child1.chromossome.shape)
-    child1.chromossome = alpha*parent1.chromossome + (1-alpha)*parent2.chromossome
-    child2.chromossome = alpha*parent2.chromossome + (1-alpha)*parent1.chromossome
+    child1.chromossome[cont] = alpha[cont]*parent1.chromossome[cont] + (1-alpha[cont])*parent2.chromossome[cont]
+    child2.chromossome[cont] = alpha[cont]*parent2.chromossome[cont] + (1-alpha[cont])*parent1.chromossome[cont]
+    child1.chromossome[integer] = alpha[integer]*parent1.chromossome[integer] + (1-alpha[integer])*parent2.chromossome[integer]
+    child2.chromossome[integer] = alpha[integer]*parent2.chromossome[integer] + (1-alpha[integer])*parent1.chromossome[integer]
+    for i in integer:
+        child1.chromossome[i] = round(child1.chromossome[i])
+        child2.chromossome[i] = round(child2.chromossome[i])
     return child1, child2
 
-def twopoint_crossover(parent1, parent2, gamma):
+def twopoint_crossover(parent1, parent2, gamma, cont, integer):
+    global npop
     child1 = parent1.deepcopy()
     child2 = parent2.deepcopy()
     alpha = np.random.uniform(-gamma, 1+gamma, *child1.chromossome.shape)
-    child1.chromossome = alpha*parent1.chromossome + (1-alpha)*parent2.chromossome
-    child2.chromossome = alpha*parent2.chromossome + (1-alpha)*parent1.chromossome
+    child1.chromossome[cont] = alpha[cont]*parent1.chromossome[cont] + (1-alpha[cont])*parent2.chromossome[cont]
+    child2.chromossome[cont] = alpha[cont]*parent2.chromossome[cont] + (1-alpha[cont])*parent1.chromossome[cont]
+    child1.chromossome[integer] = alpha[integer]*parent1.chromossome[integer] + (1-alpha[integer])*parent2.chromossome[integer]
+    child2.chromossome[integer] = alpha[integer]*parent2.chromossome[integer] + (1-alpha[integer])*parent1.chromossome[integer]
+    for i in integer:
+        child1.chromossome[i] = round(child1.chromossome[i])
+        child2.chromossome[i] = round(child2.chromossome[i])
     return child1, child2
 
 # Mutation methods
-def gaussian_mutation(x, mu, sigma):
+def gaussian_mutation(x, mu, sigma, sigma_int, cont, integer):
     y = x.deepcopy()
     flag = np.random.rand(*x.chromossome.shape) <= mu          # Lista Booleana indicando em quais posições a mutação vai ocorrer
-    ind = np.argwhere(flag)                                   # Lista das posições a serem mutadas
+    ind = np.argwhere(flag)                                    # Lista das posições a serem mutadas
     y.chromossome[ind] += sigma*np.random.randn(*ind.shape)    # Aplicação da mutação nos alelos
     return y
 
@@ -237,3 +264,11 @@ def normalize_data(lista,ub,lb):
             lista_aux[i][j] = alpha*((lista[i][j]-lb[i])/(ub[i]-lb[i]))
     
     return lista_aux
+
+def remove_index(lista,remove):
+    aux_lista = copy.deepcopy(lista)
+    k=0
+    for i in range(len(remove)):
+        aux_lista.pop(remove[i]-k)
+        k+=1
+    return aux_lista

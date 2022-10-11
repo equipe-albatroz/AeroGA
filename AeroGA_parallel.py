@@ -14,6 +14,7 @@ from joblib import parallel, delayed
 import numpy as np
 from ypstruct import structure
 import matplotlib.pyplot as plt
+from numba import njit, prange
 
 def optimize(problem, params, methods):
 
@@ -41,8 +42,8 @@ def optimize(problem, params, methods):
 
     # Empty Individual Template
     empty_individual = structure()
-    empty_individual.chromosome = None
-    empty_individual.fit = None
+    empty_individual.chromosome = 1
+    empty_individual.fit = 999999
 
     # Best Solution Ever Found
     bestsol = empty_individual.deepcopy()
@@ -50,7 +51,7 @@ def optimize(problem, params, methods):
 
     # Initialize Population
     pop = empty_individual.repeat(npop)
-    for i in range(npop):
+    for i in prange(npop):
         pop[i].chromosome = np.random.uniform(lb, ub, nvar)
         pop[i].fit = fitness(pop[i].chromosome)
         if pop[i].fit < bestsol.fit:
@@ -60,8 +61,7 @@ def optimize(problem, params, methods):
     bestfit = np.empty(max_iterations)
     
     # Main Loop
-    iterations = 0
-    pop, bestsol, bestfit = parallel(n_jobs=-1)(delayed(main_loop_iterations)(iterations) for iterations in range(max_iterations))
+    pop, bestsol, bestfit = main_loop_iterations(max_iterations, nc, selection_method, crossover_method, mutation_method, fitness, mu, sigma, lb, ub, npop, gamma, bestfit,pop,bestsol)
 
     print(f"Tempo de Execução: {time.time() - t_inicial}")
 
@@ -72,12 +72,12 @@ def optimize(problem, params, methods):
     out.bestfit = bestfit
     return out
 
-
-def main_loop_iterations(max_iterations):
-    global nc, selection_method, crossover_method, mutation_method, fitness, mu, sigma, beta, lb, ub, npop, gamma, bestfit
+@njit(parallel=True)
+def main_loop_iterations(max_iterations, nc, selection_method, crossover_method, mutation_method, fitness, mu, sigma, lb, ub, npop, gamma, bestfit,pop,bestsol):
     iterations = 0
     popc = []
-    for _ in range(nc//2):
+    print("entra no main loop")
+    for _ in prange(nc//2):
 
         # Perform Roulette Wheel Selection
         if selection_method == "roulette":
