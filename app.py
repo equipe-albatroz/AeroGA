@@ -11,7 +11,7 @@ def sphere(x):
     return sum(x**2)
 
 # Gráficos
-plot_iterations = 0
+plot_iterations = 1
 plot_box = 0
 
 # Problem Definition
@@ -40,28 +40,30 @@ methods.mutation = "gaussian"                           # Available methods: "ga
 
 
 # Run GA
-# out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
-out = AeroGA_parallel.optimize(problem, params, methods)        # Running the Simulation 
+out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
+# out = AeroGA_parallel.optimize(problem, params, methods)        # Running the Simulation 
 
 # print(out.archive)
 
 # Gráficos - Linear das iterações
 if plot_iterations == 1:
-    fig = plt.figure()
-    plt.plot(out.bestfit)
-    plt.xlim(0, params.max_iterations+1)
-    plt.xlabel('Iterations')
-    plt.ylabel('Best Fit')
-    plt.title('Fitness x Iterations')
-    plt.grid(True)
+    # fig = plt.figure()
+    # plt.plot(out.bestfit)
+    # plt.xlim(0, params.max_iterations+1)
+    # plt.xlabel('Iterations')
+    # plt.ylabel('Best Fit')
+    # plt.title('Fitness x Iterations')
+    # plt.grid(True)
+    fig1 = out.plots
     plt.show()
 
 # Gráficos - Box plot
 if plot_box == 1:
-    fig = plt.figure()
-    plt.boxplot(out.archive_scaled)
-    plt.xlabel('Variáveis')
-    plt.ylabel('Valores do GA')
-    plt.title('Dispersão das Variáveis')
-    plt.grid(True)
+    # fig = plt.figure()
+    # plt.boxplot(out.archive_scaled)
+    # plt.xlabel('Variáveis')
+    # plt.ylabel('Valores do GA')
+    # plt.title('Dispersão das Variáveis')
+    # plt.grid(True)
+    fig2 = out.plots
     plt.show()

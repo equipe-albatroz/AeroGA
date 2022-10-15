@@ -107,11 +107,11 @@ def optimize(problem, params, methods):
 
             # Perform Mutation
             if mutation_method == "gaussian":
-                child1 = gaussian_mutation(child1, mu, sigma, sigma_int, cont, integer)
-                child2 = gaussian_mutation(child2, mu, sigma, sigma_int, cont, integer)
+                child1 = gaussian_mutation(child1, mu, sigma, sigma_int)
+                child2 = gaussian_mutation(child2, mu, sigma, sigma_int)
             elif mutation_method == "default":
-                child1 = default_mutation(child1, mu)
-                child2 = default_mutation(child2, mu)
+                child1 = default_mutation(child1, mu, sigma, sigma_int)
+                child2 = default_mutation(child2, mu, sigma, sigma_int)
 
             # Apply Bounds
             apply_bound(child1, lb, ub)
@@ -163,8 +163,28 @@ def optimize(problem, params, methods):
     out.error = error
     out.archive = archive
     out.archive_scaled = archive_scaled
+    out.plots = plots_bestfit(params, bestfit, archive_scaled)
     return out
 
+
+def plots_bestfit(params, bestfit, archive_scaled):
+    fig1 = plt.figure()
+    plt.plot(bestfit)
+    plt.xlim(0, params.max_iterations+1)
+    plt.xlabel('Iterations')
+    plt.ylabel('Best Fit')
+    plt.title('Fitness x Iterations')
+    plt.grid(True)
+    return fig1
+
+def plots_searchspace(params, bestfit, archive_scaled):
+    fig2 = plt.figure()
+    plt.boxplot(archive_scaled)
+    plt.xlabel('Variáveis')
+    plt.ylabel('Valores do GA')
+    plt.title('Dispersão das Variáveis')
+    plt.grid(True)
+    return fig2
 
 # Crossover methods
 def arithmetic_crossover(parent1, parent2, gamma, cont, integer):
@@ -210,18 +230,29 @@ def twopoint_crossover(parent1, parent2, gamma, cont, integer):
     return child1, child2
 
 # Mutation methods
-def gaussian_mutation(x, mu, sigma, sigma_int, cont, integer):
+def gaussian_mutation(x, mu, sigma, sigma_int):
     y = x.deepcopy()
     flag = np.random.rand(*x.chromossome.shape) <= mu          # Lista Booleana indicando em quais posições a mutação vai ocorrer
     ind = np.argwhere(flag)                                    # Lista das posições a serem mutadas
-    y.chromossome[ind] += sigma*np.random.randn(*ind.shape)    # Aplicação da mutação nos alelos
+    for i in ind:
+        if isinstance(y.chromossome[ind], int) == False:
+            y.chromossome[i] += sigma*np.random.randn()        # Aplicação da mutação nos alelos
+        else:
+            y.chromossome[i] += sigma_int*np.random.randn()    # Aplicação da mutação nos alelos
+    
     return y
 
-def default_mutation(x, mu):
+def default_mutation(x, mu, sigma, sigma_int):
     y = x.deepcopy()
     flag = np.random.rand(*x.chromossome.shape) <= mu          # Lista Booleana indicando em quais posições a mutação vai ocorrer
     ind = np.argwhere(flag)                                   # Lista das posições a serem mutadas
-    y.chromossome[ind] += np.random.randn(*ind.shape)          # Aplicação da mutação nos alelos
+    for i in ind:
+        if isinstance(y.chromossome[ind], int) == False:
+            y.chromossome[i] += sigma*np.random.randn()        # Aplicação da mutação nos alelos
+        else:
+            y.chromossome[i] += sigma_int*np.random.randn()    # Aplicação da mutação nos alelos
+
+    # y.chromossome[ind] += np.random.randn(*ind.shape)          # Aplicação da mutação nos alelos
     return y
 
 # Selection methods

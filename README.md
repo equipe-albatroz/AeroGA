@@ -3,9 +3,9 @@
 ## Etapas
 
 * Inicialização da População;
-* Seleção 
+* Critérios de Seleção 
 * Recombinação (Crossover)
-* Mutação (Muation)
+* Mutação (Mutation)
 
 ## Inicialização da População
 
