@@ -1,5 +1,7 @@
+joblib==1.1.0
 matplotlib==3.5.1
-matplotlib-inline==0.1.6
+numba==0.55.1
 numpy==1.21.0
+pandas==1.4.2
+seaborn==0.11.2
 ypstruct==0.0.2
-numba==1.21.0
