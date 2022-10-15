@@ -1,12 +1,7 @@
 '''
 Albatroz AeroDesign Genetic Algorithm (AeroGA)
 
-Algoritmo Metaheurístico para Otimização do MDO da Equipe Albatroz.
-
 Mais detalhes sobre a construção do algoritmo podem ser encontradas no arquivo README.md
-
-Author: Krigor Rosa
-Email: krigorsilva13@gmail.com
 '''
 
 import time
@@ -15,6 +10,10 @@ import pandas as pd
 from ypstruct import structure
 import matplotlib.pyplot as plt
 import copy
+
+######################################################################
+#################### Main Optimization Function ######################
+######################################################################
 
 def optimize(problem, params, methods):
 
@@ -166,25 +165,9 @@ def optimize(problem, params, methods):
     out.plots = plots_bestfit(params, bestfit, archive_scaled)
     return out
 
-
-def plots_bestfit(params, bestfit, archive_scaled):
-    fig1 = plt.figure()
-    plt.plot(bestfit)
-    plt.xlim(0, params.max_iterations+1)
-    plt.xlabel('Iterations')
-    plt.ylabel('Best Fit')
-    plt.title('Fitness x Iterations')
-    plt.grid(True)
-    return fig1
-
-def plots_searchspace(params, bestfit, archive_scaled):
-    fig2 = plt.figure()
-    plt.boxplot(archive_scaled)
-    plt.xlabel('Variáveis')
-    plt.ylabel('Valores do GA')
-    plt.title('Dispersão das Variáveis')
-    plt.grid(True)
-    return fig2
+######################################################################
+######################## Crossover Functions #########################
+######################################################################
 
 # Crossover methods
 def arithmetic_crossover(parent1, parent2, gamma, cont, integer):
@@ -229,6 +212,11 @@ def twopoint_crossover(parent1, parent2, gamma, cont, integer):
         child2.chromossome[i] = round(child2.chromossome[i])
     return child1, child2
 
+
+######################################################################
+######################### Mutation Functions #########################
+######################################################################
+
 # Mutation methods
 def gaussian_mutation(x, mu, sigma, sigma_int):
     y = x.deepcopy()
@@ -255,6 +243,10 @@ def default_mutation(x, mu, sigma, sigma_int):
     # y.chromossome[ind] += np.random.randn(*ind.shape)          # Aplicação da mutação nos alelos
     return y
 
+######################################################################
+######################### Selection Functions ########################
+######################################################################
+
 # Selection methods
 def roulette_wheel_selection(pop):
     fits = sum([x.fit for x in pop])                          # Realiza a soma de todos os valores de Fitness da População
@@ -277,6 +269,11 @@ def tournament_selection(pop):
 def elitism_selection(pop):
 
     return 1
+
+
+######################################################################
+######################## Auxiliary Functions #########################
+######################################################################
 
 # To guarantee bounds limits
 def apply_bound(x, lb, ub):
@@ -303,3 +300,26 @@ def remove_index(lista,remove):
         aux_lista.pop(remove[i]-k)
         k+=1
     return aux_lista
+
+######################################################################
+########################### Plots Functions ##########################
+######################################################################
+
+def plots_bestfit(params, bestfit, archive_scaled):
+    fig1 = plt.figure()
+    plt.plot(bestfit)
+    plt.xlim(0, params.max_iterations+1)
+    plt.xlabel('Iterations')
+    plt.ylabel('Best Fit')
+    plt.title('Fitness x Iterations')
+    plt.grid(True)
+    return fig1
+
+def plots_searchspace(params, bestfit, archive_scaled):
+    fig2 = plt.figure()
+    plt.boxplot(archive_scaled)
+    plt.xlabel('Variáveis')
+    plt.ylabel('Valores do GA')
+    plt.title('Dispersão das Variáveis')
+    plt.grid(True)
+    return fig2
