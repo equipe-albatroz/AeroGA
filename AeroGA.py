@@ -238,7 +238,7 @@ def gaussian_mutation(x, mu, sigma, sigma_int):
         if isinstance(y.chromossome[ind], int) == False:
             y.chromossome[i] += sigma*np.random.randn()        # Aplicação da mutação nos alelos
         else:
-            y.chromossome[i] += sigma_int*np.random.randn()    # Aplicação da mutação nos alelos
+            y.chromossome[i] += round(sigma_int*np.random.randn())    # Aplicação da mutação nos alelos
     
     return y
 
@@ -250,7 +250,7 @@ def default_mutation(x, mu, sigma, sigma_int):
         if isinstance(y.chromossome[ind], int) == False:
             y.chromossome[i] += sigma*np.random.randn()        # Aplicação da mutação nos alelos
         else:
-            y.chromossome[i] += sigma_int*np.random.randn()    # Aplicação da mutação nos alelos
+            y.chromossome[i] += round(sigma_int*np.random.randn())    # Aplicação da mutação nos alelos
 
     # y.chromossome[ind] += np.random.randn(*ind.shape)          # Aplicação da mutação nos alelos
     return y
