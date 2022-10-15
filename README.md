@@ -29,7 +29,7 @@ Etapa inicial do código, onde são gerados indivíduos com valores aleatórios 
 
 * **Instalando requirements.txt**
 
-Para instalar todas as bibliotecas utilizadas no GA va no terminal de comandos coloque o código abaixo:
+Para instalar todas as bibliotecas utilizadas, no terminal de comandos coloque o código abaixo:
 
 ~~~python
 pip install -r requirements.txt
