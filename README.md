@@ -25,7 +25,7 @@ Etapa inicial do código, onde são gerados indivíduos com valores aleatórios 
 
 
 
-## Observações
+# Observações
 
 * **Instalando requirements.txt**
 
@@ -39,7 +39,7 @@ pip install -r requirements.txt
 
 Opção de paralelização ainda não foi adicionada, o código AeroGA_parallel está em desenvolvimento.
 
-## Contato
+# Contato
 
 Qualquer dúvidas sobre o código favor contatar o autor.
 
