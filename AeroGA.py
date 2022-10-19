@@ -28,13 +28,11 @@ def optimize(problem, params, methods):
     pop, archive, bestsol = initialize_population(problem, params, methods, cont)
     
     # Main Loop
-    pop, bestfit, bestsol, archive, error = main_loop(problem, params, methods, cont, archive, pop, bestsol)
+    pop, bestfit, bestsol, archive, metrics, error = main_loop(problem, params, methods, cont, archive, pop, bestsol)
 
     # Normalização dos dados da população
     archive = np.array(list(map(list,archive))).T.tolist()
     archive_scaled = normalize_data(archive, problem)
-
-    metrics=[]
 
     # Output
     out = structure()
@@ -44,7 +42,8 @@ def optimize(problem, params, methods):
     out.error = error
     out.archive = archive
     out.archive_scaled = archive_scaled
-    out.plots = plots_bestfit(params, bestfit, archive_scaled)
+    out.plots = [plots_bestfit(params, bestfit, archive_scaled)]
+    # out.plots = [plots_bestfit(params, bestfit, archive_scaled), plots_searchspace(params, bestfit, archive_scaled)]       
     out.metrics = metrics
 
     print(f"Tempo de Execução: {time.time() - t_inicial}")
@@ -166,13 +165,16 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
         # Store Best Fit
         bestfit[iterations] = bestsol.fit
 
+        # Quality metrics calculation
+        metrics=quality_metrics(params,bestfit)
+
         # Calculating the error
         if iterations >= 1: error[iterations] = round(((bestfit[iterations-1]-bestfit[iterations])/bestfit[iterations])*100,4)
 
         # Show Iteration Information
         print("Iteration {}: Best Fit = {}".format(iterations+1, bestfit[iterations]))
     
-    return pop, bestfit, bestsol, archive, error
+    return pop, bestfit, bestsol, archive, metrics, error
 
 
 ######################################################################
@@ -277,6 +279,14 @@ def elitism_selection(pop):
 
     return 1
 
+
+######################################################################
+########################## Metrics Function ##########################
+######################################################################
+
+def quality_metrics(params, bestfit):
+
+    return 1
 
 ######################################################################
 ######################## Auxiliary Functions #########################

@@ -3,8 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from ypstruct import structure
 import AeroGA
-import AeroGA_parallel
-import AeroGA_p
+# import AeroGA_parallel
+# import AeroGA_p
 
 # Sphere Test Function
 def sphere(x):
@@ -26,12 +26,13 @@ problem.integer = [1,2]                                # Indice de números inte
 params = structure()                                   # Creating the Parameters Structure
 params.max_iterations = 100                            # Number of Max Iterations
 params.npop = 50                                       # Number of the Population
-params.pc = 1                                          # Proporção da população de filhos em relação aos pais
-params.gamma = 0.1                                     # Amplitude do crossover        
-params.mu = 0.5                                        # Mutation Rate
+params.pc = 1                                          # Proportion of children compared to the fathers pop
+params.mu = [0.5, 0.5, 0.5, 0.5, 0.5]                  # Mutation Rate -> It can be used only one parameter for the whole chromossome or a value for each one
 params.sigma = 0.1                                     # Standart deviation of the Mutation
 params.sigma_int = 0.7                                 # Standart deviation of the Mutation (integer number)
+params.gamma = 0.1                                     # Arithmetic crossover amplitude
 
+# Parallel Parameters
 parallel = structure()                                 # Creating the Parallel processing Structure
 parallel.Multiprocessing = True
 parallel.threads = 8
@@ -52,10 +53,10 @@ out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
 
 # Gráficos - Linear das iterações
 if plot_iterations == 1:
-    fig1 = out.plots
+    fig1 = out.plots[0]
     plt.show()
 
 # Gráficos - Box plot
 if plot_box == 1:
-    fig2 = out.plots
+    fig2 = out.plots[1]
     plt.show()
