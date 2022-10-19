@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from ypstruct import structure
 import AeroGA
 import AeroGA_parallel
+import AeroGA_p
 
 # Sphere Test Function
 def sphere(x):
@@ -31,6 +32,10 @@ params.mu = 0.5                                        # Mutation Rate
 params.sigma = 0.1                                     # Standart deviation of the Mutation
 params.sigma_int = 0.7                                 # Standart deviation of the Mutation (integer number)
 
+parallel = structure()                                 # Creating the Parallel processing Structure
+parallel.Multiprocessing = True
+parallel.threads = 8
+
 # GA Methods
 methods = structure()
 methods.selection = "rank"                             # Available methods: "roulette", "rank", "tournament", "elitism" -> Read README.md for detailed info
@@ -41,6 +46,7 @@ methods.mutation = "gaussian"                          # Available methods: "gau
 # Run GA
 out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
 # out = AeroGA_parallel.optimize(problem, params, methods)        # Running the Simulation 
+# out = AeroGA_p.optimize(problem, params, methods,parallel)        # Running the Simulation 
 
 # print(out.archive)
 
