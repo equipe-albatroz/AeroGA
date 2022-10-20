@@ -31,8 +31,8 @@ def optimize(problem, params, methods):
     pop, bestfit, bestsol, archive, metrics, error = main_loop(problem, params, methods, cont, archive, pop, bestsol)
 
     # Normalização dos dados da população
-    archive = np.array(list(map(list,archive))).T.tolist()
-    archive_scaled = normalize_data(archive, problem)
+    dispersion = np.array(list(map(list,list(archive["chromossome"])))).T.tolist()
+    dispersion_scaled = normalize_data(dispersion, problem)
 
     # Output
     out = structure()
@@ -41,8 +41,7 @@ def optimize(problem, params, methods):
     out.bestfit = bestfit
     out.error = error
     out.archive = archive
-    out.archive_scaled = archive_scaled
-    out.plots = [plots_bestfit(params, bestfit, archive_scaled)]
+    out.plots = [plots_bestfit(params, bestfit, dispersion_scaled)]
     # out.plots = [plots_bestfit(params, bestfit, archive_scaled), plots_searchspace(params, bestfit, archive_scaled)]       
     out.metrics = metrics
 
@@ -67,7 +66,7 @@ def initialize_population(problem, params, methods, cont):
     bestsol.fit = np.inf
 
     # Archive for all population created
-    archive = []
+    archive = {"chromossome":[],"fit":[]};
 
     # Initialize Population
     pop = empty_individual.repeat(params.npop)
@@ -76,7 +75,9 @@ def initialize_population(problem, params, methods, cont):
         pop[i].chromossome[cont] = np.random.uniform(remove_index(problem.lb,problem.integer),remove_index(problem.ub,problem.integer),len(cont))
         pop[i].chromossome[problem.integer] = np.random.randint(remove_index(problem.lb,cont),remove_index(problem.ub,cont),len(problem.integer))
         pop[i].fit = problem.fitness(pop[i].chromossome)
-        archive.append(pop[i].chromossome)
+        # archive.append(pop[i].chromossome)
+        archive["chromossome"].append(pop[i].chromossome)
+        archive["fit"].append(pop[i].fit)
         if pop[i].fit < bestsol.fit:
             bestsol = pop[i].deepcopy()
 
@@ -154,8 +155,8 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
             popc.append(child2)
 
             # Saving children data to archive
-            archive.append(child1.chromossome)
-            archive.append(child2.chromossome)
+            archive["chromossome"].append(child1.chromossome)
+            archive["fit"].append(child2.chromossome)
         
         # Merge, Sort and Select
         pop += popc
@@ -317,6 +318,36 @@ def remove_index(lista,remove):
         aux_lista.pop(remove[i]-k)
         k+=1
     return aux_lista
+
+
+######################################################################
+######################## Sensibility Analisys ########################
+######################################################################
+
+def sensibility(problem, archive, i):
+
+    lista=[None]*problem.nvar
+    print(archive[2][2])
+    for j in range(problem.nvar):
+
+        bounds = list(copy.deepcopy(archive["chromossome"]))
+        if isinstance(bounds[i][j], int) == False:
+            increment = bounds[i][j]/10
+            lst = list(range(-10*bounds[i][j],10*bounds[i][j],increment))
+            np.arange(0.2, 1.+0.1, 0.1)
+        else:
+            increment = 1
+            lst = list(range(problem.lb[j],problem.ub[j],increment))
+        
+        aux = []
+        for k in lst:
+            bounds[i][j] = k
+            aux.append(problem.fitness(bounds[i]))
+
+        lista.append(aux)
+
+    df = pd.DataFrame(lista)
+    return df
 
 ######################################################################
 ########################### Plots Functions ##########################

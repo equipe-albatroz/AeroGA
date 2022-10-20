@@ -18,8 +18,8 @@ plot_box = 0
 problem = structure()                                  # Creating the Problem Structure
 problem.fitness = sphere                               # Fitness Function
 problem.nvar = 5                                       # Variables number
-problem.lb = [-10, -10, -10, -5, -5]                   # Lower Bounds
-problem.ub = [ 10, 10, 10,  5, 5]                      # Upper Bounds
+problem.lb = [0.2, -10, -10, -5, -5]                   # Lower Bounds
+problem.ub = [0.4 , 10, 10,  5, 5]                      # Upper Bounds
 problem.integer = [1,2]                                # Indice de números inteiros
 
 # GA Parameters
@@ -48,6 +48,8 @@ methods.mutation = "gaussian"                          # Available methods: "gau
 out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
 # out = AeroGA_parallel.optimize(problem, params, methods)        # Running the Simulation 
 # out = AeroGA_p.optimize(problem, params, methods,parallel)        # Running the Simulation 
+
+# df_sensitivity = AeroGA.sensibility(problem, out.archive, 1)
 
 # print(out.archive)
 
