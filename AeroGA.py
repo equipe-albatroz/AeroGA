@@ -75,7 +75,6 @@ def initialize_population(problem, params, methods, cont):
         pop[i].chromossome[cont] = np.random.uniform(remove_index(problem.lb,problem.integer),remove_index(problem.ub,problem.integer),len(cont))
         pop[i].chromossome[problem.integer] = np.random.randint(remove_index(problem.lb,cont),remove_index(problem.ub,cont),len(problem.integer))
         pop[i].fit = problem.fitness(pop[i].chromossome)
-        # archive.append(pop[i].chromossome)
         archive["chromossome"].append(pop[i].chromossome)
         archive["fit"].append(pop[i].fit)
         if pop[i].fit < bestsol.fit:
@@ -96,29 +95,38 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
 
     # Best Fit of Iterations
     bestfit = np.empty(params.max_iterations)
-    
+
     # Number of children to be generated 
     nc = int(np.round(params.pc*params.npop/2)*2)
 
     for iterations in range(params.max_iterations):
 
         popc = []
-        for _ in range(nc//2):
 
-            pop = sorted(pop, key=lambda x: x.fit)
+        # Population sorted by the fitness value
+        pop = sorted(pop, key=lambda x: x.fit)
+
+        # Elitist population
+        pope = elitist_population(params,pop)
+
+        for _ in range(nc - round(len(pop)*params.elitism)):
+
             # Perform Roulette Wheel Selection
             if methods.selection == "roulette":
-                parent1 = pop[roulette_wheel_selection(pop)]
-                parent2 = pop[roulette_wheel_selection(pop)]
+                aux1 = roulette_wheel_selection(pop)
+                parent1 = pop[aux1]; del pop[aux1]
+                aux2 = roulette_wheel_selection(pop)
+                parent2 = pop[aux2]; del pop[aux2]
             elif methods.selection == "rank": 
-                parent1 = pop[rank_selection(pop)]
-                parent2 = pop[rank_selection(pop)]
+                aux1 = rank_selection(pop)
+                parent1 = pop[aux1]; del pop[aux1]
+                aux2 = rank_selection(pop)
+                parent2 = pop[aux2]; del pop[aux2]
             elif methods.selection == "tournament":
-                parent1 = pop[tournament_selection(pop)]
-                parent2 = pop[tournament_selection(pop)]
-            elif methods.selection == "elitism":
-                parent1 = pop[elitism_selection(pop)]
-                parent2 = pop[elitism_selection(pop)]
+                aux1 = tournament_selection(pop)
+                parent1 = pop[aux1]
+                aux2 = tournament_selection(pop)
+                parent2 = pop[aux2]
 
             # Perform Crossover
             if methods.crossover == "arithmetic":
@@ -159,7 +167,8 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
             archive["fit"].append(child2.chromossome)
         
         # Merge, Sort and Select
-        pop += popc
+        del pop
+        pop = popc; pop += pope
         pop = sorted(pop, key=lambda x: x.fit)
         pop = pop[0:params.npop]
 
@@ -273,12 +282,15 @@ def rank_selection(pop):
 
 
 def tournament_selection(pop):
-
-    return 1
-
-def elitism_selection(pop):
-
-    return 1
+    individual1 = np.random.choice(len(pop))
+    individual2 = np.random.choice(len(pop))
+    if individual1 == individual2: 
+        while individual1 == individual2: 
+            individual2 = np.random.choice(len(pop))
+    if pop[individual1].fit >= pop[individual2].fit:
+        return individual1
+    else:
+        return individual2
 
 
 ######################################################################
@@ -318,6 +330,14 @@ def remove_index(lista,remove):
         aux_lista.pop(remove[i]-k)
         k+=1
     return aux_lista
+
+
+def elitist_population(params,pop):
+    lst = []
+    for i in range(round(len(pop)*params.elitism)):
+        lst.append(pop[i])
+
+    return lst
 
 
 ######################################################################

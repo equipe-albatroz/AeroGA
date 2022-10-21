@@ -19,7 +19,7 @@ problem = structure()                                  # Creating the Problem St
 problem.fitness = sphere                               # Fitness Function
 problem.nvar = 5                                       # Variables number
 problem.lb = [0.2, -10, -10, -5, -5]                   # Lower Bounds
-problem.ub = [0.4 , 10, 10,  5, 5]                      # Upper Bounds
+problem.ub = [0.4 , 10, 10,  5, 5]                     # Upper Bounds
 problem.integer = [1,2]                                # Indice de números inteiros
 
 # GA Parameters
@@ -31,6 +31,7 @@ params.mu = [0.5, 0.5, 0.5, 0.5, 0.5]                  # Mutation Rate -> It can
 params.sigma = 0.1                                     # Standart deviation of the Mutation
 params.sigma_int = 0.7                                 # Standart deviation of the Mutation (integer number)
 params.gamma = 0.1                                     # Arithmetic crossover amplitude
+params.elitism = 0.1                                   # Elitism rate
 
 # Parallel Parameters
 parallel = structure()                                 # Creating the Parallel processing Structure
@@ -39,7 +40,7 @@ parallel.threads = 8
 
 # GA Methods
 methods = structure()
-methods.selection = "rank"                             # Available methods: "roulette", "rank", "tournament", "elitism" -> Read README.md for detailed info
+methods.selection = "tournament"                             # Available methods: "roulette", "rank", "tournament", "elitism" -> Read README.md for detailed info
 methods.crossover = "arithmetic"                       # Available methods: "arithmetic", "1-point", "2-point" -> Read README.md for detailed info
 methods.mutation = "gaussian"                          # Available methods: "gaussian", "default" -> Read README.md for detailed info
 
