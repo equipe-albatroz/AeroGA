@@ -2,10 +2,82 @@
 
 Algoritmo heurístico de otimização single-objective utilizando conceitos evolutivos.
 
+Para utilizar o GA deve-se fazer a importação do arquivo .py e todas suas funções, como mostrado abaixo:
+
+~~~python
+import AeroGA                              
+~~~
+
 # Etapas
 
 ### **1. Carregando variáveis**
 
+As variáveis utilizadas no GA são repassadas através de uma estrutura. Para criar a estrutura é necessário importar a bibliotéca ypstruct, como mostrado abaixo:
+
+~~~python
+from ypstruct import structure                            
+~~~
+
+Para instalar a bibliotéca ypstruct e todas as outras necessárias para rodar o código siga os passos mostrados na seção 'Instalando requirements' em Observações.
+
+Variáveis relacionadas ao problema a ser resolvido
+
+* fitness - Função que deve ser otimizada
+* nvar - Número de variáveis do problema
+* lb - Lower Bounds
+* ub - Upper Bounds
+* integer - Indice de números inteiros
+
+Devem ser definidas como no exemplo abaixo:
+
+~~~python
+problem = structure()                                 
+problem.fitness = sphere                         
+problem.nvar = 5                                     
+problem.lb = [0.2, -10, -10, -5, -5]                 
+problem.ub = [0.4 , 10, 10,  5, 5]                   
+problem.integer = [1,2]                                
+~~~
+
+Variáveis relacionadas aos parâmetros do GA
+
+* max_iterations - Número máximo de iterações
+* npop - Tamanho da população
+* pc - Proporção da população de filhos em relação aos pais
+* mu - Taxa de mutação(pode ser declarado um valor geral, ou, um vetor contendo a taxa para cada variável como no exemplo)
+* sigma - Desvio padrão da mutação para números contínuos
+* sigma_int - Desvio padrão da mutação para números inteiros
+* gamma - Amplitude da recombinação aritmética
+* elitism - Porcetagem da população que será elitizada (melhores indivíduos passam para a próxima geração)
+
+Devem ser definidas como no exemplo abaixo:
+
+~~~python
+params = structure()                           
+params.max_iterations = 100                     
+params.npop = 50                            
+params.pc = 1                                 
+params.mu = [0.5, 0.5, 0.5, 0.5, 0.5]           
+params.sigma = 0.1                               
+params.sigma_int = 0.7                       
+params.gamma = 0.1                            
+params.elitism = 0.1                                                 
+~~~
+
+Variáveis relacionadas aos parâmetros do GA
+
+selection - Método de seleção ("roulette", "rank", "tournament")
+crossover - Método de recombinação ("arithmetic", "1-point", "2-point")
+mutation - Método de mutação("gaussian", "default")
+
+Devem ser definidas como no exemplo abaixo:
+
+~~~python
+methods = structure()
+methods.selection = "tournament"    
+methods.crossover = "arithmetic"                  
+methods.mutation = "gaussian"                                                          
+~~~
 
 ### **2. Inicialização da População**
 
@@ -34,8 +106,8 @@ Os critérios de seleção são utilizados para selecionar os indivíduos que se
 ### **5. Mutação (Mutation)**
 
 
-
-### **6. Plots**
+### **6. Métricas de Qualidade**
+### **7. Plots**
 
 
 
