@@ -33,28 +33,26 @@ params.sigma_int = 0.7                                 # Standart deviation of t
 params.gamma = 0.1                                     # Arithmetic crossover amplitude
 params.elitism = 0.1                                   # Elitism rate
 
+# GA Methods
+methods = structure()
+methods.selection = "tournament"                             # Available methods: "roulette", "rank", "tournament", "elitism" -> Read README.md for detailed info
+methods.crossover = "2-point"                       # Available methods: "arithmetic", "1-point", "2-point" -> Read README.md for detailed info
+methods.mutation = "gaussian"                          # Available methods: "gaussian", "default" -> Read README.md for detailed info
+
 # Parallel Parameters
 parallel = structure()                                 # Creating the Parallel processing Structure
 parallel.Multiprocessing = True
 parallel.threads = 8
-
-# GA Methods
-methods = structure()
-methods.selection = "tournament"                             # Available methods: "roulette", "rank", "tournament", "elitism" -> Read README.md for detailed info
-methods.crossover = "arithmetic"                       # Available methods: "arithmetic", "1-point", "2-point" -> Read README.md for detailed info
-methods.mutation = "gaussian"                          # Available methods: "gaussian", "default" -> Read README.md for detailed info
-
 
 # Run GA
 out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
 # out = AeroGA_parallel.optimize(problem, params, methods)        # Running the Simulation 
 # out = AeroGA_p.optimize(problem, params, methods,parallel)        # Running the Simulation 
 
+# Run Sensitivity Analysis
 # df_sensitivity = AeroGA.sensibility(problem, out.archive, 1)
 
-# print(out.archive)
-
-# Gráficos - Linear das iterações
+# Graphs
 if plot_iterations == 1:
     fig1 = out.plots[0]
     plt.show()

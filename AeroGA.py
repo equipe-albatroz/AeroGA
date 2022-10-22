@@ -206,29 +206,40 @@ def arithmetic_crossover(problem, params, parent1, parent2, cont):
     return child1, child2
 
 def onepoint_crossover(problem, params, parent1, parent2, cont):
-    child1 = parent1.deepcopy()
-    child2 = parent2.deepcopy()
-    alpha = np.random.uniform(-params.gamma, 1+params.gamma, *child1.chromossome.shape)
-    child1.chromossome[cont] = alpha[cont]*parent1.chromossome[cont] + (1-alpha[cont])*parent2.chromossome[cont]
-    child2.chromossome[cont] = alpha[cont]*parent2.chromossome[cont] + (1-alpha[cont])*parent1.chromossome[cont]
-    child1.chromossome[problem.integer] = alpha[problem.integer]*parent1.chromossome[problem.integer] + (1-alpha[problem.integer])*parent2.chromossome[problem.integer]
-    child2.chromossome[problem.integer] = alpha[problem.integer]*parent2.chromossome[problem.integer] + (1-alpha[problem.integer])*parent1.chromossome[problem.integer]
-    for i in problem.integer:
-        child1.chromossome[i] = round(child1.chromossome[i])
-        child2.chromossome[i] = round(child2.chromossome[i])
+    aux1 = parent1.deepcopy(); child1 = parent1.deepcopy()
+    aux2 = parent2.deepcopy(); child2 = parent2.deepcopy()
+
+    cut_point = np.random.choice(problem.nvar-1)
+
+    child1.chromossome[cut_point+1:problem.nvar] = aux2.chromossome[cut_point+1:problem.nvar]
+    child1.chromossome[0:cut_point+1] = aux1.chromossome[0:cut_point+1]
+
+    child2.chromossome[0:cut_point+1] = aux2.chromossome[0:cut_point+1]
+    child2.chromossome[cut_point+1:problem.nvar] = aux1.chromossome[cut_point+1:problem.nvar]
+
     return child1, child2
 
 def twopoint_crossover(problem, params, parent1, parent2, cont):
-    child1 = parent1.deepcopy()
-    child2 = parent2.deepcopy()
-    alpha = np.random.uniform(-params.gamma, 1+params.gamma, *child1.chromossome.shape)
-    child1.chromossome[cont] = alpha[cont]*parent1.chromossome[cont] + (1-alpha[cont])*parent2.chromossome[cont]
-    child2.chromossome[cont] = alpha[cont]*parent2.chromossome[cont] + (1-alpha[cont])*parent1.chromossome[cont]
-    child1.chromossome[problem.integer] = alpha[problem.integer]*parent1.chromossome[problem.integer] + (1-alpha[problem.integer])*parent2.chromossome[problem.integer]
-    child2.chromossome[problem.integer] = alpha[problem.integer]*parent2.chromossome[problem.integer] + (1-alpha[problem.integer])*parent1.chromossome[problem.integer]
-    for i in problem.integer:
-        child1.chromossome[i] = round(child1.chromossome[i])
-        child2.chromossome[i] = round(child2.chromossome[i])
+    aux1 = parent1.deepcopy(); child1 = parent1.deepcopy()
+    aux2 = parent2.deepcopy(); child2 = parent2.deepcopy()
+
+    cut_point1 = np.random.choice(problem.nvar-1)
+    cut_point2 = np.random.choice(problem.nvar-1)
+    if cut_point1 == cut_point2:
+        while cut_point1 == cut_point2:
+            cut_point2 = np.random.choice(problem.nvar-1)
+
+    if cut_point2 < cut_point1:
+        cut_point1, cut_point2 = cut_point2, cut_point1
+
+    child1.chromossome[0:cut_point1+1] = aux1.chromossome[0:cut_point1+1]
+    child1.chromossome[cut_point1+1:cut_point2+1] = aux2.chromossome[cut_point1+1:cut_point2+1]
+    child1.chromossome[cut_point2+1:problem.nvar] = aux1.chromossome[cut_point2+1:problem.nvar]
+
+    child2.chromossome[0:cut_point1+1] = aux2.chromossome[0:cut_point1+1]
+    child2.chromossome[cut_point1+1:cut_point2+1] = aux1.chromossome[cut_point1+1:cut_point2+1]
+    child2.chromossome[cut_point2+1:problem.nvar] = aux2.chromossome[cut_point2+1:problem.nvar]
+
     return child1, child2
 
 
