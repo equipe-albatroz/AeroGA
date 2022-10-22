@@ -95,7 +95,7 @@ Os critérios de seleção são utilizados para selecionar os indivíduos que se
 
  * **Roleta** - Neste método, cada indivíduo da população é representado na roleta proporcionalmente ao fitness. Assim, aos indivíduos com alto fitness é dada uma porção maior da roleta, enquanto aos de fitness baixo é dada uma porção relativamente menor da roleta. Finalmente, a roleta é girada um determinado número de vezes, dependendo do tamanho da população, e são escolhidos, como indivíduos reprodutores, aqueles sorteados na roleta.
 
-![Img roleta](img/roleta.png)
+ ![Img roleta](img/roleta.png)
 
  * **Ranking** - Método semelhante a roleta, a única diferença é que, ao invés da porção da roleta ser dada pelo valor do fitness considera-se a porcentagem do fitness em relação a soma de todos os valores. Desse modo, o método de ranking é mais democrático e dá mais chances aos indivíduos com menor fitness.
 
@@ -105,24 +105,39 @@ Os critérios de seleção são utilizados para selecionar os indivíduos que se
 
 ### **4. Recombinação (Crossover)**
 
+O operador de recombinação é o mecanismo de obtenção de novos indivíduos pela troca ou combinação dos alelos de dois ou mais indivíduos. Fragmentos das características de um indivíduo são trocadas por um fragmento equivalente oriundo de outro indivíduo. O resultado desta operação é um indivíduo que combina características potencialmente melhores dos pais.
+
  * **Aritmética** - A recombinação aritmética cria novos alelos nos descendentes com valores intermediários aos encontrados nos pais. Define-se uma combinação linear entre dois cromossomos x e y, de modo a gerar um descendente z.
 
  * **1 ponto** - Na recombinação de 1 ponto, seleciona-se aleatoriamente um ponto de corte nos cromossomos, dividindo este em uma partição à direita e outra à esquerda do corte. Cada descendente é composto pela junção da partição à esquerda (direira) de um pai com a partição à direita (esquerda) do outro pai.
 
-![Img roleta](img/1point.png)
+![Img 1point crossover](img/1point.png)
 
  * **2 pontos** - A recombinação de 2 pontos tem a mesma ideia da recombinação de 1 ponto, porém são escolhidos aleatoriamente dois pontos de corte nos cromossomos, dividindo o cromossomo em três partições.
 
-![Img roleta](img/2point.png)
+![Img 2point crossover](img/2point.png)
 
 
 ### **5. Mutação (Mutation)**
 
- * *Mutação padrão*
- * *Mutação Gaussiana*
+O operador de mutação modifica aleatoriamente um ou mais genes de um cromossomo. Com esse operador, um indivíduo gera uma cópia de si mesmo, a qual pode sofrer alterações. A probabilidade de ocorrência de mutação em um gene é denominada taxa de mutação. Usualmente, são atribuídos valores pequenos para a taxa de mutação, uma vez que esse operador pode gerar um indivíduo potencialmente pior que o original.
+
+![Img mutação](img/mutação.png)
+
+ * *Mutação padrão* - O operador para mutação uniforme seleciona aleatoriamente um ou mais alelos do cromossomo e gera indivíduo(s) com um acréscimo x, onde x é um número aleatório (com distribuição de probabilidade uniforme) amostrado no intervalo dos bounds do problema.
+
+ * *Mutação Gaussiana* - No caso da mutação Gaussiana, o valor incorporado no(s) alelo(s) é aleatório com média zero e desvio padrão σ.
 
 ### **6. Métricas de Qualidade**
+
+ *
+ *
+
 ### **7. Plots**
+
+ * **BestFit x Generation** - Mostra o melhor resultado de Fitness ao longo das gerações do GA.
+
+ * **Dispersão dos inputs** - Mostra as variáveis de entrada normalizadas e todos os pontos explorados pelo GA durante as gerações. O intúito desse gráfico é avaliar o quão bem o algoritmo está explorando o espaço de busca.
 
 
 
