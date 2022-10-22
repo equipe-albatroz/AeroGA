@@ -160,7 +160,7 @@ Opção de paralelização ainda não foi adicionada, o código AeroGA_parallel 
 
 Qualquer dúvidas sobre o código favor contatar o autor.
 
-Author: Krigor Rosa
+Autor: Krigor Rosa
 
 Email: krigorsilva13@gmail.com
 	
