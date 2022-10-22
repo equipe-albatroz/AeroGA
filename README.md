@@ -66,9 +66,9 @@ params.elitism = 0.1
 
 Variáveis relacionadas aos parâmetros do GA
 
-selection - Método de seleção ("roulette", "rank", "tournament")
-crossover - Método de recombinação ("arithmetic", "1-point", "2-point")
-mutation - Método de mutação("gaussian", "default")
+* selection - Método de seleção ("roulette", "rank", "tournament")
+* crossover - Método de recombinação ("arithmetic", "1-point", "2-point")
+* mutation - Método de mutação("gaussian", "default")
 
 Devem ser definidas como no exemplo abaixo:
 
@@ -77,6 +77,12 @@ methods = structure()
 methods.selection = "tournament"    
 methods.crossover = "arithmetic"                  
 methods.mutation = "gaussian"                                                          
+~~~
+
+Para realizar a otimização deve-se chamar a função 'optimize' do AeroGA, como mostrado abaixo:
+
+~~~python
+outputs = AeroGA.optimize(problem, params, methods)                                                  
 ~~~
 
 ### **2. Inicialização da População**
@@ -99,12 +105,21 @@ Os critérios de seleção são utilizados para selecionar os indivíduos que se
 
 ### **4. Recombinação (Crossover)**
 
- * **Aritmética** 
- * **1 ponto** 
- * **2 pontos** 
+ * **Aritmética** - A recombinação aritmética cria novos alelos nos descendentes com valores intermediários aos encontrados nos pais. Define-se uma combinação linear entre dois cromossomos x e y, de modo a gerar um descendente z.
+
+ * **1 ponto** - Na recombinação de 1 ponto, seleciona-se aleatoriamente um ponto de corte nos cromossomos, dividindo este em uma partição à direita e outra à esquerda do corte. Cada descendente é composto pela junção da partição à esquerda (direira) de um pai com a partição à direita (esquerda) do outro pai.
+
+![Img roleta](img/1point.png)
+
+ * **2 pontos** - A recombinação de 2 pontos tem a mesma ideia da recombinação de 1 ponto, porém são escolhidos aleatoriamente dois pontos de corte nos cromossomos, dividindo o cromossomo em três partições.
+
+![Img roleta](img/2point.png)
+
 
 ### **5. Mutação (Mutation)**
 
+ * *Mutação padrão*
+ * *Mutação Gaussiana*
 
 ### **6. Métricas de Qualidade**
 ### **7. Plots**
