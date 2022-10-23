@@ -3,7 +3,6 @@ usefull_comands.txt
 
 # Ignorar o arquivo de teste
 test.ipynb
-AeroGA_New.py
 AeroGA_p.py
 
 __pycache__
