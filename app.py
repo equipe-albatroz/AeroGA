@@ -1,5 +1,3 @@
-import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 from ypstruct import structure
 import AeroGA
@@ -11,7 +9,7 @@ def sphere(x):
     return sum(x**2)
 
 # Graphs
-plot_iterations = 1
+plot_iterations = 0
 plot_box = 0
 
 # Problem Definition
@@ -35,8 +33,8 @@ params.elitism = 0.1                                   # Elitism rate
 
 # GA Methods
 methods = structure()
-methods.selection = "tournament"                             # Available methods: "roulette", "rank", "tournament", "elitism" -> Read README.md for detailed info
-methods.crossover = "2-point"                       # Available methods: "arithmetic", "1-point", "2-point" -> Read README.md for detailed info
+methods.selection = "tournament"                       # Available methods: "roulette", "rank", "tournament", "elitism" -> Read README.md for detailed info
+methods.crossover = "2-point"                          # Available methods: "arithmetic", "1-point", "2-point" -> Read README.md for detailed info
 methods.mutation = "gaussian"                          # Available methods: "gaussian", "default" -> Read README.md for detailed info
 
 # Parallel Parameters
@@ -46,11 +44,10 @@ parallel.threads = 8
 
 # Run GA
 out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
-# out = AeroGA_parallel.optimize(problem, params, methods)        # Running the Simulation 
-# out = AeroGA_p.optimize(problem, params, methods,parallel)        # Running the Simulation 
+# out = AeroGA_parallel.optimize(problem, params, methods, parallel)        # Running the Simulation 
 
 # Run Sensitivity Analysis
-# df_sensitivity = AeroGA.sensibility(problem, out.archive, 1)
+df_sensibility = AeroGA.sensibility(problem, out.bestsol)
 
 # Graphs
 if plot_iterations == 1:

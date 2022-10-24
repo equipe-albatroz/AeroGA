@@ -31,8 +31,7 @@ def optimize(problem, params, methods):
     pop, bestfit, bestsol, archive, metrics, error = main_loop(problem, params, methods, cont, archive, pop, bestsol)
 
     # Normalização dos dados da população
-    dispersion = np.array(list(map(list,list(archive["chromossome"])))).T.tolist()
-    dispersion_scaled = normalize_data(dispersion, problem)
+    dispersion_scaled = normalize_data(np.array(list(map(list,list(archive["chromossome"])))).T.tolist(), problem)
 
     # Output
     out = structure()
@@ -355,30 +354,28 @@ def elitist_population(params,pop):
 ######################## Sensibility Analisys ########################
 ######################################################################
 
-def sensibility(problem, archive, i):
+def sensibility(problem, bestsol):
 
-    lista=[None]*problem.nvar
-    print(archive[2][2])
+    dict = {"nvar":[],"value":[],"fit":[]};
+
     for j in range(problem.nvar):
 
-        bounds = list(copy.deepcopy(archive["chromossome"]))
-        if isinstance(bounds[i][j], int) == False:
-            increment = bounds[i][j]/10
-            lst = list(range(-10*bounds[i][j],10*bounds[i][j],increment))
-            np.arange(0.2, 1.+0.1, 0.1)
+        if isinstance(problem.lb[j], int) == False:
+            increment = 0.01
+            lst=[0]*round(abs(((problem.ub[j]-problem.lb[j])/increment)+1)); lst[0]=problem.lb[j]
+            for i in range(round(((problem.ub[j]-problem.lb[j])/increment)+1)):
+                if i >= 1: lst[i]=round(lst[i-1]+increment,2)
         else:
             increment = 1
-            lst = list(range(problem.lb[j],problem.ub[j],increment))
+            lst = list(range(problem.lb[j],problem.ub[j]+1,increment))
         
-        aux = []
-        for k in lst:
-            bounds[i][j] = k
-            aux.append(problem.fitness(bounds[i]))
+        for value in lst:
+            bestsol.chromossome[j] = value
+            dict["nvar"].append(j)
+            dict["value"].append(value)
+            dict["fit"].append(problem.fitness(bestsol.chromossome))
 
-        lista.append(aux)
-
-    df = pd.DataFrame(lista)
-    return df
+    return pd.DataFrame(dict)
 
 ######################################################################
 ########################### Plots Functions ##########################
