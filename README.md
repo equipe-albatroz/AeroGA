@@ -130,10 +130,18 @@ O operador de mutação modifica aleatoriamente um ou mais genes de um cromossom
 
 ### **6. Métricas de Qualidade**
 
- *
+ * Diversidade da população - A métrica de diversidade de população foi feita como descrito por [(Morrison & Jong, 2001)](https://www.researchgate.net/publication/221024170_Measurement_of_Population_Diversity).
+ 
+
+### **7. Análise de Sensibilidade**
+
  *
 
-### **7. Plots**
+### **8. Autoajuste de Parâmetros**
+
+ *
+
+### **9. Plots**
 
  * **BestFit x Generation** - Mostra o melhor resultado de Fitness ao longo das gerações do GA.
 
