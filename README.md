@@ -171,4 +171,10 @@ Qualquer dúvidas sobre o código favor contatar o autor.
 Autor: Krigor Rosa
 
 Email: krigorsilva13@gmail.com
+
+# Referências
+
+GABRIEL, Paulo Henrique Ribeiro; DELBEM, Alexandre Cláudio Botazzo. Fundamentos de algoritmos evolutivos. 2008.
+
+MORRISON, Ronald W.; JONG, Kenneth A. De. Measurement of population diversity. In: International conference on artificial evolution (evolution artificielle). Springer, Berlin, Heidelberg, 2001. p. 31-41.
 	
