@@ -18,6 +18,7 @@ problem.nvar = 5                                       # Variables number
 problem.lb = [0.2, -10, -10, -5, -5]                   # Lower Bounds
 problem.ub = [0.4 , 10, 10,  5, 5]                     # Upper Bounds
 problem.integer = [1,2]                                # Indice de números inteiros
+problem.var_names = ['var1', 'var2', 'var3', 'var4', 'var5']
 
 # GA Parameters
 params = structure()                                   # Creating the Parameters Structure

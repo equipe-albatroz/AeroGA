@@ -33,6 +33,17 @@ def optimize(problem, params, methods):
 
     # Normalização dos dados da população
     dispersion_scaled = normalize_data(np.array(list(map(list,list(archive["chromossome"])))).T.tolist(), problem)
+    a = list(map(list, zip(*dispersion_scaled)))
+    # print(a[1])
+
+    auxuuu = []
+    for i in range(5):
+        string = 'var' + str(i+1)
+        auxuuu.append(string)
+    df = pd.DataFrame(a, columns = auxuuu)
+
+
+    print(df)
 
     # Output
     out = structure()
@@ -465,16 +476,23 @@ def plot_metrics(params, metrics):
     plt.grid(True)
     return fig3
 
-def plot_parallel():
+def plot_parallel(problem, dispersion_scaled):
 
-    # Load the iris dataset provided by the library
-    df = px.data.iris()
+    transposed_list = list(map(list, zip(*dispersion_scaled)))
+
+    names = []
+    for i in range(problem.nvar):
+        string = 'var' + str(i+1)
+        names.append(string)
+
+    df = pd.DataFrame(transposed_list, columns = names)
 
     # Create the chart:
     fig = px.parallel_coordinates(
         df, 
         color="species_id", 
-        labels={"species_id": "Species","sepal_width": "Sepal Width", "sepal_length": "Sepal Length", "petal_width": "Petal Width", "petal_length": "Petal Length", },
+        labels={"var1": "var1", "var2": "var2", "var3": "var3", "var4": "var4", "var5": "var5"},
+        # columns={c:c for c in names}
         color_continuous_scale=px.colors.diverging.Tealrose,
         color_continuous_midpoint=2)
 
