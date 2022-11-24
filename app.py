@@ -55,5 +55,5 @@ if plot_iterations == 1:
 
 # Gráficos - Box plot
 if plot_box == 1:
-    fig2 = out.plots[1]
+    fig2 = out.plots[2]
     plt.show()
