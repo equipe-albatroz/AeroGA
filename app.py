@@ -7,10 +7,6 @@ import AeroGA_parallel
 def sphere(x):
     return sum(x**2)
 
-# Graphs
-plot_iterations = 0
-plot_box = 0
-
 # Problem Definition
 problem = structure()                                  # Creating the Problem Structure
 problem.fitness = sphere                               # Fitness Function
@@ -50,11 +46,9 @@ out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
 df_sensibility = AeroGA.sensibility(problem, out.bestsol)
 
 # Graphs
-if plot_iterations == 1:
-    fig1 = out.plots[0]
-    plt.show()
+fig1 = out.plots[0]
+fig1.show()
 
-# Gráficos - Box plot
-if plot_box == 1:
-    fig2 = out.plots[2]
-    plt.show()
+# # Gráficos - Box plot
+# fig2 = out.plots[2]
+# plt.show()

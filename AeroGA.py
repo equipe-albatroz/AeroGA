@@ -33,18 +33,7 @@ def optimize(problem, params, methods):
 
     # Normalização dos dados da população
     dispersion_scaled = normalize_data(np.array(list(map(list,list(archive["chromossome"])))).T.tolist(), problem)
-    a = list(map(list, zip(*dispersion_scaled)))
-    # print(a[1])
-
-    auxuuu = []
-    for i in range(5):
-        string = 'var' + str(i+1)
-        auxuuu.append(string)
-    df = pd.DataFrame(a, columns = auxuuu)
-
-
-    print(df)
-
+   
     # Output
     out = structure()
     out.pop = pop
@@ -52,7 +41,7 @@ def optimize(problem, params, methods):
     out.bestfit = bestfit
     out.error = error
     out.archive = archive
-    out.plots = [plot_bestfit(params, bestfit), plot_metrics(params, metrics)]    # plot_searchspace(dispersion_scaled)
+    out.plots = [plot_parallel(problem, dispersion_scaled)]    # plot_searchspace(dispersion_scaled)
     out.metrics = metrics
 
     print(f"Tempo de Execução: {time.time() - t_inicial}")
@@ -490,7 +479,7 @@ def plot_parallel(problem, dispersion_scaled):
     # Create the chart:
     fig = px.parallel_coordinates(
         df, 
-        color="species_id", 
+        color="var5", 
         labels={"var1": "var1", "var2": "var2", "var3": "var3", "var4": "var4", "var5": "var5"},
         # columns={c:c for c in names}
         color_continuous_scale=px.colors.diverging.Tealrose,
