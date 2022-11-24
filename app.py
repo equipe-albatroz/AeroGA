@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 from ypstruct import structure
 import AeroGA
-# import AeroGA_parallel
-# import AeroGA_p
+import AeroGA_parallel
 
 # Sphere Test Function
 def sphere(x):
@@ -26,8 +25,8 @@ params.max_iterations = 100                            # Number of Max Iteration
 params.npop = 50                                       # Number of the Population
 params.pc = 1                                          # Proportion of children compared to the fathers pop
 params.mu = [0.5, 0.5, 0.5, 0.5, 0.5]                  # Mutation Rate -> It can be used only one parameter for the whole chromossome or a value for each one
-params.sigma = 0.1                                     # Standart deviation of the Mutation
-params.sigma_int = 0.7                                 # Standart deviation of the Mutation (integer number)
+params.sigma = 0.05                                     # Standart deviation of the Mutation
+params.sigma_int = 0.2                                 # Standart deviation of the Mutation (integer number)
 params.gamma = 0.1                                     # Arithmetic crossover amplitude
 params.elitism = 0.1                                   # Elitism rate
 
@@ -44,7 +43,7 @@ parallel.threads = 8
 
 # Run GA
 out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
-# out = AeroGA_parallel.optimize(problem, params, methods, parallel)        # Running the Simulation 
+# out = AeroGA_parallel.optimize(problem, params, methods)        # Running the Simulation 
 
 # Run Sensitivity Analysis
 df_sensibility = AeroGA.sensibility(problem, out.bestsol)

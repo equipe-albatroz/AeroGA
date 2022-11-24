@@ -25,7 +25,7 @@ def optimize(problem, params, methods):
     cont = remove_index(list(range(0,problem.nvar)), problem.integer)
    
     # Initialize Population 
-    pop, archive, bestsol = initialize_population(problem, params, methods, cont)
+    pop, archive, bestsol = initialize_population(problem, params, cont)
     
     # Main Loop
     pop, bestfit, bestsol, archive, metrics, error = main_loop(problem, params, methods, cont, archive, pop, bestsol)
@@ -40,8 +40,7 @@ def optimize(problem, params, methods):
     out.bestfit = bestfit
     out.error = error
     out.archive = archive
-    out.plots = [plots_bestfit(params, bestfit, dispersion_scaled)]
-    # out.plots = [plots_bestfit(params, bestfit, archive_scaled), plots_searchspace(params, bestfit, archive_scaled)]       
+    out.plots = [plot_bestfit(params, bestfit), plot_metrics(params, metrics)]    # plot_searchspace(dispersion_scaled)
     out.metrics = metrics
 
     print(f"Tempo de Execução: {time.time() - t_inicial}")
@@ -53,7 +52,7 @@ def optimize(problem, params, methods):
 ################## Initialize Population Function ####################
 ######################################################################
 
-def initialize_population(problem, params, methods, cont):
+def initialize_population(problem, params, cont):
 
     # Empty Individual Template
     empty_individual = structure()
@@ -98,6 +97,9 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
     # Number of children to be generated 
     nc = int(np.round(params.pc*params.npop/2)*2)
 
+    # Quality metrics calculation
+    metrics = {"popdiv":[]}
+
     for iterations in range(params.max_iterations):
 
         popc = []
@@ -105,8 +107,14 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
         # Population sorted by the fitness value
         pop = sorted(pop, key=lambda x: x.fit)
 
+        # Quality metrics calculation
+        metrics["popdiv"].append(quality_metrics(problem, params, pop))
+
         # Elitist population
         pope = elitist_population(params,pop)
+
+        # Online parameters control list
+        CXPB_LIST, MUTPB_LIST = online_parameter(True, params)
 
         for _ in range(nc - round(len(pop)*params.elitism)):
 
@@ -137,11 +145,11 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
 
             # Perform Mutation
             if methods.mutation == "gaussian":
-                child1 = gaussian_mutation(child1, params)
-                child2 = gaussian_mutation(child2, params)
+                child1 = gaussian_mutation(child1, CXPB_LIST[iterations], 0.05)
+                child2 = gaussian_mutation(child2, CXPB_LIST[iterations], 0.05)
             elif methods.mutation == "default":
-                child1 = default_mutation(child1, params)
-                child2 = default_mutation(child2, params)
+                child1 = default_mutation(child1, MUTPB_LIST[iterations])
+                child2 = default_mutation(child2, MUTPB_LIST[iterations])
 
             # Apply Bounds
             apply_bound(child1, problem)
@@ -174,9 +182,6 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
         # Store Best Fit
         bestfit[iterations] = bestsol.fit
 
-        # Quality metrics calculation
-        metrics=quality_metrics(params,bestfit)
-
         # Calculating the error
         if iterations >= 1: error[iterations] = round(((bestfit[iterations-1]-bestfit[iterations])/bestfit[iterations])*100,4)
 
@@ -185,6 +190,35 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
     
     return pop, bestfit, bestsol, archive, metrics, error
 
+
+######################################################################
+######################### Selection Functions ########################
+######################################################################
+
+# Selection methods
+def roulette_wheel_selection(pop):
+    fits = sum([x.fit for x in pop])                          # Realiza a soma de todos os valores de Fitness da População
+    probs = list(reversed([x.fit/fits for x in pop]))         # Cria lista de probabilidades em relação ao Fitness (lista invertida -> otimiz de minimização)
+    indice = np.random.choice(len(pop), p=probs)              # Escolha aleaória com base nas probabilidades
+    return indice                                        
+
+def rank_selection(pop):
+    aux = list(reversed(range(1,len(pop)+1)))                 # Criação do rankeamento da população
+    probs = list(0 for i in range(0,len(pop)))                 
+    for i in range(0,len(pop)): probs[i] = aux[i]/sum(aux)    # Criação de lista com as probabilidados do ranking
+    indice = np.random.choice(len(pop), p=probs)              # Escolha aleaória com base nas probabilidades
+    return indice
+
+def tournament_selection(pop):
+    individual1 = np.random.choice(len(pop))
+    individual2 = np.random.choice(len(pop))
+    if individual1 == individual2: 
+        while individual1 == individual2: 
+            individual2 = np.random.choice(len(pop))
+    if pop[individual1].fit >= pop[individual2].fit:
+        return individual1
+    else:
+        return individual2
 
 ######################################################################
 ######################## Crossover Functions #########################
@@ -247,69 +281,90 @@ def twopoint_crossover(problem, params, parent1, parent2, cont):
 ######################################################################
 
 # Mutation methods
-def gaussian_mutation(x, params):
+def gaussian_mutation(x, mut_glob, mut_real):
     y = x.deepcopy()
-    flag = np.random.rand(*x.chromossome.shape) <= params.mu          # Lista Booleana indicando em quais posições a mutação vai ocorrer
+    flag = np.random.rand(*x.chromossome.shape) <= mut_glob          # Lista Booleana indicando em quais posições a mutação vai ocorrer
     ind = np.argwhere(flag)                                    # Lista das posições a serem mutadas
     for i in ind:
         if isinstance(y.chromossome[ind], int) == False:
-            y.chromossome[i] += params.sigma*np.random.randn()        # Aplicação da mutação nos alelos
+            y.chromossome[i] += mut_real*np.random.randn()          # Aplicação da mutação nos alelos
         else:
-            y.chromossome[i] += round(params.sigma_int*np.random.randn())    # Aplicação da mutação nos alelos
+            y.chromossome[i] += round((mut_real + 2)*np.random.randn())    # Aplicação da mutação nos alelos
     
     return y
 
-def default_mutation(x, params):
+def default_mutation(x, mut_glob):
     y = x.deepcopy()
-    flag = np.random.rand(*x.chromossome.shape) <= params.mu          # Lista Booleana indicando em quais posições a mutação vai ocorrer
+    flag = np.random.rand(*x.chromossome.shape) <= mut_glob          # Lista Booleana indicando em quais posições a mutação vai ocorrer
     ind = np.argwhere(flag)                                   # Lista das posições a serem mutadas
     for i in ind:
         if isinstance(y.chromossome[ind], int) == False:
-            y.chromossome[i] += params.sigma*np.random.randn()        # Aplicação da mutação nos alelos
+            y.chromossome[i] += np.random.randn()        # Aplicação da mutação nos alelos          np.random.randint(problem.lb)
         else:
-            y.chromossome[i] += round(params.sigma_int*np.random.randn())    # Aplicação da mutação nos alelos
+            y.chromossome[i] += round(np.random.randn())    # Aplicação da mutação nos alelos
 
     # y.chromossome[ind] += np.random.randn(*ind.shape)          # Aplicação da mutação nos alelos
     return y
 
+
 ######################################################################
-######################### Selection Functions ########################
+########################## Online Parameter ##########################
 ######################################################################
 
-# Selection methods
-def roulette_wheel_selection(pop):
-    fits = sum([x.fit for x in pop])                          # Realiza a soma de todos os valores de Fitness da População
-    probs = list(reversed([x.fit/fits for x in pop]))         # Cria lista de probabilidades em relação ao Fitness (lista invertida -> otimiz de minimização)
-    indice = np.random.choice(len(pop), p=probs)              # Escolha aleaória com base nas probabilidades
-    return indice                                        
+def online_parameter(Use, params):
 
-def rank_selection(pop):
-    aux = list(reversed(range(1,len(pop)+1)))                 # Criação do rankeamento da população
-    probs = list(0 for i in range(0,len(pop)))                 
-    for i in range(0,len(pop)): probs[i] = aux[i]/sum(aux)    # Criação de lista com as probabilidados do ranking
-    indice = np.random.choice(len(pop), p=probs)              # Escolha aleaória com base nas probabilidades
-    return indice
-
-
-def tournament_selection(pop):
-    individual1 = np.random.choice(len(pop))
-    individual2 = np.random.choice(len(pop))
-    if individual1 == individual2: 
-        while individual1 == individual2: 
-            individual2 = np.random.choice(len(pop))
-    if pop[individual1].fit >= pop[individual2].fit:
-        return individual1
+    if Use == True:
+        line_x = np.linspace(start=1, stop=50, num=params.max_iterations)
+        MUTPB_LIST = (-(np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0])) + 1) * 0.4
+        
+        line_x = np.linspace(start=1, stop=5, num=params.max_iterations)
+        CXPB_LIST = (np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0]))
     else:
-        return individual2
+        MUTPB_LIST = [0.2]*params.max_iterations
+        CXPB_LIST = [1.0]*params.max_iterations
 
+    return MUTPB_LIST, CXPB_LIST
 
 ######################################################################
 ########################## Metrics Function ##########################
 ######################################################################
 
-def quality_metrics(params, bestfit):
+def quality_metrics(problem,params,pop):
+    C = []; I = []
 
-    return 1
+    for j in range(problem.nvar):
+        aux = []
+        for i in range(params.npop):
+
+            if pop[i].chromossome[j] < 0:
+                alpha = 1
+            else:
+                alpha = 1
+
+            aux.append(alpha*((pop[i].chromossome[j]-problem.lb[j])/(problem.ub[j]-problem.lb[j])))
+
+            if i == (params.npop - 1):
+                # aux = normalize(aux,params,problem)
+                # print(aux)
+                soma = sum(aux)
+                C.append(soma/params.npop)
+    
+    for j in range(problem.nvar):
+        aux = []
+        for i in range(params.npop):
+            
+            if pop[i].chromossome[j] < 0:
+                alpha = 1
+            else:
+                alpha = 1
+
+            norm = alpha*((pop[i].chromossome[j]-problem.lb[j])/(problem.ub[j]-problem.lb[j]))
+
+            aux.append(((norm-C[j])**2))
+            if i == (params.npop - 1): 
+                I.append(sum(aux))
+
+    return round(sum(I),2)
 
 ######################################################################
 ######################## Auxiliary Functions #########################
@@ -323,7 +378,7 @@ def apply_bound(x, problem):
 
 def normalize_data(lista,problem):
     lista_aux = [[None for _ in range(len(lista[1]))] for _ in range(len(problem.ub))]
-    for i in range(0,5):
+    for i in range(0,problem.nvar):
         for j in range(len(lista[1])):
             if lista[i][j] < 0:
                 alpha = -1
@@ -381,7 +436,7 @@ def sensibility(problem, bestsol):
 ########################### Plots Functions ##########################
 ######################################################################
 
-def plots_bestfit(params, bestfit, archive_scaled):
+def plot_bestfit(params, bestfit):
     fig1 = plt.figure()
     plt.plot(bestfit)
     plt.xlim(0, params.max_iterations+1)
@@ -391,11 +446,24 @@ def plots_bestfit(params, bestfit, archive_scaled):
     plt.grid(True)
     return fig1
 
-def plots_searchspace(params, bestfit, archive_scaled):
+def plot_searchspace(dispersion_scaled):
     fig2 = plt.figure()
-    plt.boxplot(archive_scaled)
+    plt.boxplot(dispersion_scaled)
     plt.xlabel('Variáveis')
     plt.ylabel('Valores do GA')
     plt.title('Dispersão das Variáveis')
     plt.grid(True)
     return fig2
+
+def plot_metrics(params, metrics):
+    fig3 = plt.figure()
+    plt.plot(metrics["popdiv"])
+    plt.xlim(0, params.max_iterations+1)
+    plt.xlabel('Iterations')
+    plt.ylabel('Metrics')
+    plt.grid(True)
+    return fig3
+
+def parallel_curves(params, metrics):
+    fig = plt.figure()
+    return fig

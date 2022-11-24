@@ -139,7 +139,7 @@ O operador de mutação modifica aleatoriamente um ou mais genes de um cromossom
 
 ### **8. Autoajuste de Parâmetros**
 
- *
+ * 
 
 ### **9. Plots**
 
