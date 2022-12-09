@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from ypstruct import structure
 import AeroGA
 import AeroGA_parallel
+from Benchmarks import Rastrigin
 
 # Sphere Test Function
 def sphere(x):
@@ -9,7 +10,7 @@ def sphere(x):
 
 # Problem Definition
 problem = structure()                                  # Creating the Problem Structure
-problem.fitness = sphere                               # Fitness Function
+problem.fitness = Rastrigin                               # Fitness Function
 problem.nvar = 5                                       # Variables number
 problem.lb = [0.2, -10, -10, -5, -5]                   # Lower Bounds
 problem.ub = [0.4 , 10, 10,  5, 5]                     # Upper Bounds
@@ -30,8 +31,8 @@ params.elitism = 0.1                                   # Elitism rate
 # GA Methods
 methods = structure()
 methods.selection = "tournament"                       # Available methods: "roulette", "rank", "tournament", "elitism" -> Read README.md for detailed info
-methods.crossover = "2-point"                          # Available methods: "arithmetic", "1-point", "2-point" -> Read README.md for detailed info
-methods.mutation = "gaussian"                          # Available methods: "gaussian", "default" -> Read README.md for detailed info
+methods.crossover = "arithmetic"                          # Available methods: "arithmetic", "1-point", "2-point" -> Read README.md for detailed info
+methods.mutation = "default"                          # Available methods: "gaussian", "default" -> Read README.md for detailed info
 
 # Parallel Parameters
 parallel = structure()                                 # Creating the Parallel processing Structure
@@ -40,15 +41,12 @@ parallel.threads = 8
 
 # Run GA
 out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
-# out = AeroGA_parallel.optimize(problem, params, methods)        # Running the Simulation 
+
+# Display convergence graph
+AeroGA.plot_convergence(params,out.bestfit,out.avgfit)
+plt.show()
+# Best solution found
+print(out.bestsol)
 
 # Run Sensitivity Analysis
 df_sensibility = AeroGA.sensibility(problem, out.bestsol)
-
-# Graphs
-fig1 = out.plots[0]
-fig1.show()
-
-# # Gráficos - Box plot
-# fig2 = out.plots[2]
-# plt.show()

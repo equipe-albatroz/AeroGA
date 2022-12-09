@@ -4,13 +4,11 @@ Albatroz AeroDesign Genetic Algorithm (AeroGA)
 Mais detalhes sobre a construção do algoritmo podem ser encontradas no arquivo README.md
 '''
 
-from multiprocessing import pool
 import time
 import numpy as np
 import pandas as pd
 from ypstruct import structure
 import matplotlib.pyplot as plt
-import plotly.express as px
 import copy
 
 
@@ -29,9 +27,9 @@ def optimize(problem, params, methods):
     pop, archive, bestsol = initialize_population(problem, params, cont)
     
     # Main Loop
-    pop, bestfit, bestsol, archive, metrics, error = main_loop(problem, params, methods, cont, archive, pop, bestsol)
+    pop, bestfit, avgfit, bestsol, archive, metrics = main_loop(problem, params, methods, cont, archive, pop, bestsol)
 
-    # Normalização dos dados da população
+    # Population data normalization
     dispersion_scaled = normalize_data(np.array(list(map(list,list(archive["chromossome"])))).T.tolist(), problem)
    
     # Output
@@ -39,9 +37,9 @@ def optimize(problem, params, methods):
     out.pop = pop
     out.bestsol = bestsol
     out.bestfit = bestfit
-    out.error = error
+    out.avgfit = avgfit
     out.archive = archive
-    out.plots = [plot_parallel(problem, dispersion_scaled)]    # plot_searchspace(dispersion_scaled)
+    out.plots = [plot_convergence(params, bestfit, avgfit)]    # plot_searchspace(dispersion_scaled)
     out.metrics = metrics
 
     print(f"Tempo de Execução: {time.time() - t_inicial}")
@@ -82,18 +80,16 @@ def initialize_population(problem, params, cont):
     return pop, archive, bestsol
 
 
-
 ######################################################################
 ######################## Main Loop Function ##########################
 ######################################################################
 
 def main_loop(problem, params, methods, cont, archive, pop, bestsol):
 
-    # Error for each iteration
-    error = np.empty(params.max_iterations); error[0] = 100
-
     # Best Fit of Iterations
     bestfit = np.empty(params.max_iterations)
+    # Average Fit of Iterations
+    avgfit = np.empty(params.max_iterations)
 
     # Number of children to be generated 
     nc = int(np.round(params.pc*params.npop/2)*2)
@@ -115,21 +111,21 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
         pope = elitist_population(params,pop)
 
         # Online parameters control list
-        CXPB_LIST, MUTPB_LIST = online_parameter(True, params)
+        MUTPB_LIST, CXPB_LIST = online_parameter(True, params)
 
         for _ in range(nc - round(len(pop)*params.elitism)):
 
             # Perform Roulette Wheel Selection
             if methods.selection == "roulette":
                 aux1 = roulette_wheel_selection(pop)
-                parent1 = pop[aux1]; del pop[aux1]
+                parent1 = pop[aux1]
                 aux2 = roulette_wheel_selection(pop)
-                parent2 = pop[aux2]; del pop[aux2]
+                parent2 = pop[aux2]
             elif methods.selection == "rank": 
                 aux1 = rank_selection(pop)
-                parent1 = pop[aux1]; del pop[aux1]
+                parent1 = pop[aux1]
                 aux2 = rank_selection(pop)
-                parent2 = pop[aux2]; del pop[aux2]
+                parent2 = pop[aux2]
             elif methods.selection == "tournament":
                 aux1 = tournament_selection(pop)
                 parent1 = pop[aux1]
@@ -146,8 +142,8 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
 
             # Perform Mutation
             if methods.mutation == "gaussian":
-                child1 = gaussian_mutation(child1, CXPB_LIST[iterations], 0.05)
-                child2 = gaussian_mutation(child2, CXPB_LIST[iterations], 0.05)
+                child1 = gaussian_mutation(child1, MUTPB_LIST[iterations], 0.05)
+                child2 = gaussian_mutation(child2, MUTPB_LIST[iterations], 0.05)
             elif methods.mutation == "default":
                 child1 = default_mutation(child1, MUTPB_LIST[iterations])
                 child2 = default_mutation(child2, MUTPB_LIST[iterations])
@@ -182,14 +178,12 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
 
         # Store Best Fit
         bestfit[iterations] = bestsol.fit
-
-        # Calculating the error
-        if iterations >= 1: error[iterations] = round(((bestfit[iterations-1]-bestfit[iterations])/bestfit[iterations])*100,4)
+        avgfit[iterations] = fitsum_pop(params, pop)/params.npop
 
         # Show Iteration Information
         print("Iteration {}: Best Fit = {}".format(iterations+1, bestfit[iterations]))
     
-    return pop, bestfit, bestsol, archive, metrics, error
+    return pop, bestfit, avgfit, bestsol, archive, metrics
 
 
 ######################################################################
@@ -216,7 +210,7 @@ def tournament_selection(pop):
     if individual1 == individual2: 
         while individual1 == individual2: 
             individual2 = np.random.choice(len(pop))
-    if pop[individual1].fit >= pop[individual2].fit:
+    if pop[individual1].fit <= pop[individual2].fit:
         return individual1
     else:
         return individual2
@@ -316,7 +310,7 @@ def online_parameter(Use, params):
 
     if Use == True:
         line_x = np.linspace(start=1, stop=50, num=params.max_iterations)
-        MUTPB_LIST = (-(np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0])) + 1) * 0.4
+        MUTPB_LIST = (-(np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0])) + 1) * 0.2
         
         line_x = np.linspace(start=1, stop=5, num=params.max_iterations)
         CXPB_LIST = (np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0]))
@@ -402,8 +396,13 @@ def elitist_population(params,pop):
     lst = []
     for i in range(round(len(pop)*params.elitism)):
         lst.append(pop[i])
-
     return lst
+
+def fitsum_pop(params, pop):
+    soma = 0
+    for i in range(params.npop):
+        soma += pop[i].fit
+    return soma
 
 
 ######################################################################
@@ -437,57 +436,63 @@ def sensibility(problem, bestsol):
 ########################### Plots Functions ##########################
 ######################################################################
 
-def plot_bestfit(params, bestfit):
-    fig1 = plt.figure()
-    plt.plot(bestfit)
+def plot_convergence(params, bestfit, avgfit):
+    fig = plt.figure()
+    plt.plot(bestfit, label = "Best Fitness")
+    plt.plot(avgfit, alpha = 0.3, linestyle = "--", label = "Average Fitness")
     plt.xlim(0, params.max_iterations+1)
+    plt.legend()
     plt.xlabel('Iterations')
-    plt.ylabel('Best Fit')
-    plt.title('Fitness x Iterations')
+    plt.ylabel('Fitness')
+    plt.title('GA Convergence')
     plt.grid(True)
-    return fig1
+    return fig
 
 def plot_searchspace(dispersion_scaled):
-    fig2 = plt.figure()
+    fig = plt.figure()
     plt.boxplot(dispersion_scaled)
-    plt.xlabel('Variáveis')
-    plt.ylabel('Valores do GA')
-    plt.title('Dispersão das Variáveis')
+    plt.xlabel('Variables')
+    plt.ylabel('GA Values')
+    plt.title('Dispersion of variables')
     plt.grid(True)
-    return fig2
+    return fig
 
 def plot_metrics(params, metrics):
-    fig3 = plt.figure()
+    fig = plt.figure()
     plt.plot(metrics["popdiv"])
     plt.xlim(0, params.max_iterations+1)
     plt.xlabel('Iterations')
     plt.ylabel('Metrics')
     plt.grid(True)
-    return fig3
-
-def plot_parallel(problem, dispersion_scaled):
-
-    transposed_list = list(map(list, zip(*dispersion_scaled)))
-
-    names = []
-    for i in range(problem.nvar):
-        string = 'var' + str(i+1)
-        names.append(string)
-
-    df = pd.DataFrame(transposed_list, columns = names)
-
-    # Create the chart:
-    fig = px.parallel_coordinates(
-        df, 
-        color="var5", 
-        labels={"var1": "var1", "var2": "var2", "var3": "var3", "var4": "var4", "var5": "var5"},
-        # columns={c:c for c in names}
-        color_continuous_scale=px.colors.diverging.Tealrose,
-        color_continuous_midpoint=2)
-
-    # Hide the color scale that is useless in this case
-    fig.update_layout(coloraxis_showscale=False)
-
-    # Show the plot
-    # fig.show()
     return fig
+
+def plot_pop(params, pop):
+    fig = plt.figure()
+    return fig
+
+# def plot_parallel(problem, dispersion_scaled):
+
+#     transposed_list = list(map(list, zip(*dispersion_scaled)))
+
+#     names = []
+#     for i in range(problem.nvar):
+#         string = 'var' + str(i+1)
+#         names.append(string)
+
+#     df = pd.DataFrame(transposed_list, columns = names)
+
+#     # Create the chart:
+#     fig = px.parallel_coordinates(
+#         df, 
+#         color="var5", 
+#         labels={"var1": "var1", "var2": "var2", "var3": "var3", "var4": "var4", "var5": "var5"},
+#         # columns={c:c for c in names}
+#         color_continuous_scale=px.colors.diverging.Tealrose,
+#         color_continuous_midpoint=2)
+
+#     # Hide the color scale that is useless in this case
+#     fig.update_layout(coloraxis_showscale=False)
+
+#     # Show the plot
+#     # fig.show()
+#     return fig

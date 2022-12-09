@@ -18,7 +18,7 @@ As variáveis utilizadas no GA são repassadas através de uma estrutura. Para c
 from ypstruct import structure                            
 ~~~
 
-Para instalar a bibliotéca ypstruct e todas as outras necessárias para rodar o código siga os passos mostrados na seção 'Instalando requirements' em Observações.
+Para instalar a biblioteca ypstruct e todas as outras necessárias para rodar o código siga os passos mostrados na seção 'Instalando requirements' em Observações.
 
 Variáveis relacionadas ao problema a ser resolvido
 
@@ -137,7 +137,7 @@ O operador de mutação modifica aleatoriamente um ou mais genes de um cromossom
 
  *
 
-### **8. Autoajuste de Parâmetros**
+### **8. Controle Online de Parâmetros**
 
  * 
 
