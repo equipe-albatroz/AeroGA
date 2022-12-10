@@ -63,7 +63,7 @@ def initialize_population(problem, params, cont):
     bestsol.fit = np.inf
 
     # Archive for all population created
-    archive = {"chromossome":[],"fit":[]};
+    archive = {"chromossome":[],"fit":[],"iteration":[]};
 
     # Initialize Population
     pop = empty_individual.repeat(params.npop)
@@ -169,6 +169,7 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
             # Saving children data to archive
             archive["chromossome"].append(child1.chromossome)
             archive["fit"].append(child2.chromossome)
+            archive["iteration"].append(iterations)
         
         # Merge, Sort and Select
         del pop
@@ -221,9 +222,10 @@ def tournament_selection(pop):
 
 # Crossover methods
 def arithmetic_crossover(problem, params, parent1, parent2, cont):
+    gamma = 0.1                                                      # Arithmetic crossover amplitude
     child1 = parent1.deepcopy()
     child2 = parent2.deepcopy()
-    alpha = np.random.uniform(-params.gamma, 1+params.gamma, *child1.chromossome.shape)
+    alpha = np.random.uniform(-gamma, 1+gamma, *child1.chromossome.shape)
     child1.chromossome[cont] = alpha[cont]*parent1.chromossome[cont] + (1-alpha[cont])*parent2.chromossome[cont]
     child2.chromossome[cont] = alpha[cont]*parent2.chromossome[cont] + (1-alpha[cont])*parent1.chromossome[cont]
     child1.chromossome[problem.integer] = alpha[problem.integer]*parent1.chromossome[problem.integer] + (1-alpha[problem.integer])*parent2.chromossome[problem.integer]
@@ -278,28 +280,33 @@ def twopoint_crossover(problem, params, parent1, parent2, cont):
 # Mutation methods
 def gaussian_mutation(x, mut_glob, mut_real):
     y = x.deepcopy()
-    flag = np.random.rand(*x.chromossome.shape) <= mut_glob          # Lista Booleana indicando em quais posições a mutação vai ocorrer
-    ind = np.argwhere(flag)                                    # Lista das posições a serem mutadas
+    flag = np.random.rand(*x.chromossome.shape) <= mut_glob                # Lista Booleana indicando em quais posições a mutação vai ocorrer
+    ind = np.argwhere(flag)                                                # Lista das posições a serem mutadas
     for i in ind:
         if isinstance(y.chromossome[ind], int) == False:
-            y.chromossome[i] += mut_real*np.random.randn()          # Aplicação da mutação nos alelos
+            y.chromossome[i] += mut_real*np.random.randn()                 # Aplicação da mutação nos alelos
         else:
-            y.chromossome[i] += round((mut_real + 2)*np.random.randn())    # Aplicação da mutação nos alelos
+            y.chromossome[i] += round(mut_real*np.random.randint(-5,5))    # Aplicação da mutação nos alelos
     
     return y
 
 def default_mutation(x, mut_glob):
     y = x.deepcopy()
-    flag = np.random.rand(*x.chromossome.shape) <= mut_glob          # Lista Booleana indicando em quais posições a mutação vai ocorrer
-    ind = np.argwhere(flag)                                   # Lista das posições a serem mutadas
+    flag = np.random.rand(*x.chromossome.shape) <= mut_glob                # Lista Booleana indicando em quais posições a mutação vai ocorrer
+    ind = np.argwhere(flag)                                                # Lista das posições a serem mutadas
     for i in ind:
         if isinstance(y.chromossome[ind], int) == False:
-            y.chromossome[i] += np.random.randn()        # Aplicação da mutação nos alelos          np.random.randint(problem.lb)
+            y.chromossome[i] += np.random.randn()                          # Aplicação da mutação nos alelos
         else:
-            y.chromossome[i] += round(np.random.randn())    # Aplicação da mutação nos alelos
+            y.chromossome[i] += round(np.random.randint(-5,5))             # Aplicação da mutação nos alelos
 
-    # y.chromossome[ind] += np.random.randn(*ind.shape)          # Aplicação da mutação nos alelos
     return y
+
+def polynomial_mutation(x, mut_glob):
+    y = x.deepcopy()
+
+    return y
+
 
 
 ######################################################################
@@ -307,6 +314,9 @@ def default_mutation(x, mut_glob):
 ######################################################################
 
 def online_parameter(Use, params):
+
+    # MUTPB_LIST: Mutation Probability
+    # CXPB_LIST: Crossover Probability
 
     if Use == True:
         line_x = np.linspace(start=1, stop=50, num=params.max_iterations)
