@@ -10,6 +10,8 @@ import pandas as pd
 from ypstruct import structure
 import matplotlib.pyplot as plt
 import copy
+import random 
+import math
 
 
 ######################################################################
@@ -39,7 +41,8 @@ def optimize(problem, params, methods):
     out.bestfit = bestfit
     out.avgfit = avgfit
     out.archive = archive
-    out.plots = [plot_convergence(params, bestfit, avgfit)]    # plot_searchspace(dispersion_scaled)
+    out.searchspace = dispersion_scaled
+    out.plots = [plot_convergence(params, bestfit, avgfit), plot_searchspace(problem, dispersion_scaled)]
     out.metrics = metrics
 
     print(f"Tempo de Execução: {time.time() - t_inicial}")
@@ -142,11 +145,11 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
 
             # Perform Mutation
             if methods.mutation == "gaussian":
-                child1 = gaussian_mutation(child1, MUTPB_LIST[iterations], 0.05)
-                child2 = gaussian_mutation(child2, MUTPB_LIST[iterations], 0.05)
-            elif methods.mutation == "default":
-                child1 = default_mutation(child1, MUTPB_LIST[iterations])
-                child2 = default_mutation(child2, MUTPB_LIST[iterations])
+                child1 = gaussian_mutation(params, child1, MUTPB_LIST[iterations])
+                child2 = gaussian_mutation(params, child2, MUTPB_LIST[iterations])
+            elif methods.mutation == "polynomial":
+                child1 = polynomial_mutation(problem, child1, MUTPB_LIST[iterations], params.eta)
+                child2 = polynomial_mutation(problem, child2, MUTPB_LIST[iterations], params.eta)
 
             # Apply Bounds
             apply_bound(child1, problem)
@@ -184,6 +187,8 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
         # Show Iteration Information
         print("Iteration {}: Best Fit = {}".format(iterations+1, bestfit[iterations]))
     
+    print("Best Solution = {}".format(bestsol))
+
     return pop, bestfit, avgfit, bestsol, archive, metrics
 
 
@@ -193,12 +198,24 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
 
 # Selection methods
 def roulette_wheel_selection(pop):
+
+    """Roulette wheel selection operator.
+
+    :param pop: population for the current generation
+    """
+    
     fits = sum([x.fit for x in pop])                          # Realiza a soma de todos os valores de Fitness da População
     probs = list(reversed([x.fit/fits for x in pop]))         # Cria lista de probabilidades em relação ao Fitness (lista invertida -> otimiz de minimização)
     indice = np.random.choice(len(pop), p=probs)              # Escolha aleaória com base nas probabilidades
     return indice                                        
 
 def rank_selection(pop):
+
+    """Roulette wheel selection operator.
+
+    :param pop: population for the current generation
+    """
+
     aux = list(reversed(range(1,len(pop)+1)))                 # Criação do rankeamento da população
     probs = list(0 for i in range(0,len(pop)))                 
     for i in range(0,len(pop)): probs[i] = aux[i]/sum(aux)    # Criação de lista com as probabilidados do ranking
@@ -206,6 +223,12 @@ def rank_selection(pop):
     return indice
 
 def tournament_selection(pop):
+
+    """Roulette wheel selection operator.
+
+    :param pop: population for the current generation
+    """
+
     individual1 = np.random.choice(len(pop))
     individual2 = np.random.choice(len(pop))
     if individual1 == individual2: 
@@ -222,6 +245,17 @@ def tournament_selection(pop):
 
 # Crossover methods
 def arithmetic_crossover(problem, params, parent1, parent2, cont):
+
+    """Arithmetical crossover operator.
+
+    :param problem: indices with integer values
+    :param params: gamma value
+    :param parent1: parent 1 selected for the process
+    :param parent2: parent 2 selected for the process
+    :param CXPB: Independent probability for each attribute
+    :param cont: indices with continuous values
+    """
+
     gamma = 0.1                                                      # Arithmetic crossover amplitude
     child1 = parent1.deepcopy()
     child2 = parent2.deepcopy()
@@ -236,6 +270,17 @@ def arithmetic_crossover(problem, params, parent1, parent2, cont):
     return child1, child2
 
 def onepoint_crossover(problem, params, parent1, parent2, cont):
+
+    """1-point crossover operator.
+
+    :param problem: indices with integer values
+    :param params: gamma value
+    :param parent1: parent 1 selected for the process
+    :param parent2: parent 2 selected for the process
+    :param CXPB: Independent probability for each attribute
+    :param cont: indices with continuous values
+    """
+
     aux1 = parent1.deepcopy(); child1 = parent1.deepcopy()
     aux2 = parent2.deepcopy(); child2 = parent2.deepcopy()
 
@@ -250,6 +295,17 @@ def onepoint_crossover(problem, params, parent1, parent2, cont):
     return child1, child2
 
 def twopoint_crossover(problem, params, parent1, parent2, cont):
+
+    """2-point crossover operator.
+
+    :param problem: indices with integer values
+    :param params: gamma value
+    :param parent1: parent 1 selected for the process
+    :param parent2: parent 2 selected for the process
+    :param CXPB: Independent probability for each attribute
+    :param cont: indices with continuous values
+    """
+
     aux1 = parent1.deepcopy(); child1 = parent1.deepcopy()
     aux2 = parent2.deepcopy(); child2 = parent2.deepcopy()
 
@@ -278,32 +334,59 @@ def twopoint_crossover(problem, params, parent1, parent2, cont):
 ######################################################################
 
 # Mutation methods
-def gaussian_mutation(x, mut_glob, mut_real):
+def gaussian_mutation(params, x, MUTPB):
+
+    """This function applies a gaussian mutation of mean *mu* and standard
+    deviation *sigma* on the input individual. This mutation expects a
+    :term:`sequence` individual composed of real valued attributes.
+    
+    :param params.sigma: Standard deviation or :term:`python:sequence` of
+                  standard deviations for the gaussian addition mutation.
+    :param x: Individual to be mutated.
+    :param MUTPB: Independent probability for each attribute to be mutated.
+    """
+
     y = x.deepcopy()
-    flag = np.random.rand(*x.chromossome.shape) <= mut_glob                # Lista Booleana indicando em quais posições a mutação vai ocorrer
+    flag = np.random.rand(*x.chromossome.shape) <= MUTPB                # Lista Booleana indicando em quais posições a mutação vai ocorrer
     ind = np.argwhere(flag)                                                # Lista das posições a serem mutadas
+
     for i in ind:
-        if isinstance(y.chromossome[ind], int) == False:
-            y.chromossome[i] += mut_real*np.random.randn()                 # Aplicação da mutação nos alelos
+        if isinstance(y.chromossome[i], int) == False:
+            y.chromossome[i] += random.gauss(0, params.sigma)                    # Aplicação da mutação nos alelos
         else:
-            y.chromossome[i] += round(mut_real*np.random.randint(-5,5))    # Aplicação da mutação nos alelos
+            y.chromossome[i] += round(random.gauss(0, params.sigma))    # Aplicação da mutação nos alelos
     
     return y
 
-def default_mutation(x, mut_glob):
+def polynomial_mutation(problem, x, MUTPB, eta):
+
+    """Polynomial mutation as implemented in original NSGA-II algorithm in
+    C by Deb.
+
+    :param params: lower and upper bounds will be used.
+    :param x: individual to be mutated.
+    :param MUTPB: Independent probability for each attribute
+    :param eta: Crowding degree of the mutation. A high eta will produce
+                a mutant resembling its parent, while a small eta will
+                produce a solution much more different.
+    """
+
     y = x.deepcopy()
-    flag = np.random.rand(*x.chromossome.shape) <= mut_glob                # Lista Booleana indicando em quais posições a mutação vai ocorrer
+    flag = np.random.rand(*x.chromossome.shape) <= MUTPB                 # Lista Booleana indicando em quais posições a mutação vai ocorrer
     ind = np.argwhere(flag)                                                # Lista das posições a serem mutadas
-    for i in ind:
-        if isinstance(y.chromossome[ind], int) == False:
-            y.chromossome[i] += np.random.randn()                          # Aplicação da mutação nos alelos
+
+    rand = random.random()
+
+    for i in range(problem.nvar):
+        delta1 = (x.chromossome[i] - problem.lb[i])/(problem.ub[i] - problem.lb[i])
+        delta2 = (problem.ub[i] - x.chromossome[i])/(problem.ub[i] - problem.lb[i])
+
+        if i in ind:
+            delta = (2*rand + (1 - 2*rand)*(1 - delta1)**(eta+1))**(1/(eta+1))-1
         else:
-            y.chromossome[i] += round(np.random.randint(-5,5))             # Aplicação da mutação nos alelos
-
-    return y
-
-def polynomial_mutation(x, mut_glob):
-    y = x.deepcopy()
+            delta = 1 - (2*(1 - rand) + 2*(rand - 0.5)*(1 - delta2)**(eta+1))**(1/(eta+1))
+    
+        y.chromossome[i] = x.chromossome[i] + delta*(problem.ub[i] - problem.lb[i])
 
     return y
 
@@ -379,6 +462,9 @@ def quality_metrics(problem,params,pop):
 def apply_bound(x, problem):
     x.chromossome = np.maximum(x.chromossome, problem.lb)               # Aplica a restrição de bounds superior caso necessária em algum alelo
     x.chromossome = np.minimum(x.chromossome, problem.ub)               # Aplica a restrição de bounds inferior caso necessária em algum alelo
+    
+    for i in problem.integer:
+        x.chromossome[i] = math.floor(x.chromossome[i])
 
 
 def normalize_data(lista,problem):
@@ -458,13 +544,20 @@ def plot_convergence(params, bestfit, avgfit):
     plt.grid(True)
     return fig
 
-def plot_searchspace(dispersion_scaled):
+def plot_searchspace(problem, dispersion_scaled):
     fig = plt.figure()
-    plt.boxplot(dispersion_scaled)
+    
+    index = []
+    for i in range(problem.nvar):
+        index.append(len(dispersion_scaled[i])*[i])
+    
+    for i in range(problem.nvar):
+        plt.scatter(index[i], dispersion_scaled[i], color='green', marker='o')
+    
     plt.xlabel('Variables')
-    plt.ylabel('GA Values')
-    plt.title('Dispersion of variables')
-    plt.grid(True)
+    plt.ylabel('Values used')
+    plt.title('Search Space')
+
     return fig
 
 def plot_metrics(params, metrics):
@@ -480,29 +573,20 @@ def plot_pop(params, pop):
     fig = plt.figure()
     return fig
 
-# def plot_parallel(problem, dispersion_scaled):
 
-#     transposed_list = list(map(list, zip(*dispersion_scaled)))
+def statistical_analysis(problem, params, methods, nruns):
+    
+    fitness = []
 
-#     names = []
-#     for i in range(problem.nvar):
-#         string = 'var' + str(i+1)
-#         names.append(string)
+    for i in range(nruns):
+        out = optimize(problem, params, methods)
+        fitness.append(out.bestfit)
 
-#     df = pd.DataFrame(transposed_list, columns = names)
+    fig = plt.figure()
+    plt.boxplot(fitness)
+    plt.xticks([0],["uuu"])
+    plt.ylabel('Fitness')
+    plt.title('Dispersion of variables')
+    plt.grid(True)
 
-#     # Create the chart:
-#     fig = px.parallel_coordinates(
-#         df, 
-#         color="var5", 
-#         labels={"var1": "var1", "var2": "var2", "var3": "var3", "var4": "var4", "var5": "var5"},
-#         # columns={c:c for c in names}
-#         color_continuous_scale=px.colors.diverging.Tealrose,
-#         color_continuous_midpoint=2)
-
-#     # Hide the color scale that is useless in this case
-#     fig.update_layout(coloraxis_showscale=False)
-
-#     # Show the plot
-#     # fig.show()
-#     return fig
+    return fig
