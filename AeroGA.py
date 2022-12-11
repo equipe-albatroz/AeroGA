@@ -552,8 +552,14 @@ def plot_searchspace(problem, dispersion_scaled):
         index.append(len(dispersion_scaled[i])*[i])
     
     for i in range(problem.nvar):
-        plt.scatter(index[i], dispersion_scaled[i], color='green', marker='o')
+        plt.scatter(index[i], dispersion_scaled[i], s=10, color='blue', marker='o')
     
+    label = []
+    for i in range(problem.nvar):
+        label.append("Var"+str(i+1))
+
+    plt.yticks(range(problem.nvar), label)
+    plt.ylim(-1,1)
     plt.xlabel('Variables')
     plt.ylabel('Values used')
     plt.title('Search Space')
