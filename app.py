@@ -7,7 +7,7 @@ from Benchmarks import Rastrigin
 problem = structure()                                  # Creating the Problem Structure
 problem.fitness = Rastrigin                            # Fitness Function
 problem.nvar = 5                                       # Variables number
-problem.lb = [-0.2, -10, -10, -5, -5]                   # Lower Bounds
+problem.lb = [-0.2, -10, -10, -5, -5]                  # Lower Bounds
 problem.ub = [0.4 , 10, 10,  5, 5]                     # Upper Bounds
 problem.integer = [1,2]                                # Indice de números inteiros
 
@@ -23,17 +23,17 @@ params.elitism = 0.0                                   # Elitism rate
 
 # GA Methods
 methods = structure()
-methods.selection = "rank"                         # Available methods: "roulette", "rank", "tournament" -> Read README.md for detailed info
-methods.crossover = "arithmetic"                          # Available methods: "arithmetic", "1-point", "2-point" -> Read README.md for detailed info
+methods.selection = "rank"                             # Available methods: "roulette", "rank", "tournament" -> Read README.md for detailed info
+methods.crossover = "arithmetic"                       # Available methods: "arithmetic", "1-point", "2-point" -> Read README.md for detailed info
 methods.mutation = "gaussian"                          # Available methods: "gaussian", "default", "polynomial" -> Read README.md for detailed info
 
 # Run GA
 out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
 
-
 # Display convergence graph
 # AeroGA.plot_convergence(params,out.bestfit,out.avgfit)
-AeroGA.plot_searchspace(problem, out.searchspace)
+# AeroGA.plot_searchspace(problem, out.searchspace)
+fig = out.plots[2]
 plt.show()
 
 # Run Sensitivity Analysis

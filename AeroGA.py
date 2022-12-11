@@ -42,7 +42,7 @@ def optimize(problem, params, methods):
     out.avgfit = avgfit
     out.archive = archive
     out.searchspace = dispersion_scaled
-    out.plots = [plot_convergence(params, bestfit, avgfit), plot_searchspace(problem, dispersion_scaled)]
+    out.plots = [plot_convergence(params, bestfit, avgfit), plot_searchspace(problem, dispersion_scaled), plot_metrics(params, metrics)]
     out.metrics = metrics
 
     print(f"Tempo de Execução: {time.time() - t_inicial}")
@@ -418,41 +418,44 @@ def online_parameter(Use, params):
 ######################################################################
 
 def quality_metrics(problem,params,pop):
-    C = []; I = []
+    Gn = []; SPDi = []
 
     for j in range(problem.nvar):
         aux = []
         for i in range(params.npop):
 
             if pop[i].chromossome[j] < 0:
-                alpha = 1
+                alpha = -1
             else:
                 alpha = 1
 
             aux.append(alpha*((pop[i].chromossome[j]-problem.lb[j])/(problem.ub[j]-problem.lb[j])))
 
             if i == (params.npop - 1):
-                # aux = normalize(aux,params,problem)
-                # print(aux)
                 soma = sum(aux)
-                C.append(soma/params.npop)
+                Gn.append(soma/params.npop)
     
     for j in range(problem.nvar):
         aux = []
         for i in range(params.npop):
             
             if pop[i].chromossome[j] < 0:
-                alpha = 1
+                alpha = -1
             else:
                 alpha = 1
 
             norm = alpha*((pop[i].chromossome[j]-problem.lb[j])/(problem.ub[j]-problem.lb[j]))
 
-            aux.append(((norm-C[j])**2))
+            aux.append(((norm-Gn[j])**2))
             if i == (params.npop - 1): 
-                I.append(sum(aux))
+                SPDi.append(sum(aux)/params.npop)
 
-    return round(sum(I),2)
+    SPD = []
+    for j in range(problem.nvar):
+        SPD.append(SPDi[j]/Gn[j])
+
+
+    return round(sum(SPD)/problem.nvar,2)
 
 ######################################################################
 ######################## Auxiliary Functions #########################
@@ -546,6 +549,10 @@ def plot_convergence(params, bestfit, avgfit):
 
 def plot_searchspace(problem, dispersion_scaled):
     fig = plt.figure()
+
+    for i in problem.lb:
+        if i < 0: a = -1; break
+        else: a = 0
     
     index = []; label = []
     for i in range(problem.nvar):
@@ -556,7 +563,7 @@ def plot_searchspace(problem, dispersion_scaled):
         plt.scatter(index[i], dispersion_scaled[i], s=1, alpha=0.2, color='black', marker='o')
 
     plt.xticks(range(problem.nvar), label)
-    plt.ylim(-1,1)
+    plt.ylim(a,1)
     plt.ylabel('Values used')
     plt.title('Search Space')
 
