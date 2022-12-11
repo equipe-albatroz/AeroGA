@@ -553,7 +553,7 @@ def plot_searchspace(problem, dispersion_scaled):
         label.append("Var"+str(i+1))
     
     for i in range(problem.nvar):
-        plt.scatter(index[i], dispersion_scaled[i], s=3, alpha=0.3, color='black', marker='o')
+        plt.scatter(index[i], dispersion_scaled[i], s=1, alpha=0.2, color='black', marker='o')
 
     plt.xticks(range(problem.nvar), label)
     plt.ylim(-1,1)
