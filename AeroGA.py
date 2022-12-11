@@ -547,20 +547,16 @@ def plot_convergence(params, bestfit, avgfit):
 def plot_searchspace(problem, dispersion_scaled):
     fig = plt.figure()
     
-    index = []
+    index = []; label = []
     for i in range(problem.nvar):
         index.append(len(dispersion_scaled[i])*[i])
-    
-    for i in range(problem.nvar):
-        plt.scatter(index[i], dispersion_scaled[i], s=10, color='blue', marker='o')
-    
-    label = []
-    for i in range(problem.nvar):
         label.append("Var"+str(i+1))
+    
+    for i in range(problem.nvar):
+        plt.scatter(index[i], dispersion_scaled[i], s=3, alpha=0.3, color='black', marker='o')
 
-    plt.yticks(range(problem.nvar), label)
+    plt.xticks(range(problem.nvar), label)
     plt.ylim(-1,1)
-    plt.xlabel('Variables')
     plt.ylabel('Values used')
     plt.title('Search Space')
 
