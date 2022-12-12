@@ -108,7 +108,7 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
         pop = sorted(pop, key=lambda x: x.fit)
 
         # Quality metrics calculation
-        metrics["popdiv"].append(quality_metrics(problem, params, pop))
+        # metrics["popdiv"].append(quality_metrics(problem, params, pop))
 
         # Elitist population
         pope = elitist_population(params,pop)
@@ -193,7 +193,7 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
         # Show Iteration Information
         # print("Iteration {}: Best Fit = {}: Average Fitness = {}".format(iterations+1, bestfit[iterations], avgfit[iterations]))
     
-    print("Best Solution = {}".format(bestsol))
+    # print("Best Solution = {}".format(bestsol))
 
     return pop, bestfit, avgfit, bestsol, archive, metrics, index
 
@@ -598,6 +598,7 @@ def statistical_analysis(problem, params, methods, nruns):
         out = optimize(problem, params, methods)
         fitness.append(out.bestfit[-1])
         bestsol.append(out.bestsol)
+        print("Run: {}".format(i))
 
     fig = plt.figure()
     plt.boxplot(fitness)
