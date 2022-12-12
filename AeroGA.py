@@ -185,7 +185,7 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
         avgfit[iterations] = fitsum_pop(params, pop)/params.npop
 
         # Show Iteration Information
-        print("Iteration {}: Best Fit = {}".format(iterations+1, bestfit[iterations]))
+        print("Iteration {}: Best Fit = {}: Average Fitness = {}".format(iterations+1, bestfit[iterations], avgfit[iterations]))
     
     print("Best Solution = {}".format(bestsol))
 
@@ -475,10 +475,11 @@ def normalize_data(lista,problem):
     for i in range(0,problem.nvar):
         for j in range(len(lista[1])):
             if lista[i][j] < 0:
-                alpha = -1
-            else:
-                alpha = 1
-            lista_aux[i][j] = alpha*((lista[i][j]-problem.lb[i])/(problem.ub[i]-problem.lb[i]))
+                lista_aux[i][j] = -1*abs(lista[i][j]/problem.lb[i])
+            elif lista[i][j] == 0:
+                lista_aux[i][j] = 0
+            elif lista[i][j] > 0:
+                lista_aux[i][j] = lista[i][j]/problem.ub[i]
     
     return lista_aux
 
@@ -562,7 +563,7 @@ def plot_searchspace(problem, dispersion_scaled):
     for i in range(problem.nvar):
         plt.scatter(index[i], dispersion_scaled[i], s=1, alpha=0.2, color='black', marker='o')
 
-    plt.xticks(range(problem.nvar), label)
+    plt.xticks(range(problem.nvar), label, rotation = 90)
     plt.ylim(a,1)
     plt.ylabel('Values used')
     plt.title('Search Space')
