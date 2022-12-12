@@ -548,7 +548,7 @@ def plot_convergence(params, bestfit, avgfit):
     plt.grid(True)
     return fig
 
-def plot_searchspace(problem, dispersion_scaled):
+def plot_searchspace(problem, archive, dispersion_scaled):
     fig = plt.figure()
 
     for i in problem.lb:
@@ -563,8 +563,14 @@ def plot_searchspace(problem, dispersion_scaled):
     for i in range(problem.nvar):
         plt.scatter(index[i], dispersion_scaled[i], s=1, alpha=0.2, color='black', marker='o')
     
+    j = 0; compar = np.inf
+    for i in range(len(archive["fit"])):
+        if archive["fit"][i] < compar:
+            compar = archive["fit"][i]
+            j = i
+
     for i in range(problem.nvar):
-        plt.scatter(i, dispersion_scaled[i][-1], s=1, alpha=0.2, color='red', marker='*')
+        plt.scatter(i, dispersion_scaled[j][-1], s=20, alpha=0.2, color='red', marker='o')
 
     plt.xticks(range(problem.nvar), label, rotation = 90)
     plt.yticks([-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1], ["-100%", "-75%", "-50%", "-25%", "0%", "25%", "50%", "75%", "100%"])
