@@ -33,14 +33,14 @@ out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
 # Display convergence graph
 # AeroGA.plot_convergence(params,out.bestfit,out.avgfit)
 # AeroGA.plot_searchspace(problem, out.searchspace)
-# fig = out.plots[2]
-# plt.show()
+fig = out.plots[1]
+plt.show()
 
 # Run Sensitivity Analysis
 # df_sensibility = AeroGA.sensibility(problem, out.bestsol)
 
-fig = AeroGA.statistical_analysis(problem, params, methods,100)
-plt.show()
+# fig = AeroGA.statistical_analysis(problem, params, methods,100)
+# plt.show()
 
 # fig = AeroGA.plot_pop(params, out.archive, 2)
 # plt.show()

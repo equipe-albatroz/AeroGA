@@ -44,10 +44,11 @@ def optimize(problem, params, methods):
     out.avgfit = avgfit
     out.archive = archive
     out.searchspace = dispersion_scaled
-    # out.plots = [plot_convergence(params, bestfit, avgfit), plot_searchspace(problem, index, dispersion_scaled), plot_metrics(params, metrics)]
+    out.plots = [plot_convergence(params, bestfit, avgfit), plot_searchspace(problem, index, dispersion_scaled), plot_metrics(params, metrics)]
+    # out.plots = [plot_convergence(params, bestfit, avgfit), plot_metrics(params, metrics)]
     out.metrics = metrics
 
-    # print(f"Tempo de Execução: {time.time() - t_inicial}")
+    print(f"Tempo de Execução: {time.time() - t_inicial}")
 
     return out
 
@@ -93,6 +94,7 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
 
     # Best Fit of Iterations
     bestfit = np.empty(params.max_iterations)
+
     # Average Fit of Iterations
     avgfit = np.empty(params.max_iterations)
 
@@ -100,7 +102,7 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
     nc = int(np.round(params.pc*params.npop/2)*2)
 
     # Quality metrics calculation
-    metrics = {"popdiv":[]}
+    metrics = {"pop_distance":[]}
 
     for iterations in range(params.max_iterations):
 
@@ -110,7 +112,7 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
         pop = sorted(pop, key=lambda x: x.fit)
 
         # Quality metrics calculation
-        # metrics["popdiv"].append(quality_metrics(problem, params, pop))
+        metrics["pop_distance"].append(quality_metrics(problem, params, pop))
 
         # Elitist population
         pope = elitist_population(params,pop)
@@ -157,19 +159,17 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
             apply_bound(child1, problem)
             apply_bound(child2, problem)
 
-            index = len(archive["fit"])
-
             # Evaluate First Offspring
             child1.fit = problem.fitness(child1.chromossome)
             if child1.fit < bestsol.fit:
                 bestsol = child1.deepcopy()
-                index += 1
+                index = len(archive["fit"])
 
             # Evaluate Second Offspring
             child2.fit = problem.fitness(child2.chromossome)
             if child2.fit < bestsol.fit:
                 bestsol = child2.deepcopy()
-                index += 2
+                index = len(archive["fit"])
 
             # Add Offsprings to popc
             popc.append(child1)
@@ -193,9 +193,9 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
         avgfit[iterations] = fitsum_pop(params, pop)/params.npop
 
         # Show Iteration Information
-        # print("Iteration {}: Best Fit = {}: Average Fitness = {}".format(iterations+1, bestfit[iterations], avgfit[iterations]))
+        print("Iteration {}: Best Fit = {}: Average Fitness = {}".format(iterations+1, bestfit[iterations], avgfit[iterations]))
     
-    # print("Best Solution = {}".format(bestsol))
+    print("Best Solution = {}".format(bestsol))
 
     return pop, bestfit, avgfit, bestsol, archive, metrics, index
 
@@ -426,44 +426,60 @@ def online_parameter(Use, params):
 ######################################################################
 
 def quality_metrics(problem,params,pop):
-    Gn = []; SPDi = []
+    erro_pop = []
 
     for j in range(problem.nvar):
         aux = []
         for i in range(params.npop):
-
-            if pop[i].chromossome[j] < 0:
-                alpha = -1
-            else:
-                alpha = 1
-
-            aux.append(alpha*((pop[i].chromossome[j]-problem.lb[j])/(problem.ub[j]-problem.lb[j])))
+            aux.append(abs(pop[-1].chromossome[j] - pop[i].chromossome[j]))
 
             if i == (params.npop - 1):
-                soma = sum(aux)
-                Gn.append(soma/params.npop)
+                erro_pop.append(sum(aux)/params.npop)
     
-    for j in range(problem.nvar):
-        aux = []
-        for i in range(params.npop):
+    metric = sum(erro_pop)/problem.nvar
+
+    return round(metric,4)
+
+
+# def quality_metrics(problem,params,pop):
+#     Gn = []; SPDi = []
+
+#     for j in range(problem.nvar):
+#         aux = []
+#         for i in range(params.npop):
+
+#             if pop[i].chromossome[j] < 0:
+#                 alpha = -1
+#             else:
+#                 alpha = 1
+
+    #         aux.append(alpha*((pop[i].chromossome[j]-problem.lb[j])/(problem.ub[j]-problem.lb[j])))
+
+    #         if i == (params.npop - 1):
+    #             soma = sum(aux)
+    #             Gn.append(soma/params.npop)
+    
+    # for j in range(problem.nvar):
+    #     aux = []
+    #     for i in range(params.npop):
             
-            if pop[i].chromossome[j] < 0:
-                alpha = -1
-            else:
-                alpha = 1
+    #         if pop[i].chromossome[j] < 0:
+    #             alpha = -1
+    #         else:
+    #             alpha = 1
 
-            norm = alpha*((pop[i].chromossome[j]-problem.lb[j])/(problem.ub[j]-problem.lb[j]))
+    #         norm = alpha*((pop[i].chromossome[j]-problem.lb[j])/(problem.ub[j]-problem.lb[j]))
 
-            aux.append(((norm-Gn[j])**2))
-            if i == (params.npop - 1): 
-                SPDi.append(sum(aux)/params.npop)
+    #         aux.append(((norm-Gn[j])**2))
+    #         if i == (params.npop - 1): 
+    #             SPDi.append(sum(aux)/params.npop)
 
-    SPD = []
-    for j in range(problem.nvar):
-        SPD.append(SPDi[j]/Gn[j])
+    # SPD = []
+    # for j in range(problem.nvar):
+    #     SPD.append(SPDi[j]/Gn[j])
 
 
-    return round(sum(SPD)/problem.nvar,2)
+    # return round(sum(SPD)/problem.nvar,2)
 
 ######################################################################
 ######################## Auxiliary Functions #########################
@@ -585,7 +601,7 @@ def plot_searchspace(problem, j, dispersion_scaled):
 
 def plot_metrics(params, metrics):
     fig = plt.figure()
-    plt.plot(metrics["popdiv"])
+    plt.plot(metrics["pop_distance"])
     plt.xlim(0, params.max_iterations+1)
     plt.xlabel('Iterations')
     plt.ylabel('Metrics')
