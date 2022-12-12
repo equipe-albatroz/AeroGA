@@ -564,6 +564,7 @@ def plot_searchspace(problem, dispersion_scaled):
         plt.scatter(index[i], dispersion_scaled[i], s=1, alpha=0.2, color='black', marker='o')
 
     plt.xticks(range(problem.nvar), label, rotation = 90)
+    plt.yticks([-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1], ["-100%", "-75%", "-50%", "-25%", "0%", "25%", "50%", "75%", "100%"])
     plt.ylim(a,1)
     plt.ylabel('Values used')
     plt.title('Search Space')
