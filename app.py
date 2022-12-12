@@ -42,5 +42,5 @@ out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
 # fig = AeroGA.statistical_analysis(problem, params, methods, 10)
 # plt.show()
 
-fig = AeroGA.plot_pop(params, out.archive, 2)
-plt.show()
+# fig = AeroGA.plot_pop(params, out.archive, 2)
+# plt.show()
