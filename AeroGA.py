@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 import copy
 import random 
 import math
+import os
+import csv
 
 
 ######################################################################
@@ -45,7 +47,7 @@ def optimize(problem, params, methods):
     # out.plots = [plot_convergence(params, bestfit, avgfit), plot_searchspace(problem, index, dispersion_scaled), plot_metrics(params, metrics)]
     out.metrics = metrics
 
-    print(f"Tempo de Execução: {time.time() - t_inicial}")
+    # print(f"Tempo de Execução: {time.time() - t_inicial}")
 
     return out
 
@@ -600,11 +602,16 @@ def statistical_analysis(problem, params, methods, nruns):
         bestsol.append(out.bestsol)
         print("Run: {}".format(i))
 
-    fig = plt.figure()
-    plt.boxplot(fitness)
-    plt.xticks([0],["data"])
-    plt.ylabel('Fitness')
-    plt.title('Boxplot N runs')
-    plt.grid(True)
+    # fig = plt.figure()
+    # plt.boxplot(fitness)
+    # plt.xticks([0],["data"])
+    # plt.ylabel('Fitness')
+    # plt.title('Boxplot N runs')
+    # plt.grid(True)
 
-    return fig, bestsol
+    folder = "/home/krigor/Documentos/AeroGA/"
+    path = os.path.join(folder, "boxplot_nruns.csv")
+    df_metrics = pd.DataFrame(fitness)
+    df_metrics.to_csv(path, sep=',',index=False)
+
+    return bestsol
