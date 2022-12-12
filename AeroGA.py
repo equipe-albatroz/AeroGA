@@ -605,6 +605,7 @@ def plot_metrics(params, metrics):
     plt.xlim(0, params.max_iterations+1)
     plt.xlabel('Iterations')
     plt.ylabel('Metrics')
+    plt.title('Population Distance Metric')
     plt.grid(True)
     return fig
 
@@ -618,16 +619,16 @@ def statistical_analysis(problem, params, methods, nruns):
         bestsol.append(out.bestsol)
         print("Run: {}".format(i))
 
-    # fig = plt.figure()
-    # plt.boxplot(fitness)
-    # plt.xticks([0],["data"])
-    # plt.ylabel('Fitness')
-    # plt.title('Boxplot N runs')
-    # plt.grid(True)
+    fig = plt.figure()
+    plt.boxplot(fitness)
+    plt.xticks([0],["data"])
+    plt.ylabel('Fitness')
+    plt.title('Boxplot N runs')
+    plt.grid(True)
 
-    folder = "/home/krigor/Documentos/AeroGA/"
-    path = os.path.join(folder, "boxplot_nruns.csv")
-    df_metrics = pd.DataFrame(fitness)
-    df_metrics.to_csv(path, sep=',',index=False)
+    # folder = "/home/krigor/Documentos/AeroGA/"
+    # path = os.path.join(folder, "boxplot_nruns.csv")
+    # df_metrics = pd.DataFrame(fitness)
+    # df_metrics.to_csv(path, sep=',',index=False)
 
-    return bestsol
+    return fig, bestsol
