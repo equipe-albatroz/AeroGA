@@ -580,18 +580,30 @@ def plot_metrics(params, metrics):
     plt.grid(True)
     return fig
 
-def plot_pop(params, pop):
+def plot_pop(params, archive, iteration):
     fig = plt.figure()
+    individual = []; fit = []; iter = []
+
+    for i in range(len(archive["chromossome"])):
+        individual.append(np.sqrt(sum(archive["chromossome"][i]**2)))
+        fit.append(archive["fit"][i])
+        iter.append(archive["iteration"][i])
+
+    for i in range(params.max_iterations):
+        if iter[i] == iteration:
+            plt.scatter(individual[i], fit[i])
+
     return fig
 
 
 def statistical_analysis(problem, params, methods, nruns):
     
-    fitness = []
+    fitness = []; bestsol = []
 
     for i in range(nruns):
         out = optimize(problem, params, methods)
         fitness.append(out.bestfit)
+        bestsol.append(out.bestsol)
 
     fig = plt.figure()
     plt.boxplot(fitness)
@@ -600,4 +612,4 @@ def statistical_analysis(problem, params, methods, nruns):
     plt.title('Dispersion of variables')
     plt.grid(True)
 
-    return fig
+    return fig, bestsol
