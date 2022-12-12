@@ -39,8 +39,8 @@ out = AeroGA.optimize(problem, params, methods)        # Running the Simulation
 # Run Sensitivity Analysis
 # df_sensibility = AeroGA.sensibility(problem, out.bestsol)
 
-# fig = AeroGA.statistical_analysis(problem, params, methods, 10)
-# plt.show()
+fig = AeroGA.statistical_analysis(problem, params, methods,3)
+plt.show()
 
 # fig = AeroGA.plot_pop(params, out.archive, 2)
 # plt.show()

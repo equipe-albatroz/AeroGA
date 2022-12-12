@@ -29,7 +29,7 @@ def optimize(problem, params, methods):
     pop, archive, bestsol = initialize_population(problem, params, cont)
     
     # Main Loop
-    pop, bestfit, avgfit, bestsol, archive, metrics = main_loop(problem, params, methods, cont, archive, pop, bestsol)
+    pop, bestfit, avgfit, bestsol, archive, metrics, index = main_loop(problem, params, methods, cont, archive, pop, bestsol)
 
     # Population data normalization
     dispersion_scaled = normalize_data(np.array(list(map(list,list(archive["chromossome"])))).T.tolist(), problem)
@@ -42,7 +42,7 @@ def optimize(problem, params, methods):
     out.avgfit = avgfit
     out.archive = archive
     out.searchspace = dispersion_scaled
-    out.plots = [plot_convergence(params, bestfit, avgfit), plot_searchspace(problem, dispersion_scaled), plot_metrics(params, metrics)]
+    # out.plots = [plot_convergence(params, bestfit, avgfit), plot_searchspace(problem, index, dispersion_scaled), plot_metrics(params, metrics)]
     out.metrics = metrics
 
     print(f"Tempo de Execução: {time.time() - t_inicial}")
@@ -155,15 +155,19 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
             apply_bound(child1, problem)
             apply_bound(child2, problem)
 
+            index = len(archive["fit"])
+
             # Evaluate First Offspring
             child1.fit = problem.fitness(child1.chromossome)
             if child1.fit < bestsol.fit:
                 bestsol = child1.deepcopy()
+                index += 1
 
             # Evaluate Second Offspring
             child2.fit = problem.fitness(child2.chromossome)
             if child2.fit < bestsol.fit:
                 bestsol = child2.deepcopy()
+                index += 2
 
             # Add Offsprings to popc
             popc.append(child1)
@@ -171,7 +175,9 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
 
             # Saving children data to archive
             archive["chromossome"].append(child1.chromossome)
-            archive["fit"].append(child2.chromossome)
+            archive["chromossome"].append(child2.chromossome)
+            archive["fit"].append(child1.fit)
+            archive["fit"].append(child2.fit)
             archive["iteration"].append(iterations)
         
         # Merge, Sort and Select
@@ -185,11 +191,11 @@ def main_loop(problem, params, methods, cont, archive, pop, bestsol):
         avgfit[iterations] = fitsum_pop(params, pop)/params.npop
 
         # Show Iteration Information
-        print("Iteration {}: Best Fit = {}: Average Fitness = {}".format(iterations+1, bestfit[iterations], avgfit[iterations]))
+        # print("Iteration {}: Best Fit = {}: Average Fitness = {}".format(iterations+1, bestfit[iterations], avgfit[iterations]))
     
     print("Best Solution = {}".format(bestsol))
 
-    return pop, bestfit, avgfit, bestsol, archive, metrics
+    return pop, bestfit, avgfit, bestsol, archive, metrics, index
 
 
 ######################################################################
@@ -548,7 +554,7 @@ def plot_convergence(params, bestfit, avgfit):
     plt.grid(True)
     return fig
 
-def plot_searchspace(problem, archive, dispersion_scaled):
+def plot_searchspace(problem, j, dispersion_scaled):
     fig = plt.figure()
 
     for i in problem.lb:
@@ -562,15 +568,10 @@ def plot_searchspace(problem, archive, dispersion_scaled):
     
     for i in range(problem.nvar):
         plt.scatter(index[i], dispersion_scaled[i], s=1, alpha=0.2, color='black', marker='o')
-    
-    j = 0; compar = np.inf
-    for i in range(len(archive["fit"])):
-        if archive["fit"][i] < compar:
-            compar = archive["fit"][i]
-            j = i
 
     for i in range(problem.nvar):
-        plt.scatter(i, dispersion_scaled[j][-1], s=20, alpha=0.2, color='red', marker='o')
+        plt.scatter(i, dispersion_scaled[i][j], s=20, alpha=0.2, color='red', marker='o')
+    
 
     plt.xticks(range(problem.nvar), label, rotation = 90)
     plt.yticks([-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1], ["-100%", "-75%", "-50%", "-25%", "0%", "25%", "50%", "75%", "100%"])
@@ -589,35 +590,20 @@ def plot_metrics(params, metrics):
     plt.grid(True)
     return fig
 
-def plot_pop(params, archive, iteration):
-    fig = plt.figure()
-    individual = []; fit = []
-
-    for i in range(len(archive["chromossome"])):
-        individual.append(np.sqrt(sum(archive["chromossome"][i]**2)))
-        fit.append(archive["fit"][i])
-
-    for i in range(params.max_iterations):
-        if archive["iteration"][i] == iteration:
-            plt.scatter(individual[i], fit[i], s=1, alpha=0.2, color='black', marker='o')
-
-    return fig
-
-
 def statistical_analysis(problem, params, methods, nruns):
     
     fitness = []; bestsol = []
 
     for i in range(nruns):
         out = optimize(problem, params, methods)
-        fitness.append(out.bestfit)
+        fitness.append(out.bestfit[-1])
         bestsol.append(out.bestsol)
 
     fig = plt.figure()
     plt.boxplot(fitness)
-    plt.xticks([0],["uuu"])
+    plt.xticks([0],["data"])
     plt.ylabel('Fitness')
-    plt.title('Dispersion of variables')
+    plt.title('Boxplot N runs')
     plt.grid(True)
 
     return fig, bestsol
