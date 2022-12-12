@@ -582,16 +582,15 @@ def plot_metrics(params, metrics):
 
 def plot_pop(params, archive, iteration):
     fig = plt.figure()
-    individual = []; fit = []; iter = []
+    individual = []; fit = []
 
     for i in range(len(archive["chromossome"])):
         individual.append(np.sqrt(sum(archive["chromossome"][i]**2)))
         fit.append(archive["fit"][i])
-        iter.append(archive["iteration"][i])
 
     for i in range(params.max_iterations):
-        if iter[i] == iteration:
-            plt.scatter(individual[i], fit[i])
+        if archive["iteration"][i] == iteration:
+            plt.scatter(individual[i], fit[i], s=1, alpha=0.2, color='black', marker='o')
 
     return fig
 
