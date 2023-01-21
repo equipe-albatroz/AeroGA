@@ -31,9 +31,10 @@ methods.n_threads = 4                                  # Number of threads used 
 genes, history, best_individual = genetic_algorithm(methods, num_variables, min_values, max_values, population_size, mutation_rate, eta, std_dev, num_generations, crossover_rate, alpha, tournament_size, fitness_fn) 
 
 # parallel_coordinates(history)
-# create_plotfit(history)
+# create_plotfit(history, fitness_fn, methods)
 
-
+increment=0.01
+sensibility(best_individual, fitness_fn, increment, min_values, max_values)
 
 ################
 ## Versão 1.0 ##

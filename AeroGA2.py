@@ -190,6 +190,24 @@ def polynomial_mutation(individual, min_values, max_values, eta):
 # #################################### Graphs #########################################
 # #####################################################################################
 
+def sensibility(individual, fitness_fn, increment, min_values, max_values):
+    """Calculate the fitness of an individual for each iteration, where one variable is incremented by a given value within the range of min and max values.
+    If variable is integer, it will increment by 1 instead of a float value
+    """
+    dict = {"nvar":[],"value":[],"fit":[]};
+
+    for i in range(len(individual)):
+        current_value = individual[i]
+        for new_value in np.arange(min_values[i], max_values[i], increment):
+            new_individual = individual.copy()
+            if isinstance(new_individual[i], int):
+                new_value = int(new_value)
+            new_individual[i] = new_value
+            dict["nvar"].append(i)
+            dict["value"].append(new_value)
+            dict["fit"].append(fitness_fn(new_individual))
+    return print(pd.DataFrame(dict))
+
 def create_boxplot(history):
     """Create a boxplot for each variable in the population history"""
     num_generations = len(history)
@@ -208,9 +226,9 @@ def create_boxplot(history):
     plt.show()
 
 
-def create_plotfit(history):
+def create_plotfit(history, fitness_fn, methods):
     # Extract the fitness values of the best gene for each generation
-    fitness_values = [min(fitness(population)) for population in history]
+    fitness_values = [min(fitness(population, fitness_fn, methods.n_threads)) for population in history]
 
     # Plot the fitness values over the number of generations
     plt.plot(fitness_values)
