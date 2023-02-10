@@ -103,8 +103,11 @@ def genetic_algorithm(methods, num_variables, min_values, max_values, population
 
         print("Generation: {} | Best Fitness: {} | Diversity Metric: {}".format(generation+1, best_fitness, metrics[generation]))
 
+        # Creating new population and aplying elitist concept
         new_population = []
-        for i in range(0, population_size, 2):
+        new_population = population[:elite_count]
+
+        for i in range(0, population_size - elite_count, 2):
             
             if methods.selection == 'tournament':
                 parent1, parent2 = tournament_selection(population, fitness_values, tournament_size)

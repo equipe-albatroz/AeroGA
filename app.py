@@ -19,7 +19,7 @@ crossover_rate = 1
 alpha = 0.05
 eta = 20
 std_dev = 1.8
-elite_count = 1
+elite_count = 2
 fitness_fn = Rastrigin 
 
 # GA Methods
