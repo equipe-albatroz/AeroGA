@@ -21,10 +21,25 @@ class Individual:
 # ###################################### Main #########################################
 # #####################################################################################
 
-def genetic_algorithm(methods, num_variables, min_values, max_values, population_size, mutation_rate, eta, std_dev, num_generations, crossover_rate, alpha, tournament_size, fitness_fn, elite_count):
+def AeroGA(methods, param, fitness_fn):
     """Perform the genetic algorithm to find an optimal solution."""
 
     t_inicial = time.time()
+
+    # Extracting variables
+    min_values = param.lb
+    max_values = param.ub
+    num_variables = param.num_variables
+    population_size = param.population_size
+    num_generations = param.num_generations
+    tournament_size = param.tournament_size
+    alpha = param.alpha
+    eta = param.eta
+    std_dev = param.std_dev
+    elite_count = param.elite_count
+    online_control = param.online_control
+    mutation_rate = param.mutation_rate
+    crossover_rate = param.crossover_rate
 
     # Generating initial population
     population = generate_population(population_size, num_variables, min_values, max_values)
@@ -62,7 +77,7 @@ def genetic_algorithm(methods, num_variables, min_values, max_values, population
         metrics.append(diversity_metric(population))
         
         # Applying the online parameter control
-        MUTPB_LIST, CXPB_LIST = online_parameter(True, num_generations)
+        MUTPB_LIST, CXPB_LIST = online_parameter(online_control, num_generations, mutation_rate, crossover_rate)
 
         print("Generation: {} | Best Fitness: {} | Diversity Metric: {}".format(generation+1, best_fitness, metrics[generation]))
 
@@ -254,20 +269,20 @@ def diversity_metric(population):
 # ################################ Online Parameters ##################################
 # #####################################################################################
 
-def online_parameter(Use, num_generations):
+def online_parameter(online_control, num_generations, mutation_rate, crossover_rate):
 
     # MUTPB_LIST: Mutation Probability
     # CXPB_LIST: Crossover Probability
 
-    if Use == True:
+    if online_control == True:
         line_x = np.linspace(start=1, stop=50, num=num_generations)
         MUTPB_LIST = (-(np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0])) + 1) * 0.2
         
         line_x = np.linspace(start=1, stop=5, num=num_generations)
         CXPB_LIST = (np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0]))
     else:
-        MUTPB_LIST = [0.2]*num_generations
-        CXPB_LIST = [1.0]*num_generations
+        MUTPB_LIST = [mutation_rate]*num_generations
+        CXPB_LIST = [crossover_rate]*num_generations
 
     return MUTPB_LIST, CXPB_LIST
 
