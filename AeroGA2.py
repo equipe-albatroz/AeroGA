@@ -6,33 +6,103 @@ import numpy as np
 from bisect import bisect_left 
 import pandas as pd
 import plotly.express as px
+from statistics import mean 
 from ypstruct import structure
 
-class Genes:
+class Individual:
     def __init__(self, genes):
         self.genes = genes
+        self.fitness = None
+
+    def calculate_fitness(self, fitness_fn):
+        self.fitness = fitness_fn(self.genes)
 
 # #####################################################################################
 # ###################################### Main #########################################
 # #####################################################################################
 
-def genetic_algorithm(methods, num_variables, min_values, max_values, population_size, mutation_rate, eta, std_dev, num_generations, crossover_rate, alpha, tournament_size, fitness_fn):
+# class Individual:
+#     def __init__(self, genes, fitness):
+#         self.genes = genes
+#         self.fitness = fitness
+
+# def genetic_algorithm(population, fitness_fn, mutate_fn, select_parents_fn, crossover_fn,
+#                      elitism, mutation_probability, population_size, generations):
+#     for generation in range(generations):
+#         # Evaluate the fitness of each individual
+#         for Genes in population:
+#             Genes.fitness = fitness_fn(Genes.genes)
+
+#         # Sort the population by fitness in descending order
+#         population.sort(key=lambda x: x.fitness, reverse=True)
+
+#         # Apply elitism by keeping the best individuals
+#         next_population = population[:elitism]
+
+#         # Select the remaining individuals to be replaced by offspring
+#         population_to_replace = population_size - elitism
+#         while len(next_population) < population_size:
+#             # Select the parents
+#             parents = select_parents_fn(population, 2)
+
+#             # Crossover to produce offspring
+#             offspring = crossover_fn(parents[0].genes, parents[1].genes)
+
+#             # Mutate the offspring
+#             offspring = mutate_fn(offspring, mutation_probability)
+
+#             # Add the offspring to the next population
+#             next_population.append(Individual(offspring, 0))
+
+#         population = next_population
+
+#     return population
+
+def genetic_algorithm(methods, num_variables, min_values, max_values, population_size, mutation_rate, eta, std_dev, num_generations, crossover_rate, alpha, tournament_size, fitness_fn, elite_count):
     """Perform the genetic algorithm to find an optimal solution."""
 
     t_inicial = time.time()
 
+    # Generating initial population
     population = generate_population(population_size, num_variables, min_values, max_values)
-    history = [population]
+
+    # Creating history, metrics and best/avg lists
+    history = [population]; best_fit = []; avg_fit = []; metrics = []
+
+    # Initial value for the best fitness
     best_fitness = float('inf')
     best_individual = population[0]
+
+    # Initializing the main loop
     for generation in range(num_generations):
+
+        # Calculating the fitness values
         fitness_values = fitness(population, fitness_fn, methods.n_threads)
+
+        # Population sorted by the fitness value
+        population = [x for _,x in sorted(zip(fitness_values,population))]
+        fitness_values = sorted(fitness_values)
+
+        # Best and average fitness and best individual at the generation
         best_fitness_in_gen = min(fitness_values)
+        avg_fitness_in_gen = mean(fitness_values)
         best_individual = population[fitness_values.index(best_fitness_in_gen)]
+
+        # Checking if the best fit is better than previus generations
         if best_fitness_in_gen < best_fitness:
             best_fitness = best_fitness_in_gen
             best_individual = population[fitness_values.index(best_fitness_in_gen)]
-        print("Generation: {} | Best Fitness: {}".format(generation+1, best_fitness))
+
+        # Saving these values in lists
+        best_fit.append(best_fitness)
+        avg_fit.append(avg_fitness_in_gen)
+        metrics.append(diversity_metric(population))
+        
+        # Applying the online parameter control
+        MUTPB_LIST, CXPB_LIST = online_parameter(True, num_generations)
+
+        print("Generation: {} | Best Fitness: {} | Diversity Metric: {}".format(generation+1, best_fitness, metrics[generation]))
+
         new_population = []
         for i in range(0, population_size, 2):
             
@@ -43,7 +113,8 @@ def genetic_algorithm(methods, num_variables, min_values, max_values, population
             elif methods.selection == 'roulette':
                 parent1, parent2 = roulette_selection(population, fitness_values)
 
-            if random.uniform(0, 1) < crossover_rate:
+            # Applying crossover to the individuals
+            if random.uniform(0, 1) <= CXPB_LIST[generation]: 
                 offspring1, offspring2 = arithmetic_crossover(parent1, parent2, alpha)
                 new_population.append(offspring1)
                 new_population.append(offspring2)
@@ -51,16 +122,27 @@ def genetic_algorithm(methods, num_variables, min_values, max_values, population
                 new_population.append(parent1)
                 new_population.append(parent2)
         
+        # Applying mutation to the new population
         if methods.mutation == 'polynomial':
-            population = [polynomial_mutation(ind, min_values, max_values, eta) if random.uniform(0, 1) < mutation_rate else ind for ind in new_population]
+            population = [polynomial_mutation(ind, min_values, max_values, eta) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
         elif methods.mutation == 'gaussian':
-            population = [gaussian_mutation(ind, min_values, max_values, std_dev) if random.uniform(0, 1) < mutation_rate else ind for ind in new_population]
-                
+            population = [gaussian_mutation(ind, min_values, max_values, std_dev) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
+
+        # Saving new population in history
         history.append(population)
     
     print("Best Individual: {}".format(best_individual))
     print(f"Tempo de Execução: {time.time() - t_inicial}")
-    return population, history, best_individual
+
+    # Listing outputs
+    out = dict(population = population, 
+               history = history, 
+               best_individual = best_individual, 
+               best_fit = best_fit, 
+               avg_fit = avg_fit, 
+               metrics = metrics)
+
+    return out
 
 # #####################################################################################
 # ##################################### Fitness #######################################
@@ -96,6 +178,7 @@ def roulette_selection(population, fitness_values):
     total_fitness = sum(fitness_values)
     pick1 = random.uniform(0, total_fitness)
     pick2 = random.uniform(0, total_fitness)
+
     current = 0
     for i, ind in enumerate(population):
         current += fitness_values[i]
@@ -108,6 +191,7 @@ def roulette_selection(population, fitness_values):
         if current > pick2:
             parent2 = ind
             break
+    
     return parent1, parent2
 
 def tournament_selection(population, fitness_values, tournament_size):
@@ -170,7 +254,7 @@ def polynomial_mutation(individual, min_values, max_values, eta):
                     delta = (2 * (individual[i] - min_values[i]) / (max_values[i] - min_values[i])) ** (1 + (eta + random.uniform(0,1))) - 1
                 else:
                     delta = 1 - (2 * (max_values[i] - individual[i]) / (max_values[i] - min_values[i])) ** (1 + (eta + random.uniform(0,1)))
-                mutated_gene = max(min_values[i], min(individual[i] + delta, max_values[i]))
+                mutated_gene = round(max(min_values[i], min(individual[i] + delta, max_values[i])))
             else:
                 mutated_gene = individual[i]
         else:
@@ -184,6 +268,42 @@ def polynomial_mutation(individual, min_values, max_values, eta):
                 mutated_gene = individual[i]
         mutated_genes.append(mutated_gene)
     return mutated_genes
+
+
+# #####################################################################################
+# #################################### Metrics ########################################
+# #####################################################################################
+
+def diversity_metric(population):
+    diversity = 0
+    for i in range(len(population)):
+        for j in range(i+1, len(population)):
+            ind1 = Individual(population[i])
+            ind2 = Individual(population[j])
+            diversity += sum((ind1.genes[k] - ind2.genes[k])**2 for k in range(len(ind1.genes)))
+    return diversity
+
+
+# #####################################################################################
+# ################################ Online Parameters ##################################
+# #####################################################################################
+
+def online_parameter(Use, num_generations):
+
+    # MUTPB_LIST: Mutation Probability
+    # CXPB_LIST: Crossover Probability
+
+    if Use == True:
+        line_x = np.linspace(start=1, stop=50, num=num_generations)
+        MUTPB_LIST = (-(np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0])) + 1) * 0.2
+        
+        line_x = np.linspace(start=1, stop=5, num=num_generations)
+        CXPB_LIST = (np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0]))
+    else:
+        MUTPB_LIST = [0.2]*num_generations
+        CXPB_LIST = [1.0]*num_generations
+
+    return MUTPB_LIST, CXPB_LIST
 
 
 # #####################################################################################
@@ -226,14 +346,16 @@ def create_boxplot(history):
     plt.show()
 
 
-def create_plotfit(history, fitness_fn, methods):
-    # Extract the fitness values of the best gene for each generation
-    fitness_values = [min(fitness(population, fitness_fn, methods.n_threads)) for population in history]
-
-    # Plot the fitness values over the number of generations
-    plt.plot(fitness_values)
-    plt.xlabel('Generation')
+def create_plotfit(num_generations, bestfit, avgfit):
+    fig = plt.figure()
+    plt.plot(bestfit, label = "Best Fitness")
+    plt.plot(avgfit, alpha = 0.3, linestyle = "--", label = "Average Fitness")
+    plt.xlim(0, num_generations+1)
+    plt.legend()
+    plt.xlabel('Iterations')
     plt.ylabel('Fitness')
+    plt.title('GA Convergence')
+    plt.grid(True)
     plt.show()
 
 def parallel_coordinates(history):
@@ -242,3 +364,9 @@ def parallel_coordinates(history):
     fig = px.parallel_coordinates(history_df, color='generation')
     fig.show()
 
+def create_plotmetric(metrics):
+    # Plot the fitness values over the number of generations
+    plt.plot(metrics)
+    plt.xlabel('Generation')
+    plt.ylabel('Diversity Metric')
+    plt.show()
