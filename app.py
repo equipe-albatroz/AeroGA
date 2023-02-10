@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from AeroGA2 import *
+from AeroGA import *
 from ypstruct import structure
 from Benchmarks import *
 # from MDOJunior import MDOJunior
@@ -31,7 +31,7 @@ methods.mutation = "gaussian"                          # Available methods: "gau
 methods.n_threads = 4                                  # Number of threads used for the fitness calculation
 
 # Run the genetic algorithm
-out = AeroGA(methods, param, fitness_fn) 
+out = optimize(methods, param, fitness_fn) 
 
 # out = [genes, history, best_individual, best_fit, avg_fit, metrics]
 
