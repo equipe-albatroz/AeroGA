@@ -153,11 +153,27 @@ sensibility(out["best_individual"], fitness_fn, increment, min_values, max_value
 
  * **BestFit x Generation** - Mostra o melhor resultado de Fitness ao longo das gerações do GA.
 
- * **Dispersão dos inputs** - Mostra as variáveis de entrada normalizadas e todos os pontos explorados pelo GA durante as gerações. O intúito desse gráfico é avaliar o quão bem o algoritmo está explorando o espaço de busca.
+ ~~~python
+ create_plotfit(param.num_generations, out["best_fit"], out["avg_fit"])                                          
+ ~~~
+
+ * **Dispersão dos inputs** - Mostra as variáveis de entrada normalizadas e todos os pontos explorados pelo GA durante as gerações. O intúito desse gráfico é avaliar o quão bem o algoritmo está explorando o espaço de busca. [NÃO TA FUNFANDO DO JEITO QUE QUERO AINDA]
+
+ ~~~python
+ create_boxplot(out["history"])                                        
+ ~~~
 
  * **Metrics x Generation** - Mostra os valores da métrica de diversidade ao longo das gerações do GA.
 
- * **Curvas paralelas** - tem o intuito de avaliar a convergência do GA.
+ ~~~python
+ create_plotmetric(out["metrics"])                                         
+ ~~~
+
+ * **Curvas paralelas** - tem o intuito de avaliar a convergência do GA. [NÃO TA FUNFANDO DO JEITO QUE QUERO AINDA]
+
+ ~~~python
+ parallel_coordinates(out["history"])                                         
+ ~~~
 
 
 # Observações
