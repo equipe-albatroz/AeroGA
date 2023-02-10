@@ -1,13 +1,12 @@
 import time
 import random
 from concurrent.futures import ThreadPoolExecutor
+from bisect import bisect_left
+from statistics import mean
 import matplotlib.pyplot as plt
 import numpy as np
-from bisect import bisect_left 
 import pandas as pd
 import plotly.express as px
-from statistics import mean 
-from ypstruct import structure
 
 class Individual:
     def __init__(self, genes):
@@ -240,6 +239,7 @@ def arithmetic_crossover(parent1, parent2, min_values, max_values, alpha = 0.05)
     return offspring1, offspring2
 
 def SBX_crossover(parent1, parent2, min_values, max_values, eta=0.5):
+    """Apply SBX crossover to produce two offspring."""
     # Generate a random number for each variable
     u = random.uniform(0, 1)
     
@@ -269,6 +269,7 @@ def SBX_crossover(parent1, parent2, min_values, max_values, eta=0.5):
     return offspring1, offspring2
 
 def crossover_1pt(parent1, parent2):
+    """Apply 1 Point crossover to produce two offspring."""
     n = len(parent1)
     cxpoint = random.randint(1, n-1)
     offspring1 = parent1[:cxpoint] + parent2[cxpoint:]
@@ -276,6 +277,7 @@ def crossover_1pt(parent1, parent2):
     return offspring1, offspring2
 
 def crossover_2pt(parent1, parent2):
+    """Apply 2 Point crossover to produce two offspring."""
     size = len(parent1)
     cxpoint1, cxpoint2 = sorted(random.sample(range(size), 2))
     parent1[cxpoint1:cxpoint2], parent2[cxpoint1:cxpoint2] = parent2[cxpoint1:cxpoint2], parent1[cxpoint1:cxpoint2]
