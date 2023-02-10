@@ -22,68 +22,70 @@ Para instalar a biblioteca ypstruct e todas as outras necessárias para rodar o 
 
 Variáveis relacionadas ao problema a ser resolvido
 
-* fitness - Função que deve ser otimizada
-* nvar - Número de variáveis do problema
-* lb - Lower Bounds
-* ub - Upper Bounds
-* integer - Indice de números inteiros
+* **lb** - Lower Bounds
+* **ub** - Upper Bounds
+* **nvar** - Número de variáveis do problema
+* **population_size** - Tamanho da população
+* **num_generations** - Número de gerações
+* **tournament_size** - Tamanho da lista torneio que será utilizada no método de seleção "tournament", utilizar mesmo número da populalção por padrão
+* **eta** - Parâmetro referente a mutação Polynomial (Valores maiores representam taxas de mutações menores (Ex.: 20), valores menores representam mutação severas no indivíduos (Ex.: 1)). Para maiores informações ler o artigo [(HAMDAN & Mohammad, 2012)](https://d1wqtxts1xzle7.cloudfront.net/31582313/Main-libre.pdf?1392403242=&response-content-disposition=inline%3B+filename%3DThe_Distribution_Index_in_Polynomial_Mut.pdf&Expires=1676061047&Signature=OpI7L7smR9-jq8TBmTeknRwFK83SJz7bnQ0TcQepI4rMvB96v0BSCjhThyORfaaelhAUaSsUlvsLNvNdxlXgPd7UfReDimPBbPtW0RVeeLBWHdjulrTq3JsjqsaGgtRU55fMbAkhe0grDP8uQ2CDsSf8K58YgtikLSWc1lIfIpMGwxfKZodC2IqEOrUaicxh4kNQohiw9T-SjOcpmNKxpW5kYIDjR-lYWr8JfV1yRMDF07HLLf1GMbAgBIw0p47qdPEE0JJG3Q7QBKHtkxxvd7uU2l5g0aBfOoCc4XPQM9u31V2fRkOfXDTQK-h-IEIFqlczRANawigoD6vscTvtgw__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA)
+* **std_dev** - Desvio padrão aplicado no método de mutação Gaussiana
+* **elite_count** - Número de indivíduos que serão passados para a próxima geração por meio elitista
+* **online_control** - Uso do controle online de parâmetros (True ou False)
+* **mutation_rate** - Taxa de mutação caso escolha False no controle online
+* **crossover_rate** - Taxa de crossover caso escolha False no controle online
 
 Devem ser definidas como no exemplo abaixo:
 
 ~~~python
-problem = structure()                                 
-problem.fitness = sphere                         
-problem.nvar = 5                                     
-problem.lb = [0.2, -10, -10, -5, -5]                 
-problem.ub = [0.4 , 10, 10,  5, 5]                   
-problem.integer = [1,2]                                
+param = structure()
+param.lb = [0, 0, 0.0, 0.0, 0.0, 0.0]
+param.ub = [5, 4, 0.4, 1.5, 0.5, 1.0]
+param.num_variables = 6
+param.population_size = 50
+param.num_generations = 100
+param.tournament_size = 50
+param.eta = 20
+param.std_dev = 1.8
+param.elite_count = 2
+param.online_control = True
+param.mutation_rate = 0.2
+param.crossover_rate = 1                              
 ~~~
 
-Variáveis relacionadas aos parâmetros do GA
+Para definir os valores inteiros no GA deve-se usar no lb e ub valores como [0,4], para valores contínuos deve-se usar [0.0, 4.0]
 
-* max_iterations - Número máximo de iterações
-* npop - Tamanho da população
-* pc - Proporção da população de filhos em relação aos pais
-* mu - Taxa de mutação(pode ser declarado um valor geral, ou, um vetor contendo a taxa para cada variável como no exemplo)
-* sigma - Desvio padrão da mutação para números contínuos
-* sigma_int - Desvio padrão da mutação para números inteiros
-* gamma - Amplitude da recombinação aritmética
-* elitism - Porcetagem da população que será elitizada (melhores indivíduos passam para a próxima geração)
+Variáveis relacionadas aos métodos do GA
 
-Devem ser definidas como no exemplo abaixo:
-
-~~~python
-params = structure()                           
-params.max_iterations = 100                     
-params.npop = 50                            
-params.pc = 1                                 
-params.mu = [0.5, 0.5, 0.5, 0.5, 0.5]           
-params.sigma = 0.1                               
-params.sigma_int = 0.7                       
-params.gamma = 0.1                            
-params.elitism = 0.1                                                 
-~~~
-
-Variáveis relacionadas aos parâmetros do GA
-
-* selection - Método de seleção ("roulette", "rank", "tournament")
-* crossover - Método de recombinação ("arithmetic", "1-point", "2-point")
-* mutation - Método de mutação("gaussian", "default")
+* **selection** - Método de seleção ("roulette", "rank", "tournament")
+* **crossover** - Método de recombinação ("arithmetic", "1-point", "2-point")
+* **mutation** - Método de mutação("gaussian", "default")
+* **n_threads** - Número de Threads do processador que devem ser utilizadas para calcular aa função fitness
 
 Devem ser definidas como no exemplo abaixo:
 
 ~~~python
 methods = structure()
-methods.selection = "tournament"    
-methods.crossover = "arithmetic"                  
-methods.mutation = "gaussian"                                                          
+methods.selection = "tournament"
+methods.crossover = "SBX"
+methods.mutation = "gaussian"
+methods.n_threads = 4                                                           
 ~~~
 
 Para realizar a otimização deve-se chamar a função 'optimize' do AeroGA, como mostrado abaixo:
 
 ~~~python
-outputs = AeroGA.optimize(problem, params, methods)                                                  
+out = AeroGA.optimize(methods, param, fitness_fn)                                                  
 ~~~
+
+O dicionário *out* retorna os seguintes valores:
+
+ * **genes** - Lista de indivíduos da última geração
+ * **history** - Histórico de todos os indivíduos utilizados no GA
+ * **best_individual** - Melhor indivíduo encontrado
+ * **best_fit** - Lista de Melhores fitness encontrados por geração
+ * **avg_fit** - Lista das médias de fitness encontrados por geração
+ * **metrics** - Lista dos valores da métrica de diversidade por geração
 
 ### **2. Inicialização da População**
 
@@ -107,6 +109,8 @@ Os critérios de seleção são utilizados para selecionar os indivíduos que se
 
 O operador de recombinação é o mecanismo de obtenção de novos indivíduos pela troca ou combinação dos alelos de dois ou mais indivíduos. Fragmentos das características de um indivíduo são trocadas por um fragmento equivalente oriundo de outro indivíduo. O resultado desta operação é um indivíduo que combina características potencialmente melhores dos pais.
 
+ * **SBX** - [Kalyanmoy et al., 2012](https://content.wolfram.com/uploads/sites/13/2018/02/09-6-1.pdf)
+
  * **Aritmética** - A recombinação aritmética cria novos alelos nos descendentes com valores intermediários aos encontrados nos pais. Define-se uma combinação linear entre dois cromossomos x e y, de modo a gerar um descendente z.
 
  * **1 ponto** - Na recombinação de 1 ponto, seleciona-se aleatoriamente um ponto de corte nos cromossomos, dividindo este em uma partição à direita e outra à esquerda do corte. Cada descendente é composto pela junção da partição à esquerda (direira) de um pai com a partição à direita (esquerda) do outro pai.
@@ -124,7 +128,7 @@ O operador de mutação modifica aleatoriamente um ou mais genes de um cromossom
 
 ![Img mutação](img/mutação.png)
 
- * *Mutação padrão* - O operador para mutação uniforme seleciona aleatoriamente um ou mais alelos do cromossomo e gera indivíduo(s) com um acréscimo x, onde x é um número aleatório (com distribuição de probabilidade uniforme) amostrado no intervalo dos bounds do problema.
+ * *Mutação Polinomial* - Essa mutação segue a mesma distribuição de probabilidade do SBX.
 
  * *Mutação Gaussiana* - No caso da mutação Gaussiana, o valor incorporado no(s) alelo(s) é aleatório com média zero e desvio padrão σ.
 
@@ -135,11 +139,15 @@ O operador de mutação modifica aleatoriamente um ou mais genes de um cromossom
 
 ### **7. Análise de Sensibilidade**
 
- *
+ * Pode ser feita através da função *sensibility*, onde utiliza-se o melhor indivíduo encontrado e a partir do incremento calcula-se a função fitness variando cada variável do indivíduo deixando as outras fixas.
 
+~~~python                                                
+increment=0.01
+sensibility(out["best_individual"], fitness_fn, increment, min_values, max_values)
+~~~
 ### **8. Controle Online de Parâmetros**
 
- * 
+ * O controle online de parâmetros serve para variar ao longo do GA as taxas de crossover e mutação, de modo que, o crossover inicia baixo e tende a aumentar até chegar a 1 (100%) e a mutação começa alta e diminui até chegar a 0.2 (20%) na última geração. Essas medidas são propostas pois é interessante que inicialmente ocorrá a fase de máxima exploração do GA com mutação alta e ao final esse nível de exploração seja baixo, permitindo o GA desenvolver os indivíduos encontrados e ao invés de mutalos completamente.
 
 ### **9. Plots**
 
@@ -147,7 +155,9 @@ O operador de mutação modifica aleatoriamente um ou mais genes de um cromossom
 
  * **Dispersão dos inputs** - Mostra as variáveis de entrada normalizadas e todos os pontos explorados pelo GA durante as gerações. O intúito desse gráfico é avaliar o quão bem o algoritmo está explorando o espaço de busca.
 
+ * **Metrics x Generation** - Mostra os valores da métrica de diversidade ao longo das gerações do GA.
 
+ * **Curvas paralelas** - tem o intuito de avaliar a convergência do GA.
 
 
 # Observações
@@ -159,10 +169,6 @@ Para instalar todas as bibliotecas utilizadas, no terminal de comandos coloque o
 ~~~python
 pip install -r requirements.txt
 ~~~
-
-### **2. Paralelização**
-
-Opção de paralelização ainda não foi adicionada, o código AeroGA_parallel está em desenvolvimento.
 
 # Contato
 
@@ -179,4 +185,6 @@ GABRIEL, Paulo Henrique Ribeiro; DELBEM, Alexandre Cláudio Botazzo. Fundamentos
 VON ZUBEN, Fernando J. Computação evolutiva: uma abordagem pragmática. Anais da I Jornada de Estudos em Computação de Piracicaba e Região (1a JECOMP), v. 1, p. 25-45, 2000.
 
 MORRISON, Ronald W.; JONG, Kenneth A. De. Measurement of population diversity. In: International conference on artificial evolution (evolution artificielle). Springer, Berlin, Heidelberg, 2001. p. 31-41.
+
+HAMDAN, Mohammad. The distribution index in polynomial mutation for evolutionary multiobjective optimisation algorithms: An experimental study. In: International Conference on Electronics Computer Technology (IEEE, Kanyakumari, India, 2012). 2012.
 	
