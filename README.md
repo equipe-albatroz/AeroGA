@@ -94,7 +94,7 @@ out = AeroGA.optimize(methods, param, fitness_fn)
 
 O dicionário *out* retorna os seguintes valores:
 
- * **genes** - Lista de indivíduos da última geração
+ * **população** - Lista de indivíduos da última geração
  * **history** - Histórico de todos os indivíduos utilizados no GA
  * **best_individual** - Melhor indivíduo encontrado
  * **best_fit** - Lista de Melhores fitness encontrados por geração
