@@ -72,6 +72,20 @@ methods.mutation = "gaussian"
 methods.n_threads = 4                                                           
 ~~~
 
+Função fitness a ser aplicada no GA
+
+* **fitness_fn** - Função fitness
+
+Deve ser definida como no exemplo abaixo:
+
+~~~python
+from Benchmarks import Rastrigin
+
+fitness_fn = Rastrigin
+~~~ 
+
+Para funcionar corretamente, a função fitness deve receber uma lista X com os valores dos indivíduos, dentro da função essa lista deve ser aberta e atribuída as respectivas variáveis.
+
 Para realizar a otimização deve-se chamar a função 'optimize' do AeroGA, como mostrado abaixo:
 
 ~~~python
