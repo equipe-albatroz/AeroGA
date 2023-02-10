@@ -21,43 +21,6 @@ class Individual:
 # ###################################### Main #########################################
 # #####################################################################################
 
-# class Individual:
-#     def __init__(self, genes, fitness):
-#         self.genes = genes
-#         self.fitness = fitness
-
-# def genetic_algorithm(population, fitness_fn, mutate_fn, select_parents_fn, crossover_fn,
-#                      elitism, mutation_probability, population_size, generations):
-#     for generation in range(generations):
-#         # Evaluate the fitness of each individual
-#         for Genes in population:
-#             Genes.fitness = fitness_fn(Genes.genes)
-
-#         # Sort the population by fitness in descending order
-#         population.sort(key=lambda x: x.fitness, reverse=True)
-
-#         # Apply elitism by keeping the best individuals
-#         next_population = population[:elitism]
-
-#         # Select the remaining individuals to be replaced by offspring
-#         population_to_replace = population_size - elitism
-#         while len(next_population) < population_size:
-#             # Select the parents
-#             parents = select_parents_fn(population, 2)
-
-#             # Crossover to produce offspring
-#             offspring = crossover_fn(parents[0].genes, parents[1].genes)
-
-#             # Mutate the offspring
-#             offspring = mutate_fn(offspring, mutation_probability)
-
-#             # Add the offspring to the next population
-#             next_population.append(Individual(offspring, 0))
-
-#         population = next_population
-
-#     return population
-
 def genetic_algorithm(methods, num_variables, min_values, max_values, population_size, mutation_rate, eta, std_dev, num_generations, crossover_rate, alpha, tournament_size, fitness_fn, elite_count):
     """Perform the genetic algorithm to find an optimal solution."""
 
@@ -332,7 +295,7 @@ def sensibility(individual, fitness_fn, increment, min_values, max_values):
     return print(pd.DataFrame(dict))
 
 def create_boxplot(history):
-    """Create a boxplot for each variable in the population history"""
+    """Create a boxplot for each variable in the population history        TA RUIM TEM Q VER"""
     num_generations = len(history)
     num_variables = len(history[0][0])
     data = [[history[gen][ind][var] for ind in range(len(history[gen]))] for gen in range(num_generations) for var in range(num_variables)]
@@ -350,6 +313,7 @@ def create_boxplot(history):
 
 
 def create_plotfit(num_generations, bestfit, avgfit):
+    """Plot the fit values over the number of generations"""
     fig = plt.figure()
     plt.plot(bestfit, label = "Best Fitness")
     plt.plot(avgfit, alpha = 0.3, linestyle = "--", label = "Average Fitness")
@@ -362,14 +326,16 @@ def create_plotfit(num_generations, bestfit, avgfit):
     plt.show()
 
 def parallel_coordinates(history):
-    """Create a parallel coordinates graph of the population history."""
+    """Create a parallel coordinates graph of the population history.        TA RUIM TEM Q VER"""
     history_df = pd.DataFrame(history)
     fig = px.parallel_coordinates(history_df, color='generation')
     fig.show()
 
 def create_plotmetric(metrics):
-    # Plot the fitness values over the number of generations
+    """Plot the metric values over the number of generations"""
     plt.plot(metrics)
     plt.xlabel('Generation')
     plt.ylabel('Diversity Metric')
+    plt.title('GA Diversity Metric')
+    plt.grid(True)
     plt.show()
