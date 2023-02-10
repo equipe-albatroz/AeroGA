@@ -12,7 +12,6 @@ param.num_variables = 6
 param.population_size = 50
 param.num_generations = 100
 param.tournament_size = 50
-param.alpha = 0.05
 param.eta = 20
 param.std_dev = 1.8
 param.elite_count = 2
@@ -26,7 +25,7 @@ fitness_fn = Rastrigin
 # GA Methods
 methods = structure()
 methods.selection = "tournament"                       # Available methods: "roulette", "rank", "tournament" -> Read README.md for detailed info
-methods.crossover = "arithmetic"                       # Available methods: "arithmetic", "1-point", "2-point" -> Read README.md for detailed info
+methods.crossover = "SBX"                       # Available methods: "arithmetic", "SBX" ,"1-point", "2-point" -> Read README.md for detailed info
 methods.mutation = "gaussian"                          # Available methods: "gaussian", "polynomial" -> Read README.md for detailed info
 methods.n_threads = 4                                  # Number of threads used for the fitness calculation
 
