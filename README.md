@@ -60,7 +60,7 @@ Variáveis relacionadas aos métodos do GA
 * **selection** - Método de seleção ("roulette", "rank", "tournament")
 * **crossover** - Método de recombinação ("arithmetic", "1-point", "2-point")
 * **mutation** - Método de mutação("gaussian", "default")
-* **n_threads** - Número de Threads do processador que devem ser utilizadas para calcular aa função fitness
+* **n_threads** - Número de Threads do processador que devem ser utilizadas para calcular aa função fitness (Para utilizar o máximo de threads possíveis utilizar -1 como input)
 
 Devem ser definidas como no exemplo abaixo:
 
