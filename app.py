@@ -27,7 +27,7 @@ methods = structure()
 methods.selection = "tournament"                       # Available methods: "roulette", "rank", "tournament" -> Read README.md for detailed info
 methods.crossover = "SBX"                       # Available methods: "arithmetic", "SBX" ,"1-point", "2-point" -> Read README.md for detailed info
 methods.mutation = "gaussian"                          # Available methods: "gaussian", "polynomial" -> Read README.md for detailed info
-methods.n_threads = 4                                  # Number of threads used for the fitness calculation
+methods.n_threads = -1                                  # Number of threads used for the fitness calculation
 
 # Run the genetic algorithm
 out = optimize(methods, param, fitness_fn) 

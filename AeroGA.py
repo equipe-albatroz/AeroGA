@@ -1,6 +1,7 @@
 import time
 import random
 from concurrent.futures import ThreadPoolExecutor
+import multiprocessing
 from bisect import bisect_left
 from statistics import mean
 import matplotlib.pyplot as plt
@@ -39,6 +40,12 @@ def optimize(methods, param, fitness_fn):
     mutation_rate = param.mutation_rate
     crossover_rate = param.crossover_rate
 
+    # Definition of how many threads will be used to calculate the fitness function
+    if methods.n_threads == -1:
+        n_threads = multiprocessing.cpu_count()
+    else:
+        n_threads = methods.n_threads
+
     # Generating initial population
     population = generate_population(population_size, num_variables, min_values, max_values)
 
@@ -53,7 +60,7 @@ def optimize(methods, param, fitness_fn):
     for generation in range(num_generations):
 
         # Calculating the fitness values
-        fitness_values = fitness(population, fitness_fn, methods.n_threads)
+        fitness_values = fitness(population, fitness_fn, n_threads)
 
         # Population sorted by the fitness value
         population = [x for _,x in sorted(zip(fitness_values,population))]
