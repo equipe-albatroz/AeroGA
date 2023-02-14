@@ -32,7 +32,6 @@ def optimize(methods, param, fitness_fn):
     num_variables = param.num_variables
     population_size = param.population_size
     num_generations = param.num_generations
-    tournament_size = param.tournament_size
     eta = param.eta
     std_dev = param.std_dev
     elite_count = param.elite_count
@@ -93,11 +92,31 @@ def optimize(methods, param, fitness_fn):
         for i in range(0, population_size - elite_count, 2):
             
             if methods.selection == 'tournament':
-                parent1, parent2 = tournament_selection(population, fitness_values, tournament_size)
+                parent1 = tournament_selection(population, fitness_values, tournament_size=2)
+                fitness_values.remove(fitness_values[population.index(parent1)])
+                population.remove(parent1)
+
+                parent2 = tournament_selection(population, fitness_values, tournament_size=2)
+                fitness_values.remove(fitness_values[population.index(parent2)])
+                population.remove(parent2)
+
             elif methods.selection == 'rank':
-                parent1, parent2 = rank_selection(population, fitness_values)
+                parent1 = rank_selection(population, fitness_values)
+                fitness_values.remove(fitness_values[population.index(parent1)])
+                population.remove(parent1)
+
+                parent2 = rank_selection(population, fitness_values)
+                fitness_values.remove(fitness_values[population.index(parent2)])
+                population.remove(parent2)
+
             elif methods.selection == 'roulette':
-                parent1, parent2 = roulette_selection(population, fitness_values)
+                parent1 = roulette_selection(population, fitness_values)
+                fitness_values.remove(fitness_values[population.index(parent1)])
+                population.remove(parent1)
+
+                parent2 = roulette_selection(population, fitness_values)
+                fitness_values.remove(fitness_values[population.index(parent2)])
+                population.remove(parent2)
 
             # Applying crossover to the individuals
             if methods.crossover == 'arithmetic':
@@ -146,6 +165,8 @@ def optimize(methods, param, fitness_fn):
     print(f"Tempo de Execução: {time.time() - t_inicial}")
 
     # Listing outputs
+    global out
+    
     out = dict(population = population, 
                history = history, 
                best_individual = best_individual, 
@@ -187,42 +208,33 @@ def generate_population(size, num_variables, min_values, max_values):
 def roulette_selection(population, fitness_values):
     """Select two parents using roulette wheel selection."""
     total_fitness = sum(fitness_values)
-    pick1 = random.uniform(0, total_fitness)
-    pick2 = random.uniform(0, total_fitness)
+    pick = random.uniform(0, 1/total_fitness)
 
     current = 0
     for i, ind in enumerate(population):
-        current += fitness_values[i]
-        if current > pick1:
-            parent1 = ind
-            break
-    current = 0
-    for i, ind in enumerate(population):
-        current += fitness_values[i]
-        if current > pick2:
-            parent2 = ind
+        current += 1/fitness_values[i]
+        if current > pick:
+            parent = ind
             break
     
-    return parent1, parent2
+    return parent
 
 def tournament_selection(population, fitness_values, tournament_size):
     """Select two parents using tournament selection."""
     tournament_pop = random.sample(population, tournament_size)
     tournament_fitness = [fitness_values[population.index(ind)] for ind in tournament_pop]
-    parent1 = tournament_pop[tournament_fitness.index(min(tournament_fitness))]
-    tournament_pop.remove(parent1)
-    tournament_fitness.remove(min(tournament_fitness))
-    parent2 = tournament_pop[tournament_fitness.index(min(tournament_fitness))]
-    return parent1, parent2
+    parent = tournament_pop[tournament_fitness.index(min(tournament_fitness))]
+
+    return parent
 
 def rank_selection(population, fitness_values):
     """Select two parents using rank selection."""
     n = len(population)
     fitness_ranks = list(reversed(sorted(range(1, n+1), key=lambda x: fitness_values[x-1])))
     cumulative_prob = [sum(fitness_ranks[:i+1])/sum(fitness_ranks) for i in range(n)]
-    parent1 = population[bisect_left(cumulative_prob, random.random())]
-    parent2 = population[bisect_left(cumulative_prob, random.random())]
-    return parent1, parent2
+    parent = population[bisect_left(cumulative_prob, random.random())]
+
+    return parent
 
 # #####################################################################################
 # ################################### Crossover #######################################

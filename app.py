@@ -5,12 +5,6 @@ from Benchmarks import *
 import sys
 import os
 
-path = 'C:/Users/Cliente/Documents/GitHub/MDOJunior'
-# path_file = 'C:/Users/Cliente/Documents/GitHub/MDOJunior/MDOJunior'
-# sys.path.append(path)
-# sys.path.append(os.path.abspath(os.path.join(os.path.pardir, 'MDOJunior')))
-
-
 
 # GA Parameters
 param = structure()
@@ -18,8 +12,7 @@ param.lb = [0, 0, 0.0, 0.0, 0.0, 0.0]
 param.ub = [5, 4, 0.4, 1.5, 0.5, 1.0]
 param.num_variables = 6
 param.population_size = 50
-param.num_generations = 100
-param.tournament_size = 50
+param.num_generations = 30
 param.eta = 20
 param.std_dev = 1.8
 param.elite_count = 2
@@ -32,7 +25,7 @@ fitness_fn = Rastrigin
 
 # GA Methods
 methods = structure()
-methods.selection = "tournament"                       # Available methods: "roulette", "rank", "tournament" -> Read README.md for detailed info
+methods.selection = "roulette"                       # Available methods: "roulette", "rank", "tournament" -> Read README.md for detailed info
 methods.crossover = "SBX"                       # Available methods: "arithmetic", "SBX" ,"1-point", "2-point" -> Read README.md for detailed info
 methods.mutation = "gaussian"                          # Available methods: "gaussian", "polynomial" -> Read README.md for detailed info
 methods.n_threads = -1                                  # Number of threads used for the fitness calculation
