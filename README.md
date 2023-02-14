@@ -27,7 +27,6 @@ Variáveis relacionadas ao problema a ser resolvido
 * **nvar** - Número de variáveis do problema
 * **population_size** - Tamanho da população
 * **num_generations** - Número de gerações
-* **tournament_size** - Tamanho da lista torneio que será utilizada no método de seleção "tournament", utilizar mesmo número da populalção por padrão
 * **eta** - Parâmetro referente a mutação Polynomial (Valores maiores representam taxas de mutações menores (Ex.: 20), valores menores representam mutação severas no indivíduos (Ex.: 1)). Para maiores informações ler o artigo [(HAMDAN & Mohammad, 2012)](https://d1wqtxts1xzle7.cloudfront.net/31582313/Main-libre.pdf?1392403242=&response-content-disposition=inline%3B+filename%3DThe_Distribution_Index_in_Polynomial_Mut.pdf&Expires=1676061047&Signature=OpI7L7smR9-jq8TBmTeknRwFK83SJz7bnQ0TcQepI4rMvB96v0BSCjhThyORfaaelhAUaSsUlvsLNvNdxlXgPd7UfReDimPBbPtW0RVeeLBWHdjulrTq3JsjqsaGgtRU55fMbAkhe0grDP8uQ2CDsSf8K58YgtikLSWc1lIfIpMGwxfKZodC2IqEOrUaicxh4kNQohiw9T-SjOcpmNKxpW5kYIDjR-lYWr8JfV1yRMDF07HLLf1GMbAgBIw0p47qdPEE0JJG3Q7QBKHtkxxvd7uU2l5g0aBfOoCc4XPQM9u31V2fRkOfXDTQK-h-IEIFqlczRANawigoD6vscTvtgw__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA)
 * **std_dev** - Desvio padrão aplicado no método de mutação Gaussiana
 * **elite_count** - Número de indivíduos que serão passados para a próxima geração por meio elitista
@@ -44,7 +43,6 @@ param.ub = [5, 4, 0.4, 1.5, 0.5, 1.0]
 param.num_variables = 6
 param.population_size = 50
 param.num_generations = 100
-param.tournament_size = 50
 param.eta = 20
 param.std_dev = 1.8
 param.elite_count = 2
