@@ -9,6 +9,8 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
+global out
+
 class Individual:
     def __init__(self, genes):
         self.genes = genes
@@ -165,7 +167,6 @@ def optimize(methods, param, fitness_fn):
     print(f"Tempo de Execução: {time.time() - t_inicial}")
 
     # Listing outputs
-    global out
     
     out = dict(population = population, 
                history = history, 
@@ -349,6 +350,8 @@ def polynomial_mutation(individual, min_values, max_values, eta):
 # #####################################################################################
 
 def diversity_metric(population):
+    """Calculate the sum of euclidian distance for each generation whice represents the diversity of the current population."""
+
     diversity = 0
     for i in range(len(population)):
         for j in range(i+1, len(population)):
@@ -363,9 +366,12 @@ def diversity_metric(population):
 # #####################################################################################
 
 def online_parameter(online_control, num_generations, mutation_rate, crossover_rate):
-
-    # MUTPB_LIST: Mutation Probability
-    # CXPB_LIST: Crossover Probability
+    """Calculate the probability for crossover and mutation each generation, the values respscts a exponencial function, that for mutation
+       decreases each generation and increases for crossover. If online control is False than it is used the fixed parameters. 
+    
+        # MUTPB_LIST: Mutation Probability
+        # CXPB_LIST: Crossover Probability
+    """
 
     if online_control == True:
         line_x = np.linspace(start=1, stop=50, num=num_generations)
@@ -386,7 +392,7 @@ def online_parameter(online_control, num_generations, mutation_rate, crossover_r
 
 def sensibility(individual, fitness_fn, increment, min_values, max_values):
     """Calculate the fitness of an individual for each iteration, where one variable is incremented by a given value within the range of min and max values.
-    If variable is integer, it will increment by 1 instead of a float value
+    If variable is integer, it will increment by 1 instead of a float value.
     """
     dict = {"nvar":[],"value":[],"fit":[]};
 
@@ -403,7 +409,7 @@ def sensibility(individual, fitness_fn, increment, min_values, max_values):
     return print(pd.DataFrame(dict))
 
 def create_plotfit(num_generations, bestfit, avgfit, metrics):
-    """Plot the fit values over the number of generations"""
+    """Plot the fit and metrics values over the number of generations."""
    
     fig, (ax1, ax2) = plt.subplots(2, 1)
     fig.subplots_adjust(hspace=0.5)
@@ -427,7 +433,8 @@ def create_plotfit(num_generations, bestfit, avgfit, metrics):
     plt.show()
 
 def create_boxplots(history):
-    num_generations = len(history) - 1
+    """Boxplot of all values used in the optimization for each variable."""
+
     num_individuals = len(history[0])
     num_variables = len(history[0][0])
     fig, ax = plt.subplots(1, num_variables, figsize=(15, 5))
@@ -442,6 +449,15 @@ def create_boxplots(history):
 
 def parallel_coordinates(history):
     """Create a parallel coordinates graph of the population history.        TA RUIM TEM Q VER"""
-    history_df = pd.DataFrame(history)
-    fig = px.parallel_coordinates(history_df, color='generation')
+    
+    num_individuals = len(history[0])
+    num_variables = len(history[0][0])
+    data = []
+
+    for j in range(num_individuals):
+        for i in range(num_variables):
+            data.append(np.array([individual[j][i] for individual in history]))
+
+    df = pd.DataFrame(data)
+    fig = px.parallel_coordinates(df, color='generation')
     fig.show()
