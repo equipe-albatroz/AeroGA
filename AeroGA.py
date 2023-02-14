@@ -390,24 +390,6 @@ def sensibility(individual, fitness_fn, increment, min_values, max_values):
             dict["fit"].append(fitness_fn(new_individual))
     return print(pd.DataFrame(dict))
 
-def create_boxplot(history):
-    """Create a boxplot for each variable in the population history        TA RUIM TEM Q VER"""
-    num_generations = len(history)
-    num_variables = len(history[0][0])
-    data = [[history[gen][ind][var] for ind in range(len(history[gen]))] for gen in range(num_generations) for var in range(num_variables)]
-    fig = plt.figure(figsize =(10, 7))
-    ax = fig.add_subplot(111)
-    bp = ax.boxplot(data, patch_artist = True, notch = 'True', vert = 0)
-    colors = ['pink', 'lightblue', 'lightgreen']
-    for patch, color in zip(bp['boxes'], colors):
-        patch.set_facecolor(color)
-    ax.set_yticklabels(['variable '+str(i+1) for i in range(num_variables)]*num_generations)
-    ax.set_xlabel('Value')
-    ax.set_ylabel('Variable')
-    ax.set_title('Boxplot of variables over generations')
-    plt.show()
-
-
 def create_plotfit(num_generations, bestfit, avgfit):
     """Plot the fit values over the number of generations"""
     fig = plt.figure()
@@ -419,6 +401,20 @@ def create_plotfit(num_generations, bestfit, avgfit):
     plt.ylabel('Fitness')
     plt.title('GA Convergence')
     plt.grid(True)
+    plt.show()
+
+def create_boxplots(history):
+    num_generations = len(history) - 1
+    num_individuals = len(history[0])
+    num_variables = len(history[0][0])
+    fig, ax = plt.subplots(1, num_variables, figsize=(15, 5))
+  
+    for j in range(num_individuals):
+        for i in range(num_variables):
+            data = np.array([individual[j][i] for individual in history])
+            ax[i].boxplot(data, vert=True)
+            ax[i].set_title(f'Variable {i+1}')
+    
     plt.show()
 
 def parallel_coordinates(history):

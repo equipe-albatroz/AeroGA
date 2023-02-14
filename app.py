@@ -2,7 +2,15 @@ import matplotlib.pyplot as plt
 from AeroGA import *
 from ypstruct import structure
 from Benchmarks import *
-# from MDOJunior import MDOJunior
+import sys
+import os
+
+path = 'C:/Users/Cliente/Documents/GitHub/MDOJunior'
+# path_file = 'C:/Users/Cliente/Documents/GitHub/MDOJunior/MDOJunior'
+# sys.path.append(path)
+# sys.path.append(os.path.abspath(os.path.join(os.path.pardir, 'MDOJunior')))
+
+
 
 # GA Parameters
 param = structure()
@@ -20,7 +28,7 @@ param.mutation_rate = 0.2
 param.crossover_rate = 1
 
 # Fitness function
-fitness_fn = Rastrigin 
+fitness_fn = Rastrigin
 
 # GA Methods
 methods = structure()
@@ -30,13 +38,11 @@ methods.mutation = "gaussian"                          # Available methods: "gau
 methods.n_threads = -1                                  # Number of threads used for the fitness calculation
 
 # Run the genetic algorithm
-out = optimize(methods, param, fitness_fn) 
-
-# out = [genes, history, best_individual, best_fit, avg_fit, metrics]
+out = optimize(methods, param, fitness_fn) # out = [população, history, best_individual, best_fit, avg_fit, metrics]
 
 create_plotfit(param.num_generations, out["best_fit"], out["avg_fit"])
+# create_boxplots(out["history"])
 # create_plotmetric(out["metrics"])
-# create_boxplot(out["history"])
 # parallel_coordinates(out["history"])
 
 # increment=0.01
