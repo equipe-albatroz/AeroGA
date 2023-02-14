@@ -51,7 +51,7 @@ def optimize(methods, param, fitness_fn):
     population = generate_population(population_size, num_variables, min_values, max_values)
 
     # Creating history, metrics and best/avg lists
-    history = [population]; best_fit = []; avg_fit = []; metrics = []
+    history = [population]; best_fit = []; avg_fit = []; metrics = []; hist_fit = []
 
     # Initial value for the best fitness
     best_fitness = float('inf')
@@ -66,6 +66,11 @@ def optimize(methods, param, fitness_fn):
         # Population sorted by the fitness value
         population = [x for _,x in sorted(zip(fitness_values,population))]
         fitness_values = sorted(fitness_values)
+
+        # Add to history
+        if generation == 0:
+            history[0] = list(population)
+        hist_fit.append(list(fitness_values))
 
         # Best and average fitness and best individual at the generation
         best_fitness_in_gen = min(fitness_values)
@@ -170,6 +175,7 @@ def optimize(methods, param, fitness_fn):
     
     out = dict(population = population, 
                history = history, 
+               hist_fit = hist_fit,
                best_individual = best_individual, 
                best_fit = best_fit, 
                avg_fit = avg_fit, 
@@ -188,7 +194,7 @@ def optimize(methods, param, fitness_fn):
 def fitness(population, fitness_fn, n_threads):
     """Calculate the fitness of each individual in the population."""
     with ThreadPoolExecutor(max_workers=n_threads) as executor:
-        fitness_values = list(executor.map(fitness_fn, population))
+        fitness_values = list(executor.map(fitness_fn, population))   # timeout = 2
     return fitness_values
 
 
@@ -461,3 +467,31 @@ def parallel_coordinates(history):
     df = pd.DataFrame(data)
     fig = px.parallel_coordinates(df, color='generation')
     fig.show()
+
+
+def export_excell(out):
+    """Create a parallel coordinates graph of the population history.        TA RUIM TEM Q VER"""
+    history = out["history"]
+    hist_fit = out["hist_fit"]
+    num_gen = len(history)
+    num_individuals = len(history[0])
+    num_variables = len(history[0][0])
+    data = []
+    aux = []
+    aux2 = []
+  
+    # for i in range(num_variables):
+    #     for k in range(num_gen):
+    #         for j in range(num_individuals):
+    #             aux.append(history[k][j][i])
+    #     aux2.append(aux)
+    #     aux = []
+
+
+    data = list(map(list, zip(*aux2)))
+
+    # df2 = pd.DataFrame(hist_fit)
+    # df2.to_excel(r'fits.xlsx', index=False)
+    
+    df = pd.DataFrame(data)
+    df.to_excel(r'outputs.xlsx', index=False)

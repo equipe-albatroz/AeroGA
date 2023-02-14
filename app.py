@@ -11,8 +11,8 @@ param = structure()
 param.lb = [0, 0, 0.0, 0.0, 0.0, 0.0]
 param.ub = [5, 4, 0.4, 1.5, 0.5, 1.0]
 param.num_variables = 6
-param.population_size = 50
-param.num_generations = 30
+param.population_size = 5
+param.num_generations = 3
 param.eta = 20
 param.std_dev = 1.8
 param.elite_count = 2
@@ -33,7 +33,9 @@ methods.n_threads = -1                                  # Number of threads used
 # Run the genetic algorithm
 out = optimize(methods, param, fitness_fn) # out = [população, history, best_individual, best_fit, avg_fit, metrics]
 
-create_plotfit(param.num_generations, out["best_fit"], out["avg_fit"], out["metrics"])
+export_excell(out)
+
+# create_plotfit(param.num_generations, out["best_fit"], out["avg_fit"], out["metrics"])
 # create_boxplots(out["history"])
 # parallel_coordinates(out["history"])
 
