@@ -402,17 +402,28 @@ def sensibility(individual, fitness_fn, increment, min_values, max_values):
             dict["fit"].append(fitness_fn(new_individual))
     return print(pd.DataFrame(dict))
 
-def create_plotfit(num_generations, bestfit, avgfit):
+def create_plotfit(num_generations, bestfit, avgfit, metrics):
     """Plot the fit values over the number of generations"""
-    fig = plt.figure()
-    plt.plot(bestfit, label = "Best Fitness")
-    plt.plot(avgfit, alpha = 0.3, linestyle = "--", label = "Average Fitness")
-    plt.xlim(0, num_generations+1)
-    plt.legend()
-    plt.xlabel('Iterations')
-    plt.ylabel('Fitness')
-    plt.title('GA Convergence')
-    plt.grid(True)
+   
+    fig, (ax1, ax2) = plt.subplots(2, 1)
+    fig.subplots_adjust(hspace=0.5)
+
+    ax1.plot(bestfit, label = "Best Fitness")
+    ax1.plot(avgfit, alpha = 0.3, linestyle = "--", label = "Average Fitness")
+    ax1.legend(loc='upper right')
+    ax1.set_xlim(0, num_generations + 1)
+    ax1.set_title('BestFit x Iterations')
+    ax1.set_xlabel('Iterations')
+    ax1.set_ylabel('Best Fitness')
+    ax1.grid(True)
+
+    ax2.plot(metrics)
+    ax2.set_xlim(0, num_generations + 1)
+    ax2.set_title('Population Diversity x Iterations')
+    ax2.set_ylabel('Diversity Metric')
+    ax2.set_xlabel('Iterations')
+    ax2.grid(True)
+
     plt.show()
 
 def create_boxplots(history):
@@ -434,12 +445,3 @@ def parallel_coordinates(history):
     history_df = pd.DataFrame(history)
     fig = px.parallel_coordinates(history_df, color='generation')
     fig.show()
-
-def create_plotmetric(metrics):
-    """Plot the metric values over the number of generations"""
-    plt.plot(metrics)
-    plt.xlabel('Generation')
-    plt.ylabel('Diversity Metric')
-    plt.title('GA Diversity Metric')
-    plt.grid(True)
-    plt.show()

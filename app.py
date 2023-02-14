@@ -25,7 +25,7 @@ fitness_fn = Rastrigin
 
 # GA Methods
 methods = structure()
-methods.selection = "roulette"                       # Available methods: "roulette", "rank", "tournament" -> Read README.md for detailed info
+methods.selection = "rank"                       # Available methods: "roulette", "rank", "tournament" -> Read README.md for detailed info
 methods.crossover = "SBX"                       # Available methods: "arithmetic", "SBX" ,"1-point", "2-point" -> Read README.md for detailed info
 methods.mutation = "gaussian"                          # Available methods: "gaussian", "polynomial" -> Read README.md for detailed info
 methods.n_threads = -1                                  # Number of threads used for the fitness calculation
@@ -33,9 +33,8 @@ methods.n_threads = -1                                  # Number of threads used
 # Run the genetic algorithm
 out = optimize(methods, param, fitness_fn) # out = [população, history, best_individual, best_fit, avg_fit, metrics]
 
-create_plotfit(param.num_generations, out["best_fit"], out["avg_fit"])
+create_plotfit(param.num_generations, out["best_fit"], out["avg_fit"], out["metrics"])
 # create_boxplots(out["history"])
-# create_plotmetric(out["metrics"])
 # parallel_coordinates(out["history"])
 
 # increment=0.01
