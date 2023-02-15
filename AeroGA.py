@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.express as px
+from datetime import datetime
 
 global out
 
@@ -510,4 +511,9 @@ def export_excell(out):
 
     df['fit'] = lista
     df['gen'] = lista2
-    df.to_excel(r'results.xlsx', index=False)
+
+    now = datetime.now()
+    dt_string = now.strftime("%d-%m-%Y_%H-%M")
+    string = 'Results_' + str(dt_string) + '.xlsx'
+
+    df.to_excel(string, index=False)
