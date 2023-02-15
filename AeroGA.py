@@ -183,6 +183,7 @@ def optimize(methods, param, fitness_fn):
     best_individual_glob = best_individual["ind"][index_best_fit]
 
     # Printing optimization results
+    print("***************************** END ******************************")
     print("Best Global Individual: {}".format(best_individual_glob))
     print(f"Tempo de Execução: {time.time() - t_inicial}")
 
