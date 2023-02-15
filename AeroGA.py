@@ -51,7 +51,8 @@ def optimize(methods, param, fitness_fn):
     population = generate_population(population_size, num_variables, min_values, max_values)
 
     # Creating history, metrics and best/avg lists
-    history = [population]; best_fit = []; avg_fit = []; metrics = []; hist_fit = []
+    values_gen = {"best_fit":[],"avg_fit":[],"metrics":[]}
+    history = {"ind":[],"gen":[],"fit":[]}
 
     # Initial value for the best fitness
     best_fitness = float('inf')
@@ -68,9 +69,11 @@ def optimize(methods, param, fitness_fn):
         fitness_values = sorted(fitness_values)
 
         # Add to history
-        if generation == 0:
-            history[0] = list(population)
-        hist_fit.append(list(fitness_values))
+        for i in range(len(population)):
+            history["ind"].append(population[i])
+            history["fit"].append(fitness_values[i])
+            history["gen"].append(generation)
+            # print(population[i], fitness_values[i])
 
         # Best and average fitness and best individual at the generation
         best_fitness_in_gen = min(fitness_values)
@@ -83,21 +86,21 @@ def optimize(methods, param, fitness_fn):
             best_individual = population[fitness_values.index(best_fitness_in_gen)]
 
         # Saving these values in lists
-        best_fit.append(best_fitness)
-        avg_fit.append(avg_fitness_in_gen)
-        metrics.append(diversity_metric(population))
+        values_gen["best_fit"].append(best_fitness)
+        values_gen["avg_fit"].append(avg_fitness_in_gen)
+        values_gen["metrics"].append(diversity_metric(population))
         
         # Applying the online parameter control
         MUTPB_LIST, CXPB_LIST = online_parameter(online_control, num_generations, mutation_rate, crossover_rate)
 
-        print("Generation: {} | Best Fitness: {} | Diversity Metric: {}".format(generation+1, best_fitness, metrics[generation]))
+        print("Generation: {} | Best Fitness: {} | Score: {} | Diversity Metric: {}".format(generation+1, best_fitness, 1/best_fitness, values_gen["metrics"][generation]))
 
         # Creating new population and aplying elitist concept
         new_population = []
-        new_population = population[:elite_count]
+        if elite_count != 0:
+            new_population = population[:elite_count]
 
         for i in range(0, population_size - elite_count, 2):
-            
             if methods.selection == 'tournament':
                 parent1 = tournament_selection(population, fitness_values, tournament_size=2)
                 fitness_values.remove(fitness_values[population.index(parent1)])
@@ -158,6 +161,11 @@ def optimize(methods, param, fitness_fn):
                 else:
                     new_population.append(parent1)
                     new_population.append(parent2)
+
+        # Ensuring that the new population will have the correct size
+        if len(new_population) != population_size:
+            aux = len(new_population) - population_size
+            new_population = new_population[ : -aux]
         
         # Applying mutation to the new population
         if methods.mutation == 'polynomial':
@@ -165,21 +173,19 @@ def optimize(methods, param, fitness_fn):
         elif methods.mutation == 'gaussian':
             population = [gaussian_mutation(ind, min_values, max_values, std_dev) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
 
-        # Saving new population in history
-        history.append(population)
     
+    # Printing optimization results
     print("Best Individual: {}".format(best_individual))
     print(f"Tempo de Execução: {time.time() - t_inicial}")
 
     # Listing outputs
-    
-    out = dict(population = population, 
-               history = history, 
-               hist_fit = hist_fit,
-               best_individual = best_individual, 
-               best_fit = best_fit, 
-               avg_fit = avg_fit, 
-               metrics = metrics)
+    out = dict(history = history, 
+               best_individual = best_individual,
+               values_gen = values_gen,
+               )
+
+    export_excell(out)
+    create_plotfit(num_generations, values_gen)
 
     return out
 
@@ -414,23 +420,23 @@ def sensibility(individual, fitness_fn, increment, min_values, max_values):
             dict["fit"].append(fitness_fn(new_individual))
     return print(pd.DataFrame(dict))
 
-def create_plotfit(num_generations, bestfit, avgfit, metrics):
+def create_plotfit(num_generations, values_gen):
     """Plot the fit and metrics values over the number of generations."""
    
     fig, (ax1, ax2) = plt.subplots(2, 1)
     fig.subplots_adjust(hspace=0.5)
 
-    ax1.plot(bestfit, label = "Best Fitness")
-    ax1.plot(avgfit, alpha = 0.3, linestyle = "--", label = "Average Fitness")
+    ax1.plot(values_gen["best_fit"], label = "Best Fitness")
+    ax1.plot(values_gen["avg_fit"], alpha = 0.3, linestyle = "--", label = "Average Fitness")
     ax1.legend(loc='upper right')
-    ax1.set_xlim(0, num_generations + 1)
+    ax1.set_xlim(0, num_generations - 1)
     ax1.set_title('BestFit x Iterations')
     ax1.set_xlabel('Iterations')
     ax1.set_ylabel('Best Fitness')
     ax1.grid(True)
 
-    ax2.plot(metrics)
-    ax2.set_xlim(0, num_generations + 1)
+    ax2.plot(values_gen["metrics"])
+    ax2.set_xlim(0, num_generations - 1)
     ax2.set_title('Population Diversity x Iterations')
     ax2.set_ylabel('Diversity Metric')
     ax2.set_xlabel('Iterations')
@@ -471,27 +477,25 @@ def parallel_coordinates(history):
 
 def export_excell(out):
     """Create a parallel coordinates graph of the population history.        TA RUIM TEM Q VER"""
-    history = out["history"]
-    hist_fit = out["hist_fit"]
-    num_gen = len(history)
-    num_individuals = len(history[0])
-    num_variables = len(history[0][0])
-    data = []
-    aux = []
-    aux2 = []
-  
-    # for i in range(num_variables):
-    #     for k in range(num_gen):
-    #         for j in range(num_individuals):
-    #             aux.append(history[k][j][i])
-    #     aux2.append(aux)
-    #     aux = []
-
-
-    data = list(map(list, zip(*aux2)))
-
-    # df2 = pd.DataFrame(hist_fit)
-    # df2.to_excel(r'fits.xlsx', index=False)
     
+    history = out["history"]
+    lista = list(history["fit"])
+    lista2 = list(history["gen"])
+
+    num_ind = len(history["ind"])
+    num_var = len(history["ind"][0])
+    
+    data = []; aux = []; aux2 = []
+  
+    for i in range(num_var):
+        for j in range(num_ind):
+            aux.append(history["ind"][j][i])
+        aux2.append(aux)
+        aux = []
+
+    data = list(map(lambda *x: list(x), *aux2))
     df = pd.DataFrame(data)
-    df.to_excel(r'outputs.xlsx', index=False)
+
+    df['fit'] = lista
+    df['gen'] = lista2
+    df.to_excel(r'results.xlsx', index=False)
