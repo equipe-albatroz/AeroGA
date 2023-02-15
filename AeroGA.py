@@ -93,8 +93,10 @@ def optimize(methods, param, fitness_fn):
         MUTPB_LIST, CXPB_LIST = online_parameter(online_control, num_generations, mutation_rate, crossover_rate)
 
         if best_individual["fit"][generation] == 0:
+            print("------")
             print("Generation: {} | Best Fitness: {} | Score: {} | Diversity Metric: {}".format(generation+1, best_individual["fit"][generation], float('inf'), values_gen["metrics"][generation]))
         else:    
+            print("------")
             print("Generation: {} | Best Fitness: {} | Score: {} | Diversity Metric: {}".format(generation+1, best_individual["fit"][generation], 1/best_individual["fit"][generation], values_gen["metrics"][generation]))
 
         # Creating new population and aplying elitist concept
@@ -178,7 +180,7 @@ def optimize(methods, param, fitness_fn):
 
     
     # Printing global optimization results
-    print("***************************** END ******************************")
+    print("\n***************************** END ******************************\n")
     print("Best Global Individual: {}".format(best_individual["ind"][best_individual["fit"].index(min(best_individual["fit"]))]))
     print("Best Global Fitness: {}".format(min(best_individual["fit"])))
     print(f"Tempo de Execução: {time.time() - t_inicial}")
