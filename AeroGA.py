@@ -75,35 +75,34 @@ def optimize(methods, param, fitness_fn):
             history["ind"].append(population[i])
             history["fit"].append(fitness_values[i])
             history["gen"].append(generation)
-            # print(population[i], fitness_values[i])
 
         # Best and average fitness and best individual at the generation
-        best_fitness_in_gen = min(fitness_values)
-        avg_fitness_in_gen = mean(fitness_values)
-        # best_individual = population[fitness_values.index(best_fitness_in_gen)]
-        best_individual["ind"].append(population[fitness_values.index(best_fitness_in_gen)])
-        best_individual["fit"].append(best_fitness_in_gen)
+        best_individual["ind"].append(population[fitness_values.index(min(fitness_values))])
+        best_individual["fit"].append(min(fitness_values))
 
         # Checking if the best fit is better than previus generations
-        if best_fitness_in_gen < best_fitness:
-            best_fitness = best_fitness_in_gen
-            # best_individual_in_gen = population[fitness_values.index(best_fitness_in_gen)]
+        if best_individual["fit"][generation] < best_fitness:
+            best_fitness = best_individual["fit"][generation]
 
         # Saving these values in lists
         values_gen["best_fit"].append(best_fitness)
-        values_gen["avg_fit"].append(avg_fitness_in_gen)
+        values_gen["avg_fit"].append(mean(fitness_values))
         values_gen["metrics"].append(diversity_metric(population))
         
         # Applying the online parameter control
         MUTPB_LIST, CXPB_LIST = online_parameter(online_control, num_generations, mutation_rate, crossover_rate)
 
-        print("Generation: {} | Best Fitness: {} | Score: {} | Diversity Metric: {}".format(generation+1, best_fitness, 1/best_fitness, values_gen["metrics"][generation]))
+        if best_fitness == 0:
+            print("Generation: {} | Best Fitness: {} | Score: {} | Diversity Metric: {}".format(generation+1, best_fitness, float('inf'), values_gen["metrics"][generation]))
+        else:    
+            print("Generation: {} | Best Fitness: {} | Score: {} | Diversity Metric: {}".format(generation+1, best_fitness, 1/best_fitness, values_gen["metrics"][generation]))
 
         # Creating new population and aplying elitist concept
         new_population = []
         if elite_count != 0:
             new_population = population[:elite_count]
 
+        # Creating new population based on crossover methods
         for i in range(0, population_size - elite_count, 2):
             if methods.selection == 'tournament':
                 parent1 = tournament_selection(population, fitness_values, tournament_size=2)
@@ -178,13 +177,10 @@ def optimize(methods, param, fitness_fn):
             population = [gaussian_mutation(ind, min_values, max_values, std_dev) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
 
     
-    best_fit_glob = min(best_individual["fit"])
-    index_best_fit = best_individual["fit"].index(best_fit_glob)
-    best_individual_glob = best_individual["ind"][index_best_fit]
-
-    # Printing optimization results
+    # Printing global optimization results
     print("***************************** END ******************************")
-    print("Best Global Individual: {}".format(best_individual_glob))
+    print("Best Global Individual: {}".format(best_individual["ind"][best_individual["fit"].index(min(best_individual["fit"]))]))
+    print("Best Global Fitness: {}".format(min(best_individual["fit"])))
     print(f"Tempo de Execução: {time.time() - t_inicial}")
 
     # Listing outputs
@@ -202,10 +198,12 @@ def optimize(methods, param, fitness_fn):
 # ##################################### Fitness #######################################
 # #####################################################################################
     
+# Fitness function without using multi threads
 # def fitness(population, fitness_fn):
 #     """Calculate the fitness of each individual in the population."""
 #     return [fitness_fn(ind) for ind in population]
 
+# Fitness function using multi threads
 def fitness(population, fitness_fn, n_threads):
     """Calculate the fitness of each individual in the population."""
     with ThreadPoolExecutor(max_workers=n_threads) as executor:
