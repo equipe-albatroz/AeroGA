@@ -55,8 +55,13 @@ input2 = [4,	0,	0.36168562873824,	0.0318010130818993,	0,	0.625713149448781]  # 5
 input3 = [1,	1,	0.230587361314719,	0.683895223855159,	0.218278893208412,	0.666777309528867]  # 48.8455516407746
 input4 = [5,	4,	0.4,	1.5,	0.30987253443182,	0.702036985975489]  # 108.731041451515
 
+input5 = [2,0,0.0,0.0,0.0,1.0]  # 0.0
+input6 = [0,4,0.0,1.0304723084294227,0.0,0.0]  # 0.0
+
 print(Rastrigin(input))
 print(Rastrigin(input1))
 print(Rastrigin(input2))
 print(Rastrigin(input3))
 print(Rastrigin(input4))
+print(Rastrigin(input5))
+print(Rastrigin(input6))
