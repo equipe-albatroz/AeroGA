@@ -10,5 +10,6 @@ AeroGA copy.py
 
 __pycache__
 *.pyc
+*.xlsx
 
 .ipynb_checkpoints

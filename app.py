@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from AeroGA import *
+from AeroGA.AeroGA import *
 from ypstruct import structure
 from Benchmarks import *
 # from MDOJunior import MDOJunior
