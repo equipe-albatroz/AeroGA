@@ -53,10 +53,12 @@ def optimize(methods, param, fitness_fn):
     # Creating history, metrics and best/avg lists
     values_gen = {"best_fit":[],"avg_fit":[],"metrics":[]}
     history = {"ind":[],"gen":[],"fit":[]}
+    best_individual = {"ind":[],"fit":[]}
 
-    # Initial value for the best fitness
+    # Initial value for the best fitness and individual
     best_fitness = float('inf')
-    best_individual = population[0]
+    best_individual["ind"].append(population[0])
+    best_individual["fit"].append(float('inf'))
 
     # Initializing the main loop
     for generation in range(num_generations):
@@ -78,12 +80,14 @@ def optimize(methods, param, fitness_fn):
         # Best and average fitness and best individual at the generation
         best_fitness_in_gen = min(fitness_values)
         avg_fitness_in_gen = mean(fitness_values)
-        best_individual = population[fitness_values.index(best_fitness_in_gen)]
+        # best_individual = population[fitness_values.index(best_fitness_in_gen)]
+        best_individual["ind"].append(population[fitness_values.index(best_fitness_in_gen)])
+        best_individual["fit"].append(best_fitness_in_gen)
 
         # Checking if the best fit is better than previus generations
         if best_fitness_in_gen < best_fitness:
             best_fitness = best_fitness_in_gen
-            best_individual = population[fitness_values.index(best_fitness_in_gen)]
+            # best_individual_in_gen = population[fitness_values.index(best_fitness_in_gen)]
 
         # Saving these values in lists
         values_gen["best_fit"].append(best_fitness)
@@ -174,8 +178,12 @@ def optimize(methods, param, fitness_fn):
             population = [gaussian_mutation(ind, min_values, max_values, std_dev) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
 
     
+    best_fit_glob = min(best_individual["fit"])
+    index_best_fit = best_individual["fit"].index(best_fit_glob)
+    best_individual_glob = best_individual["ind"][index_best_fit]
+
     # Printing optimization results
-    print("Best Individual: {}".format(best_individual))
+    print("Best Global Individual: {}".format(best_individual_glob))
     print(f"Tempo de Execução: {time.time() - t_inicial}")
 
     # Listing outputs
