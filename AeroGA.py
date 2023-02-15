@@ -92,10 +92,10 @@ def optimize(methods, param, fitness_fn):
         # Applying the online parameter control
         MUTPB_LIST, CXPB_LIST = online_parameter(online_control, num_generations, mutation_rate, crossover_rate)
 
-        if best_fitness == 0:
-            print("Generation: {} | Best Fitness: {} | Score: {} | Diversity Metric: {}".format(generation+1, best_fitness, float('inf'), values_gen["metrics"][generation]))
+        if best_individual["fit"][generation] == 0:
+            print("Generation: {} | Best Fitness: {} | Score: {} | Diversity Metric: {}".format(generation+1, best_individual["fit"][generation], float('inf'), values_gen["metrics"][generation]))
         else:    
-            print("Generation: {} | Best Fitness: {} | Score: {} | Diversity Metric: {}".format(generation+1, best_fitness, 1/best_fitness, values_gen["metrics"][generation]))
+            print("Generation: {} | Best Fitness: {} | Score: {} | Diversity Metric: {}".format(generation+1, best_individual["fit"][generation], 1/best_individual["fit"][generation], values_gen["metrics"][generation]))
 
         # Creating new population and aplying elitist concept
         new_population = []
