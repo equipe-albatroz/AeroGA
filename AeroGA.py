@@ -241,7 +241,10 @@ def roulette_selection(population, fitness_values):
 
 def tournament_selection(population, fitness_values, tournament_size):
     """Select two parents using tournament selection."""
-    tournament_pop = random.sample(population, tournament_size)
+    if len(population) < tournament_size:
+        tournament_pop = population
+    else:
+        tournament_pop = random.sample(population, tournament_size)
     tournament_fitness = [fitness_values[population.index(ind)] for ind in tournament_pop]
     parent = tournament_pop[tournament_fitness.index(min(tournament_fitness))]
 
