@@ -27,18 +27,16 @@ if __name__ == '__main__':
     methods.selection = "tournament"                       # Available methods: "roulette", "rank", "tournament" -> Read README.md for detailed info
     methods.crossover = "1-point"                       # Available methods: "arithmetic", "SBX" ,"1-point", "2-point" -> Read README.md for detailed info
     methods.mutation = "gaussian"                          # Available methods: "gaussian", "polynomial" -> Read README.md for detailed info
-    methods.n_threads = -1                                  # Number of threads used for the fitness calculation
+    methods.n_threads = 0                                  # Number of threads used for the fitness calculation
 
     # Plots and Auxiliary functions
-    # AuxFn = structure()
-    # AuxFn.fit = True
-    # AuxFn.box = False
-    # AuxFn.parallel = False
-    # AuxFn.sensitivity = False
-    # AuxFn.sensitivity_incr = 0.01
+    plot = structure()
+    plot.fit = True
+    plot.parallel = False
+    plot.box = False
 
     # Run the genetic algorithm
-    out = optimize(methods, param, fitness_fn) # out = [população, history, best_individual, values_gen]
+    out = optimize(methods, param, plot, fitness_fn) # out = [população, history, best_individual, values_gen]
 
     # create_boxplots(out["history"])
     # parallel_coordinates(out["history"])
