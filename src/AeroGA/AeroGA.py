@@ -63,8 +63,9 @@ def optimize(methods, param, fitness_fn):
     # Initializing the main loop
     for generation in range(num_generations):
 
+        t_gen = time.time()
+
         # Calculating the fitness values
-        # fitness_values = fitness(population, fitness_fn, 2)
         if n_threads != 0:
             fitness_values = parallel_fitness(population, fitness_fn, n_threads)  
         else:
@@ -98,12 +99,12 @@ def optimize(methods, param, fitness_fn):
 
         if best_individual["fit"][generation] == 0:
             print("------")
-            print("Generation: {} | Best Fitness: {} | Score: {} | Diversity Metric: {}".format(generation+1, best_individual["fit"][generation], float('inf'), values_gen["metrics"][generation]))
+            print("Generation: {} | Time: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}".format(generation+1, round(time.time() - t_gen, 2), best_individual["fit"][generation], float('inf'), round(values_gen["metrics"][generation],2)))
         else:    
             print("------")
-            print("Generation: {} | Best Fitness: {} | Score: {} | Diversity Metric: {}".format(generation+1, best_individual["fit"][generation], 1/best_individual["fit"][generation], values_gen["metrics"][generation]))
+            print("Generation: {} | Time: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}".format(generation+1, round(time.time() - t_gen, 2), best_individual["fit"][generation], 1/best_individual["fit"][generation], round(values_gen["metrics"][generation],2)))
 
-        # Creating new population and aplying elitist concept
+        # Creating new population and aplying elitist concept  time.time() - t_inicial
         new_population = []
         if elite_count != 0:
             new_population = population[:elite_count]
@@ -204,15 +205,20 @@ def optimize(methods, param, fitness_fn):
 # ##################################### Fitness #######################################
 # #####################################################################################
 
+# def parallel_fitness(population, fitness_fn, num_processes):
+#     fitness_values = []
+#     with ProcessPoolExecutor(max_workers=num_processes) as executor:
+#         futures = []
+#         for individual in population:
+#             future = executor.submit(fitness_fn, individual)
+#             futures.append(future)
+#         for future in futures:
+#             fitness_values.append(future.result())
+#     return fitness_values
+
 def parallel_fitness(population, fitness_fn, num_processes):
-    fitness_values = []
-    with ProcessPoolExecutor(max_workers=num_processes) as executor:
-        futures = []
-        for individual in population:
-            future = executor.submit(fitness_fn, individual)
-            futures.append(future)
-        for future in futures:
-            fitness_values.append(future.result())
+    with multiprocessing.Pool(num_processes) as pool:
+        fitness_values = pool.map(fitness_fn, population)
     return fitness_values
 
 # Fitness function without using multi threads
