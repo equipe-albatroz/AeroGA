@@ -8,6 +8,7 @@ from statistics import mean
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pandas.plotting
 import plotly.express as px
 from datetime import datetime
 
@@ -23,7 +24,7 @@ class Individual:
 # ###################################### Main #########################################
 # #####################################################################################
 
-def optimize(methods, param, fitness_fn):
+def optimize(methods, param, plot, fitness_fn):
     """Perform the genetic algorithm to find an optimal solution."""
 
     t_inicial = time.time()
@@ -195,7 +196,13 @@ def optimize(methods, param, fitness_fn):
                )
 
     export_excell(out)
-    create_plotfit(num_generations, values_gen)
+
+    if plot.fit == True:
+        create_plotfit(num_generations, values_gen)
+    if plot.box == True:
+        create_boxplots(out)
+    if plot.parallel == True:
+        parallel_coordinates(out)
 
     return out
 
@@ -454,55 +461,82 @@ def sensibility(individual, fitness_fn, increment, min_values, max_values):
 def create_plotfit(num_generations, values_gen):
     """Plot the fit and metrics values over the number of generations."""
    
-    fig, (ax1, ax2) = plt.subplots(2, 1)
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1)
     fig.subplots_adjust(hspace=0.5)
 
-    ax1.plot(values_gen["best_fit"], label = "Best Fitness")
-    ax1.plot(values_gen["avg_fit"], alpha = 0.3, linestyle = "--", label = "Average Fitness")
-    ax1.legend(loc='upper right')
+    ax1.plot(values_gen["best_fit"])
     ax1.set_xlim(0, num_generations - 1)
     ax1.set_title('BestFit x Iterations')
     ax1.set_xlabel('Iterations')
     ax1.set_ylabel('Best Fitness')
     ax1.grid(True)
 
-    ax2.plot(values_gen["metrics"])
+    ax2.plot(values_gen["avg_fit"], alpha = 0.3, color = 'red',linestyle = "--")
     ax2.set_xlim(0, num_generations - 1)
-    ax2.set_title('Population Diversity x Iterations')
-    ax2.set_ylabel('Diversity Metric')
+    ax2.set_title('AvgFit x Iterations')
     ax2.set_xlabel('Iterations')
+    ax2.set_ylabel('Average Fitness')
     ax2.grid(True)
 
+    ax3.plot(values_gen["metrics"])
+    ax3.set_xlim(0, num_generations - 1)
+    ax3.set_title('Population Diversity x Iterations')
+    ax3.set_ylabel('Diversity Metric')
+    ax3.set_xlabel('Iterations')
+    ax3.grid(True)
+
     plt.show()
 
-def create_boxplots(history):
+def create_boxplots(out):
     """Boxplot of all values used in the optimization for each variable."""
 
-    num_individuals = len(history[0])
-    num_variables = len(history[0][0])
-    fig, ax = plt.subplots(1, num_variables, figsize=(15, 5))
+    history = out["history"]
+
+    num_ind = len(history["ind"])
+    num_var = len(history["ind"][0])
+    
+    data = []; aux = []; aux2 = []
   
-    for j in range(num_individuals):
-        for i in range(num_variables):
-            data = np.array([individual[j][i] for individual in history])
-            ax[i].boxplot(data, vert=True)
-            ax[i].set_title(f'Variable {i+1}')
+    for i in range(num_var):
+        for j in range(num_ind):
+            aux.append(history["ind"][j][i])
+        aux2.append(aux)
+        aux = []
+
+    data = list(map(lambda *x: list(x), *aux2))
+    df = pd.DataFrame(data)
+  
+
+    plt.boxplot(df, vert=True)
+    plt.title('Dispersion of values')
+    plt.xlabel('Variables')
+    plt.grid(True)
     
     plt.show()
 
-def parallel_coordinates(history):
-    """Create a parallel coordinates graph of the population history.        TA RUIM TEM Q VER"""
+def parallel_coordinates(out):
+    """Create a parallel coordinates graph of the population history."""
     
-    num_individuals = len(history[0])
-    num_variables = len(history[0][0])
-    data = []
+    history = out["history"]
+    lista = list(history["fit"])
 
-    for j in range(num_individuals):
-        for i in range(num_variables):
-            data.append(np.array([individual[j][i] for individual in history]))
+    num_ind = len(history["ind"])
+    num_var = len(history["ind"][0])
+    
+    data = []; aux = []; aux2 = []
+  
+    for i in range(num_var):
+        for j in range(num_ind):
+            aux.append(history["ind"][j][i])
+        aux2.append(aux)
+        aux = []
 
+    data = list(map(lambda *x: list(x), *aux2))
     df = pd.DataFrame(data)
-    fig = px.parallel_coordinates(df, color='generation')
+    df['fit'] = lista
+    
+    fig = px.parallel_coordinates(df, color="fit", dimensions=df.columns,
+                              title="Parallel Coorinates Plot")
     fig.show()
 
 
