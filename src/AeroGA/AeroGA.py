@@ -1,6 +1,7 @@
 import time
 import random
 from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 import multiprocessing
 from bisect import bisect_left
 from statistics import mean
@@ -9,8 +10,6 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
-
-global out
 
 class Individual:
     def __init__(self, genes):
@@ -65,8 +64,12 @@ def optimize(methods, param, fitness_fn):
     for generation in range(num_generations):
 
         # Calculating the fitness values
-        fitness_values = fitness(population, fitness_fn, n_threads)
-
+        # fitness_values = fitness(population, fitness_fn, 2)
+        if n_threads != 0:
+            fitness_values = parallel_fitness(population, fitness_fn, n_threads)  
+        else:
+            fitness_values = fitness(population, fitness_fn)
+        
         # Population sorted by the fitness value
         population = [x for _,x in sorted(zip(fitness_values,population))]
         fitness_values = sorted(fitness_values)
@@ -200,18 +203,29 @@ def optimize(methods, param, fitness_fn):
 # #####################################################################################
 # ##################################### Fitness #######################################
 # #####################################################################################
-    
+
+def parallel_fitness(population, fitness_fn, num_processes):
+    fitness_values = []
+    with ProcessPoolExecutor(max_workers=num_processes) as executor:
+        futures = []
+        for individual in population:
+            future = executor.submit(fitness_fn, individual)
+            futures.append(future)
+        for future in futures:
+            fitness_values.append(future.result())
+    return fitness_values
+
 # Fitness function without using multi threads
-# def fitness(population, fitness_fn):
-#     """Calculate the fitness of each individual in the population."""
-#     return [fitness_fn(ind) for ind in population]
+def fitness(population, fitness_fn):
+    """Calculate the fitness of each individual in the population."""
+    return [fitness_fn(ind) for ind in population]
 
 # Fitness function using multi threads
-def fitness(population, fitness_fn, n_threads):
-    """Calculate the fitness of each individual in the population."""
-    with ThreadPoolExecutor(max_workers=n_threads) as executor:
-        fitness_values = list(executor.map(fitness_fn, population))   # timeout = 2
-    return fitness_values
+# def fitness(population, fitness_fn, n_threads):
+#     """Calculate the fitness of each individual in the population."""
+#     with ThreadPoolExecutor(max_workers=n_threads) as executor:
+#         fitness_values = list(executor.map(fitness_fn, population))   # timeout = 2
+#     return fitness_values
 
 
 # #####################################################################################
