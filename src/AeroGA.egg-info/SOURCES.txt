@@ -1,0 +1,10 @@
+LICENSE
+README.md
+pyproject.toml
+src/AeroGA/AeroGA.py
+src/AeroGA/__init__.py
+src/AeroGA.egg-info/PKG-INFO
+src/AeroGA.egg-info/SOURCES.txt
+src/AeroGA.egg-info/dependency_links.txt
+src/AeroGA.egg-info/requires.txt
+src/AeroGA.egg-info/top_level.txt

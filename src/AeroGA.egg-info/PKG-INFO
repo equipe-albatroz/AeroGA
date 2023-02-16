@@ -1,17 +1,24 @@
+Metadata-Version: 2.1
+Name: AeroGA
+Version: 0.0.1
+Summary: Package description
+Author-email: Krigor Rosa <krigorsilva13@gmail.com>
+Project-URL: Homepage, https://github.com/equipe-albatroz/AeroGA
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
 # AeroGA
 
-**Algoritmo heurístico de otimização single-objective utilizando conceitos evolutivos.**
+Algoritmo heurístico de otimização single-objective utilizando conceitos evolutivos.
 
-Para utilizar o GA deve-se clonar o repositório, acessar a pasta pelo terminal e fazer a instalação como mostrado abaixo:
-
-~~~python
-pip install -e .                             
-~~~
-
-Para chamar a biblioteca basta adicionar o comando mostrado abaixo:
+Para utilizar o GA deve-se fazer a importação do arquivo .py e todas suas funções, como mostrado abaixo:
 
 ~~~python
-from AeroGA.AeroGA import *                            
+import AeroGA                              
 ~~~
 
 # Etapas
@@ -23,6 +30,8 @@ As variáveis utilizadas no GA são repassadas através de uma estrutura. Para c
 ~~~python
 from ypstruct import structure                            
 ~~~
+
+Para instalar a biblioteca ypstruct e todas as outras necessárias para rodar o código siga os passos mostrados na seção 'Instalando requirements' em Observações.
 
 Variáveis relacionadas ao problema a ser resolvido
 
@@ -81,13 +90,9 @@ Função fitness a ser aplicada no GA
 Deve ser definida como no exemplo abaixo:
 
 ~~~python
-fitness_fn = MDO2023
-~~~ 
+from Benchmarks import Rastrigin
 
-Caso a função principal do mdo esteja em um arquivo diferente de onde será feita a otimização, basta importar a função do arquivo como mostrado no exemplo abaixo:
-
-~~~python
-from MDO2023_albatroz import MDO2023
+fitness_fn = Rastrigin
 ~~~ 
 
 Para funcionar corretamente, a função fitness deve receber uma lista X com os valores dos indivíduos, dentro da função essa lista deve ser aberta e atribuída as respectivas variáveis.
@@ -194,6 +199,17 @@ sensibility(out["best_individual"], fitness_fn, increment, min_values, max_value
  ~~~python
  parallel_coordinates(out["history"])                                         
  ~~~
+
+
+# Observações
+
+### **1. Instalando requirements.txt**
+
+Para instalar todas as bibliotecas utilizadas, no terminal de comandos coloque o código abaixo:
+
+~~~python
+pip install -r requirements.txt
+~~~
 
 # Contato
 
