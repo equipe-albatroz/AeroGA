@@ -8,8 +8,10 @@ AeroGA_old.py
 results.xlsx
 AeroGA copy.py
 
+src/AeroGA.egg-info/
+
 __pycache__
 *.pyc
 *.xlsx
-
+*.txt
 .ipynb_checkpoints
