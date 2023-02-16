@@ -17,9 +17,9 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "matplotlib==3.6.2",
+    "matplotlib==3.5.2",
     "matplotlib-inline==0.1.6",
-    "numpy==1.22.4",
+    "numpy==1.23.0",
     "pandas==1.5.2",
     "plotly==5.9.0",
     "ypstruct==0.0.2",
