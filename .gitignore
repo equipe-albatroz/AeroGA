@@ -1,5 +1,5 @@
 # Ignorar pastas
-src/AeroGA.egg-info
+src\AeroGA.egg-info\
 __pycache__
 
 # Ignorar o arquivo de teste
