@@ -1,5 +1,6 @@
-# Ignorar arquivo .txt
-usefull_comands.txt
+# Ignorar pastas
+src/AeroGA.egg-info
+__pycache__
 
 # Ignorar o arquivo de teste
 test.ipynb
@@ -8,9 +9,7 @@ AeroGA_old.py
 results.xlsx
 AeroGA copy.py
 
-src/AeroGA.egg-info/
-
-__pycache__
+# Ignorar tipos de arquivo
 *.pyc
 *.xlsx
 *.txt
