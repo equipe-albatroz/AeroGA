@@ -55,10 +55,8 @@ def optimize(methods, param, fitness_fn):
     history = {"ind":[],"gen":[],"fit":[]}
     best_individual = {"ind":[],"fit":[]}
 
-    # Initial value for the best fitness and individual
+    # Initial value for the best fitness
     best_fitness = float('inf')
-    best_individual["ind"].append(population[0])
-    best_individual["fit"].append(float('inf'))
 
     # Initializing the main loop
     for generation in range(num_generations):
