@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "AeroGA"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
   { name="Krigor Rosa", email="krigorsilva13@gmail.com" },
 ]
@@ -23,6 +23,7 @@ dependencies = [
     "pandas==1.5.2",
     "plotly==5.9.0",
     "ypstruct==0.0.2",
+    "colorlog==6.7.0"
 ]
 
 [project.urls]
