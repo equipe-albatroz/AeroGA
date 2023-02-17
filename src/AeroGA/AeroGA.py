@@ -28,8 +28,6 @@ def optimize(methods, param, plot, fitness_fn):
     
     t_inicial = time.time()
 
-    # settings.plot_individual = False
-
     # Extracting variables
     min_values = param.lb
     max_values = param.ub
@@ -60,7 +58,6 @@ def optimize(methods, param, plot, fitness_fn):
 
     # Initial value for the best fitness
     best_fitness = float('inf')
-    # best_fitness_global = float('inf')
 
     # Initializing the main loop
     for generation in range(num_generations):
@@ -102,12 +99,6 @@ def optimize(methods, param, plot, fitness_fn):
         # Checking if the best fit is better than previus generations and the global value to plot the individual
         if best_individual["fit"][generation] < best_fitness:
             best_fitness = best_individual["fit"][generation]
-            # if best_fitness < best_fitness_global:
-            #     best_fitness_global = best_fitness
-            #     settings.plot_individual = True
-            #     fitness_fn(population[fitness_values.index(best_fitness_global)])
-            # else:
-            #     settings.plot_individual = False
 
         # Creating list of fitness values with individuals that returns valid score
         fitness_values_valid = []
