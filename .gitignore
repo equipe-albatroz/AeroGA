@@ -7,7 +7,7 @@ test.ipynb
 test.py
 AeroGA_old.py
 results.xlsx
-AeroGA copy.py
+AeroGA_copy.py
 
 # Ignorar tipos de arquivo
 *.pyc
