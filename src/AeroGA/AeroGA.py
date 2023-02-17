@@ -376,20 +376,34 @@ def polynomial_mutation(individual, min_values, max_values, eta):
     for i in range(len(individual)):
         if isinstance(individual[i], int):
             if random.uniform(0, 1) < 0.5:
-                if ((individual[i] - min_values[i]) / (max_values[i] - min_values[i])) < 0.5:
-                    delta = (2 * (individual[i] - min_values[i]) / (max_values[i] - min_values[i])) ** (1 + (eta + random.uniform(0,1))) - 1
+                if max_values[i] != min_values[i]:
+                    if ((individual[i] - min_values[i]) / (max_values[i] - min_values[i])) < 0.5:
+                        delta = (2 * (individual[i] - min_values[i]) / (max_values[i] - min_values[i])) ** (1 + (eta + random.uniform(0,1))) - 1
+                    else:
+                        delta = 1 - (2 * (max_values[i] - individual[i]) / (max_values[i] - min_values[i])) ** (1 + (eta + random.uniform(0,1)))
+                    mutated_gene = round(max(min_values[i], min(individual[i] + delta, max_values[i])))
                 else:
-                    delta = 1 - (2 * (max_values[i] - individual[i]) / (max_values[i] - min_values[i])) ** (1 + (eta + random.uniform(0,1)))
-                mutated_gene = round(max(min_values[i], min(individual[i] + delta, max_values[i])))
+                    if ((individual[i] - min_values[i])) < 0.5:
+                        delta = 0
+                    else:
+                        delta = 0
+                    mutated_gene = round(max(min_values[i], min(individual[i] + delta, max_values[i])))
             else:
                 mutated_gene = individual[i]
         else:
             if random.uniform(0, 1) < 0.5:
-                if ((individual[i] - min_values[i]) / (max_values[i] - min_values[i])) < 0.5:
-                    delta = (2 * (individual[i] - min_values[i]) / (max_values[i] - min_values[i])) ** (1 + (eta + random.uniform(0,1))) - 1
+                if max_values[i] != min_values[i]:
+                    if ((individual[i] - min_values[i]) / (max_values[i] - min_values[i])) < 0.5:
+                        delta = (2 * (individual[i] - min_values[i]) / (max_values[i] - min_values[i])) ** (1 + (eta + random.uniform(0,1))) - 1
+                    else:
+                        delta = 1 - (2 * (max_values[i] - individual[i]) / (max_values[i] - min_values[i])) ** (1 + (eta + random.uniform(0,1)))
+                    mutated_gene = max(min_values[i], min(individual[i] + delta, max_values[i]))
                 else:
-                    delta = 1 - (2 * (max_values[i] - individual[i]) / (max_values[i] - min_values[i])) ** (1 + (eta + random.uniform(0,1)))
-                mutated_gene = max(min_values[i], min(individual[i] + delta, max_values[i]))
+                    if ((individual[i] - min_values[i])) < 0.5:
+                        delta = 0
+                    else:
+                        delta = 0
+                    mutated_gene = max(min_values[i], min(individual[i] + delta, max_values[i]))
             else:
                 mutated_gene = individual[i]
         mutated_genes.append(mutated_gene)
