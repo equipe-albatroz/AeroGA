@@ -53,7 +53,8 @@ def optimize(methods, param, plot, fitness_fn):
 
     # Creating history, metrics and best/avg lists
     values_gen = {"best_fit":[],"avg_fit":[],"metrics":[]}
-    history = {"ind":[],"gen":[],"fit":[]}
+    history = {"ind":[],"gen":[],"fit":[],"score":[]}
+    history_valid = {"ind":[],"gen":[],"fit":[],"score":[]}
     best_individual = {"ind":[],"fit":[]}
 
     # Initial value for the best fitness
@@ -74,11 +75,17 @@ def optimize(methods, param, plot, fitness_fn):
         population = [x for _,x in sorted(zip(fitness_values,population))]
         fitness_values = sorted(fitness_values)
 
-        # Add to history
+        # Add to history and valid fit history
         for i in range(len(population)):
             history["ind"].append(population[i])
             history["fit"].append(fitness_values[i])
+            history["score"].append(1/fitness_values[i])
             history["gen"].append(generation)
+            if fitness_values[i] < 1000:
+                history_valid["ind"].append(population[i])
+                history_valid["fit"].append(fitness_values[i])
+                history_valid["score"].append(1/fitness_values[i])
+                history_valid["gen"].append(generation)
 
         # Best and average fitness and best individual at the generation
         best_individual["ind"].append(population[fitness_values.index(min(fitness_values))])
@@ -88,9 +95,15 @@ def optimize(methods, param, plot, fitness_fn):
         if best_individual["fit"][generation] < best_fitness:
             best_fitness = best_individual["fit"][generation]
 
+        # Creating list of fitness values with individuals that returns valid score
+        fitness_values_valid = []
+        for i in range(population_size):
+            if fitness_values[i] < 1000:
+                fitness_values_valid.append(fitness_values[i]) 
+
         # Saving these values in lists
         values_gen["best_fit"].append(best_fitness)
-        values_gen["avg_fit"].append(mean(fitness_values))
+        values_gen["avg_fit"].append(mean(fitness_values_valid))
         values_gen["metrics"].append(diversity_metric(population))
         
         # Applying the online parameter control
@@ -190,7 +203,8 @@ def optimize(methods, param, plot, fitness_fn):
     print(f"Tempo de Execução: {time.time() - t_inicial}")
 
     # Listing outputs
-    out = dict(history = history, 
+    out = dict(history = history,
+               history_valid = history_valid,
                best_individual = best_individual,
                values_gen = values_gen,
                )
@@ -200,7 +214,7 @@ def optimize(methods, param, plot, fitness_fn):
     if plot.fit == True:
         create_plotfit(num_generations, values_gen)
     if plot.box == True:
-        create_boxplots(out)
+        create_boxplots(out, num_generations, min_values, max_values)
     if plot.parallel == True:
         parallel_coordinates(out)
 
@@ -467,14 +481,12 @@ def create_plotfit(num_generations, values_gen):
     ax1.plot(values_gen["best_fit"])
     ax1.set_xlim(0, num_generations - 1)
     ax1.set_title('BestFit x Iterations')
-    ax1.set_xlabel('Iterations')
     ax1.set_ylabel('Best Fitness')
     ax1.grid(True)
 
     ax2.plot(values_gen["avg_fit"], alpha = 0.3, color = 'red',linestyle = "--")
     ax2.set_xlim(0, num_generations - 1)
     ax2.set_title('AvgFit x Iterations')
-    ax2.set_xlabel('Iterations')
     ax2.set_ylabel('Average Fitness')
     ax2.grid(True)
 
@@ -487,26 +499,27 @@ def create_plotfit(num_generations, values_gen):
 
     plt.show()
 
-def create_boxplots(out):
+def create_boxplots(out, num_generations, min_values, max_values):
     """Boxplot of all values used in the optimization for each variable."""
 
-    history = out["history"]
-
-    num_ind = len(history["ind"])
-    num_var = len(history["ind"][0])
-    
+    history = out["history_valid"]    
     data = []; aux = []; aux2 = []
   
-    for i in range(num_var):
-        for j in range(num_ind):
+    for i in range(len(history["ind"][0])):
+        for j in range(len(history["ind"])):
             aux.append(history["ind"][j][i])
         aux2.append(aux)
         aux = []
 
     data = list(map(lambda *x: list(x), *aux2))
-    df = pd.DataFrame(data)
-  
+    data_aux = data
 
+    for i in range(len(data)):
+        for j in range(len(min_values)):
+            data_aux[i][j] = ((data[i][j] - min_values[j])/(max_values[j] - min_values[j]))
+
+    df = pd.DataFrame(data_aux)
+ 
     plt.boxplot(df, vert=True)
     plt.title('Dispersion of values')
     plt.xlabel('Variables')
@@ -517,8 +530,8 @@ def create_boxplots(out):
 def parallel_coordinates(out):
     """Create a parallel coordinates graph of the population history."""
     
-    history = out["history"]
-    lista = list(history["fit"])
+    history = out["history_valid"]
+    lista = list(history["score"])
 
     num_ind = len(history["ind"])
     num_var = len(history["ind"][0])
@@ -533,10 +546,10 @@ def parallel_coordinates(out):
 
     data = list(map(lambda *x: list(x), *aux2))
     df = pd.DataFrame(data)
-    df['fit'] = lista
+    df['Score'] = lista
     
     fig = px.parallel_coordinates(df, color="fit", dimensions=df.columns,
-                              title="Parallel Coorinates Plot")
+                              title="Parallel Coordinates Plot")
     fig.show()
 
 
