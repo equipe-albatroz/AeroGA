@@ -8,10 +8,11 @@ Para utilizar o GA deve-se clonar o repositório, acessar a pasta pelo terminal 
 pip install -e .                             
 ~~~
 
-Para chamar a biblioteca basta adicionar o comando mostrado abaixo:
+Para chamar a biblioteca basta adicionar os comandos mostrados abaixo:
 
 ~~~python
-from AeroGA.AeroGA import *                            
+from AeroGA.AeroGA import * 
+from AeroGA import settings                          
 ~~~
 
 # Etapas
