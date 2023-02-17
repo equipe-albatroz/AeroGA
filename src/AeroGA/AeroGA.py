@@ -1,16 +1,15 @@
+from datetime import datetime
 import time
 import random
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import ProcessPoolExecutor
-import multiprocessing
-from bisect import bisect_left
-from statistics import mean
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pandas.plotting
+import multiprocessing
+from statistics import mean
+from bisect import bisect_left
+import matplotlib.pyplot as plt
 import plotly.express as px
-from datetime import datetime
+from functools import partial
+from . import settings
 
 class Individual:
     def __init__(self, genes):
@@ -26,8 +25,10 @@ class Individual:
 
 def optimize(methods, param, plot, fitness_fn):
     """Perform the genetic algorithm to find an optimal solution."""
-
+    
     t_inicial = time.time()
+
+    # settings.plot_individual = False
 
     # Extracting variables
     min_values = param.lb
@@ -59,6 +60,7 @@ def optimize(methods, param, plot, fitness_fn):
 
     # Initial value for the best fitness
     best_fitness = float('inf')
+    # best_fitness_global = float('inf')
 
     # Initializing the main loop
     for generation in range(num_generations):
@@ -67,7 +69,7 @@ def optimize(methods, param, plot, fitness_fn):
 
         # Calculating the fitness values
         if n_threads != 0:
-            fitness_values = parallel_fitness(population, fitness_fn, n_threads)  
+            fitness_values = parallel_fitness(population, fitness_fn, n_threads)
         else:
             fitness_values = fitness(population, fitness_fn)
         
@@ -79,21 +81,33 @@ def optimize(methods, param, plot, fitness_fn):
         for i in range(len(population)):
             history["ind"].append(population[i])
             history["fit"].append(fitness_values[i])
-            history["score"].append(1/fitness_values[i])
+            if fitness_values[i] != 0:
+                history["score"].append(1/fitness_values[i])
+            else:
+                history["score"].append(float('inf'))
             history["gen"].append(generation)
             if fitness_values[i] < 1000:
                 history_valid["ind"].append(population[i])
                 history_valid["fit"].append(fitness_values[i])
-                history_valid["score"].append(1/fitness_values[i])
+                if fitness_values[i] != 0:
+                    history_valid["score"].append(1/fitness_values[i])
+                else:
+                    history_valid["score"].append(float('inf'))
                 history_valid["gen"].append(generation)
 
         # Best and average fitness and best individual at the generation
         best_individual["ind"].append(population[fitness_values.index(min(fitness_values))])
         best_individual["fit"].append(min(fitness_values))
 
-        # Checking if the best fit is better than previus generations
+        # Checking if the best fit is better than previus generations and the global value to plot the individual
         if best_individual["fit"][generation] < best_fitness:
             best_fitness = best_individual["fit"][generation]
+            # if best_fitness < best_fitness_global:
+            #     best_fitness_global = best_fitness
+            #     settings.plot_individual = True
+            #     fitness_fn(population[fitness_values.index(best_fitness_global)])
+            # else:
+            #     settings.plot_individual = False
 
         # Creating list of fitness values with individuals that returns valid score
         fitness_values_valid = []
@@ -103,18 +117,19 @@ def optimize(methods, param, plot, fitness_fn):
 
         # Saving these values in lists
         values_gen["best_fit"].append(best_fitness)
-        values_gen["avg_fit"].append(mean(fitness_values_valid))
+        if isinstance(mean(fitness_values_valid), float):
+            values_gen["avg_fit"].append(mean(fitness_values_valid))
+        else:
+            values_gen["avg_fit"].append(None)
         values_gen["metrics"].append(diversity_metric(population))
         
         # Applying the online parameter control
         MUTPB_LIST, CXPB_LIST = online_parameter(online_control, num_generations, mutation_rate, crossover_rate)
 
         if best_individual["fit"][generation] == 0:
-            print("------")
-            print("Generation: {} | Time: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}".format(generation+1, round(time.time() - t_gen, 2), best_individual["fit"][generation], float('inf'), round(values_gen["metrics"][generation],2)))
+            settings.log.info('Generation: {} | Time: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}'.format(generation+1, round(time.time() - t_gen, 2), best_individual["fit"][generation], float('inf'), round(values_gen["metrics"][generation],2)))
         else:    
-            print("------")
-            print("Generation: {} | Time: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}".format(generation+1, round(time.time() - t_gen, 2), best_individual["fit"][generation], 1/best_individual["fit"][generation], round(values_gen["metrics"][generation],2)))
+            settings.log.info('Generation: {} | Time: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}'.format(generation+1, round(time.time() - t_gen, 2), best_individual["fit"][generation], 1/best_individual["fit"][generation], round(values_gen["metrics"][generation],2)))
 
         # Creating new population and aplying elitist concept  time.time() - t_inicial
         new_population = []
@@ -197,10 +212,10 @@ def optimize(methods, param, plot, fitness_fn):
 
     
     # Printing global optimization results
-    print("\n***************************** END ******************************\n")
-    print("Best Global Individual: {}".format(best_individual["ind"][best_individual["fit"].index(min(best_individual["fit"]))]))
-    print("Best Global Fitness: {}".format(min(best_individual["fit"])))
-    print(f"Tempo de Execução: {time.time() - t_inicial}")
+    settings.log.warning("***************************** END ******************************")
+    settings.log.warning('Best Global Individual: {}'.format(best_individual["ind"][best_individual["fit"].index(min(best_individual["fit"]))]))
+    settings.log.warning('Best Global Fitness: {}'.format(min(best_individual["fit"])))
+    settings.log.warning(f"Tempo de Execução: {time.time() - t_inicial}")
 
     # Listing outputs
     out = dict(history = history,
@@ -224,17 +239,6 @@ def optimize(methods, param, plot, fitness_fn):
 # ##################################### Fitness #######################################
 # #####################################################################################
 
-# def parallel_fitness(population, fitness_fn, num_processes):
-#     fitness_values = []
-#     with ProcessPoolExecutor(max_workers=num_processes) as executor:
-#         futures = []
-#         for individual in population:
-#             future = executor.submit(fitness_fn, individual)
-#             futures.append(future)
-#         for future in futures:
-#             fitness_values.append(future.result())
-#     return fitness_values
-
 def parallel_fitness(population, fitness_fn, num_processes):
     with multiprocessing.Pool(num_processes) as pool:
         fitness_values = pool.map(fitness_fn, population)
@@ -243,15 +247,7 @@ def parallel_fitness(population, fitness_fn, num_processes):
 # Fitness function without using multi threads
 def fitness(population, fitness_fn):
     """Calculate the fitness of each individual in the population."""
-    return [fitness_fn(ind) for ind in population]
-
-# Fitness function using multi threads
-# def fitness(population, fitness_fn, n_threads):
-#     """Calculate the fitness of each individual in the population."""
-#     with ThreadPoolExecutor(max_workers=n_threads) as executor:
-#         fitness_values = list(executor.map(fitness_fn, population))   # timeout = 2
-#     return fitness_values
-
+    return [fitness_fn(ind) for ind in population]       
 
 # #####################################################################################
 # #################################### Init Pop #######################################
@@ -579,6 +575,6 @@ def export_excell(out):
 
     now = datetime.now()
     dt_string = now.strftime("%d-%m-%Y_%H-%M")
-    string = 'Results_' + str(dt_string) + '.xlsx'
+    string = 'Resultados/Results_' + str(dt_string) + '.xlsx'
 
     df.to_excel(string, index=False)
