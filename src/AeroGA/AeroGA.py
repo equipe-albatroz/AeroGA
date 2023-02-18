@@ -431,8 +431,9 @@ def online_parameter(online_control, num_generations, mutation_rate, crossover_r
         line_x = np.linspace(start=1, stop=50, num=num_generations)
         MUTPB_LIST = (-(np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0])) + 1) * 0.2
         
-        line_x = np.linspace(start=1, stop=5, num=num_generations)
-        CXPB_LIST = (np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0]))
+        # line_x = np.linspace(start=1, stop=5, num=num_generations)
+        # CXPB_LIST = (np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0]))
+        CXPB_LIST = [crossover_rate]*num_generations
     else:
         MUTPB_LIST = [mutation_rate]*num_generations
         CXPB_LIST = [crossover_rate]*num_generations
@@ -517,6 +518,41 @@ def create_boxplots(out, num_generations, min_values, max_values):
     
     plt.show()
 
+def create_boxplots_import_xlsx(path):
+    """Boxplot of all values used in the optimization for each variable."""
+
+    df = pd.read_excel(path)
+    del df["gen"]
+    del df["fit"]
+    del df["score"]
+ 
+    plt.boxplot(df, vert=True)
+    plt.title('Dispersion of values')
+    plt.xlabel('Variables')
+    plt.grid(True)
+    
+    plt.show()
+
+def create_boxplots_por_gen_import_xlsx(path, n_gen, gen):       # TEM QUE NORMALIZAR OS DADOS
+    """Boxplot of all values used in the generation for each variable."""
+
+    df = pd.read_excel(path)
+    del df["fit"]
+    del df["score"]
+
+    for i in range(n_gen):
+        if df.iloc[i, len(df.iloc[0])-1] != gen:
+            df.drop(df.index[[i]])
+ 
+    del df["gen"]
+
+    plt.boxplot(df, vert=True)
+    plt.title('Dispersion of values')
+    plt.xlabel('Variables')
+    plt.grid(True)
+    
+    plt.show()
+
 def parallel_coordinates(out):
     """Create a parallel coordinates graph of the population history."""
     
@@ -538,7 +574,17 @@ def parallel_coordinates(out):
     df = pd.DataFrame(data)
     df['Score'] = lista
     
-    fig = px.parallel_coordinates(df, color="Score", dimensions=df.columns,
+    fig = px.parallel_coordinates(df, color="score", dimensions=df.columns,
+                              title="Parallel Coordinates Plot")
+    fig.show()
+
+def parallel_coordinates_import_xlsx(path):
+    """Create a parallel coordinates graph of the population history."""
+    
+    df = pd.read_excel(path)
+    del df["gen"]
+   
+    fig = px.parallel_coordinates(df, color="score", dimensions=df.columns,
                               title="Parallel Coordinates Plot")
     fig.show()
 
@@ -547,8 +593,9 @@ def export_excell(out):
     """Create a parallel coordinates graph of the population history.        TA RUIM TEM Q VER"""
     
     history = out["history"]
-    lista = list(history["fit"])
-    lista2 = list(history["gen"])
+    lista = list(history["gen"])
+    lista2 = list(history["fit"])
+    lista3 = list(history["score"])
 
     num_ind = len(history["ind"])
     num_var = len(history["ind"][0])
@@ -564,8 +611,9 @@ def export_excell(out):
     data = list(map(lambda *x: list(x), *aux2))
     df = pd.DataFrame(data)
 
-    df['fit'] = lista
-    df['gen'] = lista2
+    df['gen'] = lista
+    df['fit'] = lista2
+    df['score'] = lista3
 
     now = datetime.now()
     dt_string = now.strftime("%d-%m-%Y_%H-%M")
