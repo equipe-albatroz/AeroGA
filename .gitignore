@@ -10,6 +10,8 @@ results.xlsx
 AeroGA_copy.py
 AeroGA_copy copy.py
 
+Resultados
+
 # Ignorar tipos de arquivo
 *.pyc
 *.xlsx
