@@ -538,7 +538,7 @@ def parallel_coordinates(out):
     df = pd.DataFrame(data)
     df['Score'] = lista
     
-    fig = px.parallel_coordinates(df, color="fit", dimensions=df.columns,
+    fig = px.parallel_coordinates(df, color="Score", dimensions=df.columns,
                               title="Parallel Coordinates Plot")
     fig.show()
 
