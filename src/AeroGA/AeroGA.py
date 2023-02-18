@@ -23,29 +23,18 @@ class Individual:
 # ###################################### Main #########################################
 # #####################################################################################
 
-def optimize(methods, param, plot, fitness_fn):
+def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussian", n_threads = -1,
+    min_values = list, max_values = list, num_variables = int, population_size = int, num_generations = int, elite_count = int,
+    online_control = False, mutation_rate = 0.4, crossover_rate = 1, eta = 20, std_dev = 0.1,
+    plotfit = True, plotbox = False, plotparallel = False, 
+    fitness_fn = None
+    ):
     """Perform the genetic algorithm to find an optimal solution."""
     
     t_inicial = time.time()
 
-    # Extracting variables
-    min_values = param.lb
-    max_values = param.ub
-    num_variables = param.num_variables
-    population_size = param.population_size
-    num_generations = param.num_generations
-    eta = param.eta
-    std_dev = param.std_dev
-    elite_count = param.elite_count
-    online_control = param.online_control
-    mutation_rate = param.mutation_rate
-    crossover_rate = param.crossover_rate
-
     # Definition of how many threads will be used to calculate the fitness function
-    if methods.n_threads == -1:
-        n_threads = multiprocessing.cpu_count()
-    else:
-        n_threads = methods.n_threads
+    if n_threads == -1: n_threads = multiprocessing.cpu_count()
 
     # Generating initial population
     population = generate_population(population_size, num_variables, min_values, max_values)
@@ -129,7 +118,7 @@ def optimize(methods, param, plot, fitness_fn):
 
         # Creating new population based on crossover methods
         for i in range(0, population_size - elite_count, 2):
-            if methods.selection == 'tournament':
+            if selection == 'tournament':
                 parent1 = tournament_selection(population, fitness_values, tournament_size=2)
                 fitness_values.remove(fitness_values[population.index(parent1)])
                 population.remove(parent1)
@@ -138,7 +127,7 @@ def optimize(methods, param, plot, fitness_fn):
                 fitness_values.remove(fitness_values[population.index(parent2)])
                 population.remove(parent2)
 
-            elif methods.selection == 'rank':
+            elif selection == 'rank':
                 parent1 = rank_selection(population, fitness_values)
                 fitness_values.remove(fitness_values[population.index(parent1)])
                 population.remove(parent1)
@@ -147,7 +136,7 @@ def optimize(methods, param, plot, fitness_fn):
                 fitness_values.remove(fitness_values[population.index(parent2)])
                 population.remove(parent2)
 
-            elif methods.selection == 'roulette':
+            elif selection == 'roulette':
                 parent1 = roulette_selection(population, fitness_values)
                 fitness_values.remove(fitness_values[population.index(parent1)])
                 population.remove(parent1)
@@ -157,7 +146,7 @@ def optimize(methods, param, plot, fitness_fn):
                 population.remove(parent2)
 
             # Applying crossover to the individuals
-            if methods.crossover == 'arithmetic':
+            if crossover == 'arithmetic':
                 if random.uniform(0, 1) <= CXPB_LIST[generation]: 
                     offspring1, offspring2 = arithmetic_crossover(parent1, parent2, min_values, max_values, alpha = 0.05)
                     new_population.append(offspring1)
@@ -165,7 +154,7 @@ def optimize(methods, param, plot, fitness_fn):
                 else:
                     new_population.append(parent1)
                     new_population.append(parent2)
-            elif methods.crossover == 'SBX':
+            elif crossover == 'SBX':
                 if random.uniform(0, 1) <= CXPB_LIST[generation]: 
                     offspring1, offspring2 = SBX_crossover(parent1, parent2, min_values, max_values, eta=0.5)
                     new_population.append(offspring1)
@@ -173,7 +162,7 @@ def optimize(methods, param, plot, fitness_fn):
                 else:
                     new_population.append(parent1)
                     new_population.append(parent2)
-            elif methods.crossover == '1-point':
+            elif crossover == '1-point':
                 if random.uniform(0, 1) <= CXPB_LIST[generation]: 
                     offspring1, offspring2 = crossover_1pt(parent1, parent2)
                     new_population.append(offspring1)
@@ -181,7 +170,7 @@ def optimize(methods, param, plot, fitness_fn):
                 else:
                     new_population.append(parent1)
                     new_population.append(parent2)
-            elif methods.crossover == '2-point':
+            elif crossover == '2-point':
                 if random.uniform(0, 1) <= CXPB_LIST[generation]: 
                     offspring1, offspring2 = crossover_2pt(parent1, parent2)
                     new_population.append(offspring1)
@@ -196,9 +185,9 @@ def optimize(methods, param, plot, fitness_fn):
             new_population = new_population[ : -aux]
         
         # Applying mutation to the new population
-        if methods.mutation == 'polynomial':
+        if mutation == 'polynomial':
             population = [polynomial_mutation(ind, min_values, max_values, eta) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
-        elif methods.mutation == 'gaussian':
+        elif mutation == 'gaussian':
             population = [gaussian_mutation(ind, min_values, max_values, std_dev) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
 
     
@@ -217,11 +206,11 @@ def optimize(methods, param, plot, fitness_fn):
 
     export_excell(out)
 
-    if plot.fit == True:
+    if plotfit == True:
         create_plotfit(num_generations, values_gen)
-    if plot.box == True:
+    if plotbox == True:
         create_boxplots(out, num_generations, min_values, max_values)
-    if plot.parallel == True:
+    if plotparallel == True:
         parallel_coordinates(out)
 
     return out
