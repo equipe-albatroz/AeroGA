@@ -8,8 +8,8 @@ from statistics import mean
 from bisect import bisect_left
 import matplotlib.pyplot as plt
 import plotly.express as px
-from functools import partial
 from . import settings
+import os
 
 class Individual:
     def __init__(self, genes):
@@ -31,6 +31,8 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
     ):
     """Perform the genetic algorithm to find an optimal solution."""
     
+    settings.log.warning("****************** INITIALIZING OPTIMIZATION *******************")
+
     t_inicial = time.time()
 
     # Definition of how many threads will be used to calculate the fitness function
@@ -111,13 +113,32 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         else:    
             settings.log.info('Generation: {} | Time: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}'.format(generation+1, round(time.time() - t_gen, 2), best_individual["fit"][generation], 1/best_individual["fit"][generation], round(values_gen["metrics"][generation],2)))
 
-        # Creating new population and aplying elitist concept  time.time() - t_inicial
+        # Creating new population and aplying elitist concept
         new_population = []
-        if elite_count != 0:
-            new_population = population[:elite_count]
+        elite_count_gen = 0
+        if elite_count != 0 and mean(fitness_values) != 1000:
+            for i in range(population_size): 
+                count_lst = list({x for x in fitness_values if fitness_values.count(x)})
+                if 1000 in count_lst:
+                    del count_lst[count_lst.index(1000)]
+                count = len(count_lst)
+
+            if count < elite_count: 
+                elite_count_gen = count
+            else:
+                elite_count_gen = elite_count
+            
+            new_population = population[:1]
+            if elite_count_gen > 1:
+                for i in range(1,population_size-1):
+                    if len(new_population) < elite_count_gen:
+                        if population[i] not in new_population:
+                            new_population.append(population[i])
+                    else:
+                        break
 
         # Creating new population based on crossover methods
-        for i in range(0, population_size - elite_count, 2):
+        for i in range(0, population_size - len(new_population), 2):
             if selection == 'tournament':
                 parent1 = tournament_selection(population, fitness_values, tournament_size=2)
                 fitness_values.remove(fitness_values[population.index(parent1)])
@@ -180,10 +201,12 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
                     new_population.append(parent2)
 
         # Ensuring that the new population will have the correct size
-        if len(new_population) != population_size:
+        if len(new_population) > population_size:
             aux = len(new_population) - population_size
             new_population = new_population[ : -aux]
         
+        a=1
+
         # Applying mutation to the new population
         if mutation == 'polynomial':
             population = [polynomial_mutation(ind, min_values, max_values, eta) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
@@ -614,6 +637,12 @@ def export_excell(out):
     df['gen'] = lista
     df['fit'] = lista2
     df['score'] = lista3
+
+    # Check whether the specified path exists or not
+    path = "Resultados"
+    pathExist = os.path.exists(path)
+    if not pathExist:
+        os.makedirs(path)   
 
     now = datetime.now()
     dt_string = now.strftime("%d-%m-%Y_%H-%M")
