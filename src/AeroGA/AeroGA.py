@@ -97,7 +97,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
 
         # Saving these values in lists
         values_gen["best_fit"].append(best_fitness)
-        if isinstance(mean(fitness_values_valid), float):
+        if mean(fitness_values) != 1000:
             values_gen["avg_fit"].append(mean(fitness_values_valid))
         else:
             values_gen["avg_fit"].append(None)
