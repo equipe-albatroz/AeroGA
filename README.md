@@ -11,19 +11,19 @@ pip install -e .
 Para chamar a biblioteca basta adicionar os comandos mostrados abaixo:
 
 ~~~python
-from AeroGA.AeroGA import * 
-from AeroGA import settings                          
+from AeroGA.AeroGA import *                           
 ~~~
 
 # Etapas
 
 ### **1. Carregando variáveis**
 
-As variáveis utilizadas no GA são repassadas através de uma estrutura. Para criar a estrutura é necessário importar a bibliotéca ypstruct, como mostrado abaixo:
+Variáveis relacionadas aos métodos do GA
 
-~~~python
-from ypstruct import structure                            
-~~~
+* **selection** - Método de seleção ("roulette", "rank", "tournament")
+* **crossover** - Método de recombinação ("SBX, ""arithmetic", "1-point", "2-point")
+* **mutation** - Método de mutação("gaussian", "polynomial")
+* **n_threads** - Número de Threads do processador que devem ser utilizadas para calcular aa função fitness (Para utilizar o máximo de threads possíveis utilizar -1 como input)
 
 Variáveis relacionadas ao problema a ser resolvido
 
@@ -35,55 +35,13 @@ Variáveis relacionadas ao problema a ser resolvido
 * **eta** - Parâmetro referente a mutação Polynomial (Valores maiores representam taxas de mutações menores (Ex.: 20), valores menores representam mutação severas no indivíduos (Ex.: 1)). Para maiores informações ler o artigo [(HAMDAN & Mohammad, 2012)](https://d1wqtxts1xzle7.cloudfront.net/31582313/Main-libre.pdf?1392403242=&response-content-disposition=inline%3B+filename%3DThe_Distribution_Index_in_Polynomial_Mut.pdf&Expires=1676061047&Signature=OpI7L7smR9-jq8TBmTeknRwFK83SJz7bnQ0TcQepI4rMvB96v0BSCjhThyORfaaelhAUaSsUlvsLNvNdxlXgPd7UfReDimPBbPtW0RVeeLBWHdjulrTq3JsjqsaGgtRU55fMbAkhe0grDP8uQ2CDsSf8K58YgtikLSWc1lIfIpMGwxfKZodC2IqEOrUaicxh4kNQohiw9T-SjOcpmNKxpW5kYIDjR-lYWr8JfV1yRMDF07HLLf1GMbAgBIw0p47qdPEE0JJG3Q7QBKHtkxxvd7uU2l5g0aBfOoCc4XPQM9u31V2fRkOfXDTQK-h-IEIFqlczRANawigoD6vscTvtgw__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA)
 * **std_dev** - Desvio padrão aplicado no método de mutação Gaussiana
 * **elite_count** - Número de indivíduos que serão passados para a próxima geração por meio elitista
+* **elite** - "global" ou "local", local avança sempre o melhor da geração, global o melhor da otimização inteira até o momento
 * **online_control** - Uso do controle online de parâmetros (True ou False)
-* **mutation_rate** - Taxa de mutação caso escolha False no controle online
-* **crossover_rate** - Taxa de crossover caso escolha False no controle online
-
-Devem ser definidas como no exemplo abaixo:
-
-~~~python
-param = structure()
-param.lb = [0, 0, 0.0, 0.0, 0.0, 0.0]
-param.ub = [5, 4, 0.4, 1.5, 0.5, 1.0]
-param.num_variables = 6
-param.population_size = 50
-param.num_generations = 100
-param.eta = 20
-param.std_dev = 1.8
-param.elite_count = 2
-param.online_control = True
-param.mutation_rate = 0.2
-param.crossover_rate = 1                              
-~~~
-
-Para definir os valores inteiros no GA deve-se usar no lb e ub valores como [0,4], para valores contínuos deve-se usar [0.0, 4.0]
-
-Variáveis relacionadas aos métodos do GA
-
-* **selection** - Método de seleção ("roulette", "rank", "tournament")
-* **crossover** - Método de recombinação ("arithmetic", "1-point", "2-point")
-* **mutation** - Método de mutação("gaussian", "default")
-* **n_threads** - Número de Threads do processador que devem ser utilizadas para calcular aa função fitness (Para utilizar o máximo de threads possíveis utilizar -1 como input)
-
-Devem ser definidas como no exemplo abaixo:
-
-~~~python
-methods = structure()
-methods.selection = "tournament"
-methods.crossover = "SBX"
-methods.mutation = "gaussian"
-methods.n_threads = 4                                                           
-~~~
-
-Função fitness a ser aplicada no GA
-
+* **mutation_prob** - Probabilidade de mutação, caso online_control = True é o valor final do polinômio
+* **crossover_prob** - Probabilidade de crossover
 * **fitness_fn** - Função fitness
 
-Deve ser definida como no exemplo abaixo:
-
-~~~python
-fitness_fn = MDO2023
-~~~ 
+**Obs.:** Para definir os valores inteiros no GA deve-se usar no lb e ub valores como [0,4], para valores contínuos deve-se usar [0.0, 4.0]
 
 Caso a função principal do mdo esteja em um arquivo diferente de onde será feita a otimização, basta importar a função do arquivo como mostrado no exemplo abaixo:
 
@@ -96,8 +54,14 @@ Para funcionar corretamente, a função fitness deve receber uma lista X com os 
 Para realizar a otimização deve-se chamar a função 'optimize' do AeroGA, como mostrado abaixo:
 
 ~~~python
-out = AeroGA.optimize(methods, param, fitness_fn)                                                  
+out = AeroGA.optimize(selection = "tournament", crossover = "1-point", mutation = "gaussian", n_threads = -1,
+    min_values = list, max_values = list, num_variables = int, population_size = int, num_generations = int, elite_count = int, elite="local",
+    online_control = False, mutation_prob = 0.4, crossover_prob = 1, eta = 20, std_dev = 0.1,
+    plotfit = True, plotbox = False, plotparallel = False, 
+    fitness_fn = None                                                  
 ~~~
+
+Algumas variáveis ja possuem valores defaults, caso você não queira alterar o valor default elas não precisam ser definidas ao chamar a função optimize
 
 O dicionário *out* retorna os seguintes valores:
 
