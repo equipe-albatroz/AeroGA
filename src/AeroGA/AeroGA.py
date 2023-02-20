@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 from . import settings
 import os
+import copy
 
 class Individual:
     def __init__(self, genes):
@@ -24,8 +25,8 @@ class Individual:
 # #####################################################################################
 
 def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussian", n_threads = -1,
-    min_values = list, max_values = list, num_variables = int, population_size = int, num_generations = int, elite_count = int,
-    online_control = False, mutation_rate = 0.4, crossover_rate = 1, eta = 20, std_dev = 0.1,
+    min_values = list, max_values = list, num_variables = int, population_size = int, num_generations = int, elite_count = int, elite="local",
+    online_control = False, mutation_prob = 0.4, crossover_prob = 1, eta = 20, std_dev = 0.1,
     plotfit = True, plotbox = False, plotparallel = False, 
     fitness_fn = None
     ):
@@ -46,7 +47,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
     history = {"ind":[],"gen":[],"fit":[],"score":[]}
     history_valid = {"ind":[],"gen":[],"fit":[],"score":[]}
     best_individual = {"ind":[],"fit":[]}
-
+ 
     # Initial value for the best fitness
     best_fitness = float('inf')
 
@@ -56,15 +57,23 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         t_gen = time.time()
 
         # Calculating the fitness values
+        fit_pop_old = []; pop_old = []; pop_calc_fit = copy.deepcopy(population)
+        for i in range(population_size):
+            if population[i] in history["ind"]:
+                fit_pop_old.append(history["fit"][list(history["ind"]).index(population[i])])
+                pop_old.append(population[i])
+                pop_calc_fit.remove(population[i])
         if n_threads != 0:
-            fitness_values = parallel_fitness(population, fitness_fn, n_threads)
+            fit_values = parallel_fitness(pop_calc_fit, fitness_fn, n_threads)
         else:
-            fitness_values = fitness(population, fitness_fn)
-        
+            fit_values = fitness(pop_calc_fit, fitness_fn)
+        fitness_values = fit_values + fit_pop_old
+        population = pop_calc_fit + pop_old
+
         # Population sorted by the fitness value
         population = [x for _,x in sorted(zip(fitness_values,population))]
         fitness_values = sorted(fitness_values)
-
+   
         # Add to history and valid fit history
         for i in range(len(population)):
             history["ind"].append(population[i])
@@ -106,7 +115,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         values_gen["metrics"].append(diversity_metric(population))
         
         # Applying the online parameter control
-        MUTPB_LIST, CXPB_LIST = online_parameter(online_control, num_generations, mutation_rate, crossover_rate)
+        MUTPB_LIST, CXPB_LIST = online_parameter(online_control, num_generations, mutation_prob, crossover_prob)
 
         if best_individual["fit"][generation] == 0:
             settings.log.info('Generation: {} | Time: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}'.format(generation+1, round(time.time() - t_gen, 2), best_individual["fit"][generation], float('inf'), round(values_gen["metrics"][generation],2)))
@@ -117,25 +126,58 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         new_population = []
         elite_count_gen = 0
         if elite_count != 0 and mean(fitness_values) != 1000:
-            for i in range(population_size): 
-                count_lst = list({x for x in fitness_values if fitness_values.count(x)})
-                if 1000 in count_lst:
-                    del count_lst[count_lst.index(1000)]
-                count = len(count_lst)
+            if elite == "global":
+                if generation == 0:
+                    elite_pop = population[:1]
+                    elite_fit = fitness_values[:1]
+                    if elite_count > 1:
+                        for i in range(1,population_size-1):
+                            if len(elite_pop) < elite_count:
+                                if population[i] not in elite_pop:
+                                    elite_pop.append(population[i])
+                                    elite_fit.append(fitness_values[population.index(population[i])])
+                            else:
+                                new_population = copy.deepcopy(elite_pop)
+                                elite_pop_glob = elite_pop
+                                elite_fit_glob = elite_fit
+                                break
+                else:
+                    elite_pop = population[:1]
+                    elite_fit = fitness_values[:1]
+                    if elite_count > 1:
+                        for i in range(1,population_size-1):
+                            if len(elite_pop) < elite_count:
+                                if population[i] not in elite_pop:
+                                    elite_pop.append(population[i])
+                                    elite_fit.append(fitness_values[population.index(population[i])])
+                            else:
+                                for j in range(elite_count):
+                                    if elite_fit[j] < max(elite_fit_glob) and elite_fit[j] not in elite_fit_glob:
+                                        elite_fit_glob[elite_fit_glob.index(max(elite_fit_glob))] = elite_fit[j]
+                                        elite_pop_glob[elite_fit_glob.index(max(elite_fit_glob))] = elite_pop[j] 
+                                new_population = copy.deepcopy(elite_pop_glob)
+                                break
 
-            if count < elite_count: 
-                elite_count_gen = count
-            else:
-                elite_count_gen = elite_count
-            
-            new_population = population[:1]
-            if elite_count_gen > 1:
-                for i in range(1,population_size-1):
-                    if len(new_population) < elite_count_gen:
-                        if population[i] not in new_population:
-                            new_population.append(population[i])
-                    else:
-                        break
+            elif elite == "local":
+                for i in range(population_size): 
+                    count_lst = list({x for x in fitness_values if fitness_values.count(x)})
+                    if 1000 in count_lst:
+                        del count_lst[count_lst.index(1000)]
+                    count = len(count_lst)
+
+                if count < elite_count: 
+                    elite_count_gen = count
+                else:
+                    elite_count_gen = elite_count
+                
+                new_population = population[:1]
+                if elite_count_gen > 1:
+                    for i in range(1,population_size-1):
+                        if len(new_population) < elite_count_gen:
+                            if population[i] not in new_population:
+                                new_population.append(population[i])
+                        else:
+                            break
 
         # Creating new population based on crossover methods
         for i in range(0, population_size - len(new_population), 2):
@@ -204,8 +246,6 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         if len(new_population) > population_size:
             aux = len(new_population) - population_size
             new_population = new_population[ : -aux]
-        
-        a=1
 
         # Applying mutation to the new population
         if mutation == 'polynomial':
@@ -243,6 +283,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
 # #####################################################################################
 
 def parallel_fitness(population, fitness_fn, num_processes):
+    """Calculate the fitness of each individual in the population."""
     with multiprocessing.Pool(num_processes) as pool:
         fitness_values = pool.map(fitness_fn, population)
     return fitness_values
@@ -250,7 +291,7 @@ def parallel_fitness(population, fitness_fn, num_processes):
 # Fitness function without using multi threads
 def fitness(population, fitness_fn):
     """Calculate the fitness of each individual in the population."""
-    return [fitness_fn(ind) for ind in population]       
+    return [fitness_fn(ind) for ind in population]   
 
 # #####################################################################################
 # #################################### Init Pop #######################################
@@ -442,7 +483,7 @@ def diversity_metric(population):
 # ################################ Online Parameters ##################################
 # #####################################################################################
 
-def online_parameter(online_control, num_generations, mutation_rate, crossover_rate):
+def online_parameter(online_control, num_generations, mutation_prob, crossover_prob):
     """Calculate the probability for crossover and mutation each generation, the values respscts a exponencial function, that for mutation
        decreases each generation and increases for crossover. If online control is False than it is used the fixed parameters. 
     
@@ -452,14 +493,14 @@ def online_parameter(online_control, num_generations, mutation_rate, crossover_r
 
     if online_control == True:
         line_x = np.linspace(start=1, stop=50, num=num_generations)
-        MUTPB_LIST = (-(np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0])) + 1) * 0.2
+        MUTPB_LIST = (-(np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0])) + 1) * mutation_prob
         
         # line_x = np.linspace(start=1, stop=5, num=num_generations)
         # CXPB_LIST = (np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0]))
-        CXPB_LIST = [crossover_rate]*num_generations
+        CXPB_LIST = [crossover_prob]*num_generations
     else:
-        MUTPB_LIST = [mutation_rate]*num_generations
-        CXPB_LIST = [crossover_rate]*num_generations
+        MUTPB_LIST = [mutation_prob]*num_generations
+        CXPB_LIST = [crossover_prob]*num_generations
 
     return MUTPB_LIST, CXPB_LIST
 
