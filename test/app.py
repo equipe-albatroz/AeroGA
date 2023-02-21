@@ -35,3 +35,8 @@ if __name__ == '__main__':
     min_values = lb, max_values = ub, num_variables = 6, population_size = 50, num_generations = 100, elite_count = 0,
     fitness_fn = Rastrigin
     )
+
+# path = "Resultados\Results_17-02-2023_23-29.xlsx"
+# parallel_coordinates_import_xlsx(path,nvar = 13, classe = "micro")
+# create_boxplots_import_xlsx(path)
+# create_boxplots_por_gen_import_xlsx(path, 100, 80)
