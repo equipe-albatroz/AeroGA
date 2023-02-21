@@ -642,11 +642,22 @@ def parallel_coordinates(out):
                               title="Parallel Coordinates Plot")
     fig.show()
 
-def parallel_coordinates_import_xlsx(path):
+def parallel_coordinates_import_xlsx(path,nvar,classe):
     """Create a parallel coordinates graph of the population history."""
     
     df = pd.read_excel(path)
     del df["gen"]
+
+    micro = ['c1', 'chord_ratio2','b1','span_ratio2','iw','nperfilw1','nperfilw2','zwGround','xCG','vh', 'ih','nperfilh','motorindex']
+    regular = ['b1', 'span_ratio_2', 'span_ratio_b3', 'c1', 'chord_ratio_c2', 'chord_ratio_c3', 'nperfilw1', 'nperfilw2', 'nperfilw3', 'iw', 'zwground', 'xCG', 'Vh', 'ARh', 'nperfilh', 'lt', 'it', 'xTDP', 'AtivaProfundor', 'motorIndex']
+
+    if classe == "micro":
+        nomes = micro
+    else:
+        nomes = regular
+
+    for i in range(nvar):
+        df = df.rename({df.columns[i]: nomes[i]}, axis='columns')
    
     fig = px.parallel_coordinates(df, color="score", dimensions=df.columns,
                               title="Parallel Coordinates Plot")
