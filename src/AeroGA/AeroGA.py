@@ -27,7 +27,7 @@ class Individual:
 def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussian", n_threads = -1,
     min_values = list, max_values = list, num_variables = int, population_size = int, num_generations = int, elite_count = int, elite="local",
     online_control = False, mutation_prob = 0.4, crossover_prob = 1, eta = 20, std_dev = 0.1,
-    plotfit = True, plotbox = False, plotparallel = False, 
+    plotfit = True, plotbox = False, plotparallel = False, TabuList = False,
     fitness_fn = None
     ):
     """Perform the genetic algorithm to find an optimal solution."""
@@ -47,6 +47,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
     history = {"ind":[],"gen":[],"fit":[],"score":[]}
     history_valid = {"ind":[],"gen":[],"fit":[],"score":[]}
     best_individual = {"ind":[],"fit":[]}
+    tabu_List = []
  
     # Initial value for the best fitness
     best_fitness = float('inf')
@@ -92,6 +93,8 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
                 else:
                     history_valid["score"].append(float('inf'))
                 history_valid["gen"].append(generation)
+            else:
+                tabu_List.append(population[i])            
 
         # Best and average fitness and best individual at the generation
         best_individual["ind"].append(population[fitness_values.index(min(fitness_values))])
@@ -121,7 +124,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         if best_individual["fit"][generation] == 0:
             settings.log.info('Generation: {} | Time: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}'.format(generation+1, round(time.time() - t_gen, 2), best_individual["fit"][generation], float('inf'), round(values_gen["metrics"][generation],2)))
         else:    
-            settings.log.info('Generation: {} | Time: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}'.format(generation+1, round(time.time() - t_gen, 2), best_individual["fit"][generation], 1/best_individual["fit"][generation], round(values_gen["metrics"][generation],2)))
+            settings.log.info('Generation: {} | Time: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}'.format(generation+1, round(time.time() - t_gen, 2), best_individual["fit"][generation], round(1/best_individual["fit"][generation],2), round(values_gen["metrics"][generation],2)))
 
         # Creating new population and aplying elitist concept
         new_population = []
@@ -253,6 +256,20 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
             population = [polynomial_mutation(ind, min_values, max_values, eta) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
         elif mutation == 'gaussian':
             population = [gaussian_mutation(ind, min_values, max_values, std_dev) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
+
+        # Checking if any inddividuals are in the Tabu list
+        while TabuList is True:
+            count = 0
+            for i in range(population_size):
+                if population[i] in tabu_List:
+                    if mutation == 'polynomial':
+                        polynomial_mutation(population[i], min_values, max_values, eta)
+                    elif mutation == 'gaussian':
+                        gaussian_mutation(population[i], min_values, max_values, std_dev)
+                else:
+                    count += 1
+            if count == population_size:
+                break
 
     # Printing global optimization results
     settings.log.warning("***************************** END ******************************")
