@@ -13,6 +13,7 @@ AeroGA_copy copy.py
 Resultados
 
 # Ignorar tipos de arquivo
+*.egg-info
 *.pyc
 *.xlsx
 *.txt
