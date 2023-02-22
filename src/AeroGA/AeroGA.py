@@ -57,24 +57,19 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         t_gen = time.time()
 
         # Calculating the fitness values
-        # fit_pop_old = []; pop_old = []; pop_calc_fit = copy.deepcopy(population)
-        # for i in range(population_size):
-        #     if population[i] in history["ind"]:
-        #         fit_pop_old.append(history["fit"][list(history["ind"]).index(population[i])])
-        #         pop_old.append(population[i])
-        #         pop_calc_fit.remove(population[i])
-        # if n_threads != 0:
-        #     fit_values = parallel_fitness(pop_calc_fit, fitness_fn, n_threads)
-        # else:
-        #     fit_values = fitness(pop_calc_fit, fitness_fn)
-        
-        # fitness_values = fit_values + fit_pop_old
-        # population = pop_calc_fit + pop_old
-
+        fit_pop_old = []; pop_old = []; pop_calc_fit = copy.deepcopy(population)
+        for i in range(population_size):
+            if population[i] in history["ind"]:
+                fit_pop_old.append(history["fit"][list(history["ind"]).index(population[i])])
+                pop_old.append(population[i])
+                pop_calc_fit.remove(population[i])
         if n_threads != 0:
-            fitness_values = parallel_fitness(population, fitness_fn, n_threads)
+            fit_values = parallel_fitness(pop_calc_fit, fitness_fn, n_threads)
         else:
-            fitness_values = fitness(population, fitness_fn)
+            fit_values = fitness(pop_calc_fit, fitness_fn)
+        
+        fitness_values = fit_values + fit_pop_old
+        population = pop_calc_fit + pop_old
 
         # Population sorted by the fitness value
         population = [x for _,x in sorted(zip(fitness_values,population))]
@@ -259,7 +254,6 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         elif mutation == 'gaussian':
             population = [gaussian_mutation(ind, min_values, max_values, std_dev) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
 
-    
     # Printing global optimization results
     settings.log.warning("***************************** END ******************************")
     settings.log.warning('Best Global Individual: {}'.format(best_individual["ind"][best_individual["fit"].index(min(best_individual["fit"]))]))
@@ -306,7 +300,7 @@ def fitness(population, fitness_fn):
 # define the genetic algorithm functions
 def generate_population(size, num_variables, min_values, max_values):
     """Generate a population of random genes."""
-    population = [[random.uniform(min_values[i], max_values[i]) if isinstance(min_values[i],float) else random.randint(min_values[i], max_values[i]) for i in range(num_variables)] for _ in range(size)]
+    population = [[round(random.uniform(min_values[i], max_values[i]),4) if isinstance(min_values[i],float) else random.randint(min_values[i], max_values[i]) for i in range(num_variables)] for _ in range(size)]
     return population
 
 # #####################################################################################
@@ -356,8 +350,8 @@ def arithmetic_crossover(parent1, parent2, min_values, max_values, alpha = 0.05)
     offspring1 = []
     offspring2 = []
     for i in range(len(parent1)):
-        offspring1.append(alpha*parent1[i] + (1-alpha)*parent2[i])
-        offspring2.append(alpha*parent2[i] + (1-alpha)*parent1[i])
+        offspring1.append(round(alpha*parent1[i] + (1-alpha)*parent2[i],4))
+        offspring2.append(round(alpha*parent2[i] + (1-alpha)*parent1[i],4))
         if not isinstance(parent1[i], float):
             offspring1[i] = int(offspring1[i])
             offspring2[i] = int(offspring2[i])
@@ -384,8 +378,8 @@ def SBX_crossover(parent1, parent2, min_values, max_values, eta=0.5):
     offspring1 = []
     offspring2 = []
     for i in range(len(parent1)):
-        offspring1.append(0.5 * ((1 + beta) * parent1[i] + (1 - beta) * parent2[i]))
-        offspring2.append(0.5 * ((1 - beta) * parent1[i] + (1 + beta) * parent2[i]))
+        offspring1.append(round(0.5 * ((1 + beta) * parent1[i] + (1 - beta) * parent2[i]),4))
+        offspring2.append(round(0.5 * ((1 - beta) * parent1[i] + (1 + beta) * parent2[i]),4))
         
         # Ensure the offspring stay within the bounds
         offspring1[i] = min(max(offspring1[i], min_values[i]), max_values[i])
@@ -425,7 +419,7 @@ def gaussian_mutation(individual, min_values, max_values, std_dev):
         if isinstance(individual[i], int):
             mutated_gene = min(max(round(random.gauss(individual[i], std_dev)),min_values[i]), max_values[i])
         else:
-            mutated_gene = min(max(random.gauss(individual[i], std_dev),min_values[i]), max_values[i])
+            mutated_gene = round(min(max(random.gauss(individual[i], std_dev),min_values[i]), max_values[i]),4)
         mutated_genes.append(mutated_gene)
     return mutated_genes
 
@@ -456,13 +450,13 @@ def polynomial_mutation(individual, min_values, max_values, eta):
                         delta = (2 * (individual[i] - min_values[i]) / (max_values[i] - min_values[i])) ** (1 + (eta + random.uniform(0,1))) - 1
                     else:
                         delta = 1 - (2 * (max_values[i] - individual[i]) / (max_values[i] - min_values[i])) ** (1 + (eta + random.uniform(0,1)))
-                    mutated_gene = max(min_values[i], min(individual[i] + delta, max_values[i]))
+                    mutated_gene = round(max(min_values[i], min(individual[i] + delta, max_values[i])),4)
                 else:
                     if ((individual[i] - min_values[i])) < 0.5:
                         delta = 0
                     else:
                         delta = 0
-                    mutated_gene = max(min_values[i], min(individual[i] + delta, max_values[i]))
+                    mutated_gene = round(max(min_values[i], min(individual[i] + delta, max_values[i])),4)
             else:
                 mutated_gene = individual[i]
         mutated_genes.append(mutated_gene)
@@ -482,7 +476,7 @@ def diversity_metric(population):
             ind1 = Individual(population[i])
             ind2 = Individual(population[j])
             diversity += sum((ind1.genes[k] - ind2.genes[k])**2 for k in range(len(ind1.genes)))
-    return diversity
+    return round(diversity,4)
 
 
 # #####################################################################################
