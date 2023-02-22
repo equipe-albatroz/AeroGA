@@ -57,18 +57,24 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         t_gen = time.time()
 
         # Calculating the fitness values
-        fit_pop_old = []; pop_old = []; pop_calc_fit = copy.deepcopy(population)
-        for i in range(population_size):
-            if population[i] in history["ind"]:
-                fit_pop_old.append(history["fit"][list(history["ind"]).index(population[i])])
-                pop_old.append(population[i])
-                pop_calc_fit.remove(population[i])
+        # fit_pop_old = []; pop_old = []; pop_calc_fit = copy.deepcopy(population)
+        # for i in range(population_size):
+        #     if population[i] in history["ind"]:
+        #         fit_pop_old.append(history["fit"][list(history["ind"]).index(population[i])])
+        #         pop_old.append(population[i])
+        #         pop_calc_fit.remove(population[i])
+        # if n_threads != 0:
+        #     fit_values = parallel_fitness(pop_calc_fit, fitness_fn, n_threads)
+        # else:
+        #     fit_values = fitness(pop_calc_fit, fitness_fn)
+        
+        # fitness_values = fit_values + fit_pop_old
+        # population = pop_calc_fit + pop_old
+
         if n_threads != 0:
-            fit_values = parallel_fitness(pop_calc_fit, fitness_fn, n_threads)
+            fitness_values = parallel_fitness(population, fitness_fn, n_threads)
         else:
-            fit_values = fitness(pop_calc_fit, fitness_fn)
-        fitness_values = fit_values + fit_pop_old
-        population = pop_calc_fit + pop_old
+            fitness_values = fitness(population, fitness_fn)
 
         # Population sorted by the fitness value
         population = [x for _,x in sorted(zip(fitness_values,population))]
