@@ -526,15 +526,15 @@ def online_parameter(online_control, num_generations, mutation_prob, crossover_p
 # #################################### Graphs #########################################
 # #####################################################################################
 
-def sensibility(individual, fitness_fn, increment, min_values, max_values):
+def sensibility(individual = list, fitness_fn = None, increment = list, min_values = list, max_values = list):
     """Calculate the fitness of an individual for each iteration, where one variable is incremented by a given value within the range of min and max values.
     If variable is integer, it will increment by 1 instead of a float value.
     """
-    dict = {"nvar":[],"value":[],"fit":[]};
+    dict = {"nvar":[],"value":[],"fit":[]}
 
     for i in range(len(individual)):
-        current_value = individual[i]
-        for new_value in np.arange(min_values[i], max_values[i], increment):
+        print("Iteração: {i} de {len(individual)}")
+        for new_value in np.arange(min_values[i], max_values[i], increment[i]):
             new_individual = individual.copy()
             if isinstance(new_individual[i], int):
                 new_value = int(new_value)
@@ -542,6 +542,13 @@ def sensibility(individual, fitness_fn, increment, min_values, max_values):
             dict["nvar"].append(i)
             dict["value"].append(new_value)
             dict["fit"].append(fitness_fn(new_individual))
+
+    df = pd.DataFrame(dict)
+    now = datetime.now()
+    dt_string = now.strftime("%d-%m-%Y_%H-%M")
+    string = 'Resultados/Sensibility_' + str(dt_string) + '.xlsx'
+    df.to_excel(string, index=False)
+
     return print(pd.DataFrame(dict))
 
 def create_plotfit(num_generations, values_gen):
