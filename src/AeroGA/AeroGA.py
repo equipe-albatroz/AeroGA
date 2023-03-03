@@ -38,6 +38,18 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
 
     # Definition of how many threads will be used to calculate the fitness function
     if n_threads == -1: n_threads = multiprocessing.cpu_count()
+    settings.log.info(f"Optimization initialized with {n_threads} threads.")
+
+    # Checking if the population size is an even number and it bigger than 0
+    if population_size == 0: 
+        population_size += 2
+        settings.log.critical("Population size was set at zero, by default the value was defined as 2 to avoid errors")
+    if (population_size%2) != 0: population_size += 1
+
+    # Checking if num_varialbes matches the lb and ub sizes
+    if len(max_values) != len(min_values) or num_variables != len(min_values):
+        settings.log.critical("There is an inconsistency between the number of variables and the size of the bounds")
+        return [0]
 
     # Generating initial population
     population = generate_population(population_size, num_variables, min_values, max_values)
@@ -275,6 +287,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
     settings.log.warning("***************************** END ******************************")
     settings.log.warning('Best Global Individual: {}'.format(best_individual["ind"][best_individual["fit"].index(min(best_individual["fit"]))]))
     settings.log.warning('Best Global Fitness: {}'.format(min(best_individual["fit"])))
+    if min(best_individual["fit"]) != 0: settings.log.warning('Best Global Score: {}'.format(1/min(best_individual["fit"])))
     settings.log.warning(f"Tempo de Execução: {time.time() - t_inicial}")
 
     # Listing outputs
@@ -299,14 +312,14 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
 # ##################################### Fitness #######################################
 # #####################################################################################
 
-def parallel_fitness(population, fitness_fn, num_processes):
+def parallel_fitness(population = list, fitness_fn = None, num_processes = int):
     """Calculate the fitness of each individual in the population."""
     with multiprocessing.Pool(num_processes) as pool:
         fitness_values = pool.map(fitness_fn, population)
     return fitness_values
 
 # Fitness function without using multi threads
-def fitness(population, fitness_fn):
+def fitness(population = list, fitness_fn = None):
     """Calculate the fitness of each individual in the population."""
     return [fitness_fn(ind) for ind in population]   
 
@@ -315,7 +328,7 @@ def fitness(population, fitness_fn):
 # #####################################################################################
 
 # define the genetic algorithm functions
-def generate_population(size, num_variables, min_values, max_values):
+def generate_population(size = int, num_variables = int, min_values = list, max_values = list):
     """Generate a population of random genes."""
     population = [[round(random.uniform(min_values[i], max_values[i]),4) if isinstance(min_values[i],float) else random.randint(min_values[i], max_values[i]) for i in range(num_variables)] for _ in range(size)]
     return population
@@ -324,7 +337,7 @@ def generate_population(size, num_variables, min_values, max_values):
 # ################################### Selection #######################################
 # #####################################################################################
 
-def roulette_selection(population, fitness_values):
+def roulette_selection(population = list, fitness_values = list):
     """Select two parents using roulette wheel selection."""
     total_fitness = sum(fitness_values)
     pick = random.uniform(0, 1/total_fitness)
@@ -338,7 +351,7 @@ def roulette_selection(population, fitness_values):
     
     return parent
 
-def tournament_selection(population, fitness_values, tournament_size):
+def tournament_selection(population = list, fitness_values = list, tournament_size = int):
     """Select two parents using tournament selection."""
     if len(population) < tournament_size:
         tournament_pop = population
@@ -349,7 +362,7 @@ def tournament_selection(population, fitness_values, tournament_size):
 
     return parent
 
-def rank_selection(population, fitness_values):
+def rank_selection(population = list, fitness_values = list):
     """Select two parents using rank selection."""
     n = len(population)
     fitness_ranks = list(reversed(sorted(range(1, n+1), key=lambda x: fitness_values[x-1])))
@@ -362,7 +375,7 @@ def rank_selection(population, fitness_values):
 # ################################### Crossover #######################################
 # #####################################################################################
 
-def arithmetic_crossover(parent1, parent2, min_values, max_values, alpha = 0.05):
+def arithmetic_crossover(parent1 = list, parent2 = list, min_values = list, max_values = list, alpha = 0.05):
     """Apply arithmetic crossover to produce two offspring."""
     offspring1 = []
     offspring2 = []
@@ -379,7 +392,7 @@ def arithmetic_crossover(parent1, parent2, min_values, max_values, alpha = 0.05)
 
     return offspring1, offspring2
 
-def SBX_crossover(parent1, parent2, min_values, max_values, eta=0.5):
+def SBX_crossover(parent1 = list, parent2 = list, min_values = list, max_values = list, eta=0.5):
     """Apply SBX crossover to produce two offspring."""
     # Generate a random number for each variable
     u = random.uniform(0, 1)
@@ -409,7 +422,7 @@ def SBX_crossover(parent1, parent2, min_values, max_values, eta=0.5):
     
     return offspring1, offspring2
 
-def crossover_1pt(parent1, parent2):
+def crossover_1pt(parent1 = list, parent2 = list):
     """Apply 1 Point crossover to produce two offspring."""
     n = len(parent1)
     cxpoint = random.randint(1, n-1)
@@ -417,7 +430,7 @@ def crossover_1pt(parent1, parent2):
     offspring2 = parent2[:cxpoint] + parent1[cxpoint:]
     return offspring1, offspring2
 
-def crossover_2pt(parent1, parent2):
+def crossover_2pt(parent1 = list, parent2 = list):
     """Apply 2 Point crossover to produce two offspring."""
     size = len(parent1)
     cxpoint1, cxpoint2 = sorted(random.sample(range(size), 2))
@@ -429,7 +442,7 @@ def crossover_2pt(parent1, parent2):
 # #################################### Mutation #######################################
 # #####################################################################################
 
-def gaussian_mutation(individual, min_values, max_values, std_dev):
+def gaussian_mutation(individual = list, min_values = list, max_values = list, std_dev = float):
     """Perform gaussian mutation on an individual."""
     mutated_genes = []
     for i in range(len(individual)):
@@ -440,7 +453,7 @@ def gaussian_mutation(individual, min_values, max_values, std_dev):
         mutated_genes.append(mutated_gene)
     return mutated_genes
 
-def polynomial_mutation(individual, min_values, max_values, eta):
+def polynomial_mutation(individual = list, min_values = list, max_values = list, eta = int):
     """Perform polynomial mutation on an individual."""
     mutated_genes = []
     for i in range(len(individual)):
@@ -484,7 +497,7 @@ def polynomial_mutation(individual, min_values, max_values, eta):
 # #################################### Metrics ########################################
 # #####################################################################################
 
-def diversity_metric(population):
+def diversity_metric(population = list):
     """Calculate the sum of euclidian distance for each generation whice represents the diversity of the current population."""
 
     diversity = 0
@@ -500,7 +513,7 @@ def diversity_metric(population):
 # ################################ Online Parameters ##################################
 # #####################################################################################
 
-def online_parameter(online_control, num_generations, mutation_prob, crossover_prob):
+def online_parameter(online_control = bool, num_generations = int, mutation_prob = float, crossover_prob = float):
     """Calculate the probability for crossover and mutation each generation, the values respscts a exponencial function, that for mutation
        decreases each generation and increases for crossover. If online control is False than it is used the fixed parameters. 
     
@@ -551,7 +564,7 @@ def sensibility(individual = list, fitness_fn = None, increment = list, min_valu
 
     return print(pd.DataFrame(dict))
 
-def create_plotfit(num_generations, values_gen):
+def create_plotfit(num_generations = int, values_gen = None):
     """Plot the fit and metrics values over the number of generations."""
    
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1)
@@ -578,7 +591,7 @@ def create_plotfit(num_generations, values_gen):
 
     plt.show()
 
-def create_boxplots(out, num_generations, min_values, max_values):
+def create_boxplots(out = None, num_generations = int, min_values = list, max_values = list):
     """Boxplot of all values used in the optimization for each variable."""
 
     history = out["history_valid"]    
@@ -606,7 +619,7 @@ def create_boxplots(out, num_generations, min_values, max_values):
     
     plt.show()
 
-def create_boxplots_import_xlsx(path):
+def create_boxplots_import_xlsx(path = None):
     """Boxplot of all values used in the optimization for each variable."""
 
     df = pd.read_excel(path)
@@ -621,7 +634,7 @@ def create_boxplots_import_xlsx(path):
     
     plt.show()
 
-def create_boxplots_por_gen_import_xlsx(path, n_gen, gen):       # TEM QUE NORMALIZAR OS DADOS
+def create_boxplots_por_gen_import_xlsx(path = None, lb = list, ub = list, n_gen = int, gen = int):       # TEM QUE NORMALIZAR OS DADOS
     """Boxplot of all values used in the generation for each variable."""
 
     df = pd.read_excel(path)
@@ -634,6 +647,14 @@ def create_boxplots_por_gen_import_xlsx(path, n_gen, gen):       # TEM QUE NORMA
  
     del df["gen"]
 
+    lista = df.values.tolist()
+    aux = [ [ 0 for _ in range(len(lista[0]))] for _ in range(len(lista)) ]
+    for i in range(len(lista)):
+        for j in range(len(lista[0])):
+            aux[i][j] = (lista[i][j]-lb[j])/(ub[j]-lb[j])
+
+    df = pd.DataFrame(aux)
+
     plt.boxplot(df, vert=True)
     plt.title('Dispersion of values')
     plt.xlabel('Variables')
@@ -641,7 +662,7 @@ def create_boxplots_por_gen_import_xlsx(path, n_gen, gen):       # TEM QUE NORMA
     
     plt.show()
 
-def parallel_coordinates(out):
+def parallel_coordinates(out = None):
     """Create a parallel coordinates graph of the population history."""
     
     history = out["history_valid"]
@@ -666,7 +687,7 @@ def parallel_coordinates(out):
                               title="Parallel Coordinates Plot")
     fig.show()
 
-def parallel_coordinates_import_xlsx(path,nvar,classe):
+def parallel_coordinates_import_xlsx(path = None, nvar = int, classe = str):
     """Create a parallel coordinates graph of the population history."""
     
     df = pd.read_excel(path)
@@ -689,7 +710,7 @@ def parallel_coordinates_import_xlsx(path,nvar,classe):
 
 
 def export_excell(out):
-    """Create a parallel coordinates graph of the population history.        TA RUIM TEM Q VER"""
+    """Create a parallel coordinates graph of the population history."""
     
     history = out["history"]
     lista = list(history["gen"])
