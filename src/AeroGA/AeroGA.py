@@ -539,15 +539,17 @@ def online_parameter(online_control = bool, num_generations = int, mutation_prob
 # #################################### Graphs #########################################
 # #####################################################################################
 
-def sensibility(individual = list, fitness_fn = None, increment = list, min_values = list, max_values = list):
+def sensibility(individual = list, fitness_fn = None, increment = None, min_values = list, max_values = list):
     """Calculate the fitness of an individual for each iteration, where one variable is incremented by a given value within the range of min and max values.
     If variable is integer, it will increment by 1 instead of a float value.
     """
     dict = {"nvar":[],"value":[],"fit":[]}
 
+    if isinstance(increment, float): step = [ increment for _ in range(len(min_values))]
+
     for i in range(len(individual)):
-        print("Iteração: {i} de {len(individual)}")
-        for new_value in np.arange(min_values[i], max_values[i], increment[i]):
+        settings.log.info('Iteração: {} de {}'.format(i, len(individual)))
+        for new_value in np.arange(min_values[i], max_values[i], step[i]):
             new_individual = individual.copy()
             if isinstance(new_individual[i], int):
                 new_value = int(new_value)
@@ -634,20 +636,18 @@ def create_boxplots_import_xlsx(path = None):
     
     plt.show()
 
-def create_boxplots_por_gen_import_xlsx(path = None, lb = list, ub = list, n_gen = int, gen = int):       # TEM QUE NORMALIZAR OS DADOS
+def create_boxplots_por_gen_import_xlsx(path = None, lb = list, ub = list, n_gen = int, gen = int):
     """Boxplot of all values used in the generation for each variable."""
 
     df = pd.read_excel(path)
     del df["fit"]
     del df["score"]
+    
+    filter = df['gen'] == gen
+    df_aux = df[filter]
+    del df_aux["gen"]
 
-    for i in range(n_gen):
-        if df.iloc[i, len(df.iloc[0])-1] != gen:
-            df.drop(df.index[[i]])
- 
-    del df["gen"]
-
-    lista = df.values.tolist()
+    lista = df_aux.values.tolist()
     aux = [ [ 0 for _ in range(len(lista[0]))] for _ in range(len(lista)) ]
     for i in range(len(lista)):
         for j in range(len(lista[0])):
@@ -656,8 +656,9 @@ def create_boxplots_por_gen_import_xlsx(path = None, lb = list, ub = list, n_gen
     df = pd.DataFrame(aux)
 
     plt.boxplot(df, vert=True)
-    plt.title('Dispersion of values')
+    plt.title('Value dispersion in generation ' + str(gen))
     plt.xlabel('Variables')
+    plt.ylabel('Normalized data')
     plt.grid(True)
     
     plt.show()
