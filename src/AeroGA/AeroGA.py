@@ -700,7 +700,7 @@ def parallel_coordinates_import_xlsx(path = None, classe = None):
 
     if classe != None:
         if isinstance(classe,list):
-            for i in range(len(df.iloc[:0])-3):
+            for i in range(df.shape[1]-1):
                 df = df.rename({df.columns[i]: classe[i]}, axis='columns')
         else:
             if classe == "micro":
@@ -730,7 +730,7 @@ def parallel_coordinates_per_gen_import_xlsx(path = None, classe = None, generat
 
     if classe != None:
         if isinstance(classe,list):
-            for i in range(len(df.iloc[:0])-3):
+            for i in range(df.shape[1]-1):
                 df = df.rename({df.columns[i]: classe[i]}, axis='columns')
         else:
             if classe == "micro":
