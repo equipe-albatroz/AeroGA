@@ -593,7 +593,7 @@ def create_plotfit(num_generations = int, values_gen = None):
 
     plt.show()
 
-def create_boxplots(out = None, num_generations = int, min_values = list, max_values = list):
+def create_boxplots(out = None, min_values = list, max_values = list):
     """Boxplot of all values used in the optimization for each variable."""
 
     history = out["history_valid"]    
@@ -636,14 +636,14 @@ def create_boxplots_import_xlsx(path = None):
     
     plt.show()
 
-def create_boxplots_por_gen_import_xlsx(path = None, lb = list, ub = list, n_gen = int, gen = int):
+def create_boxplots_por_gen_import_xlsx(path = None, min_values = list, max_values = list, generation = int):
     """Boxplot of all values used in the generation for each variable."""
 
     df = pd.read_excel(path)
     del df["fit"]
     del df["score"]
     
-    filter = df['gen'] == gen
+    filter = df['gen'] == generation
     df_aux = df[filter]
     del df_aux["gen"]
 
@@ -651,12 +651,12 @@ def create_boxplots_por_gen_import_xlsx(path = None, lb = list, ub = list, n_gen
     aux = [ [ 0 for _ in range(len(lista[0]))] for _ in range(len(lista)) ]
     for i in range(len(lista)):
         for j in range(len(lista[0])):
-            aux[i][j] = (lista[i][j]-lb[j])/(ub[j]-lb[j])
+            aux[i][j] = (lista[i][j]-min_values[j])/(max_values[j]-min_values[j])
 
     df = pd.DataFrame(aux)
 
     plt.boxplot(df, vert=True)
-    plt.title('Value dispersion in generation ' + str(gen))
+    plt.title('Value dispersion in generation ' + str(generation))
     plt.xlabel('Variables')
     plt.ylabel('Normalized data')
     plt.grid(True)
@@ -688,22 +688,57 @@ def parallel_coordinates(out = None):
                               title="Parallel Coordinates Plot")
     fig.show()
 
-def parallel_coordinates_import_xlsx(path = None, nvar = int, classe = str):
+def parallel_coordinates_import_xlsx(path = None, classe = None):
     """Create a parallel coordinates graph of the population history."""
     
     df = pd.read_excel(path)
     del df["gen"]
+    del df["fit"]
 
     micro = ['c1', 'chord_ratio2','b1','span_ratio2','iw','nperfilw1','nperfilw2','zwGround','xCG','vh', 'ih','nperfilh','motorindex']
     regular = ['b1', 'span_ratio_2', 'span_ratio_b3', 'c1', 'chord_ratio_c2', 'chord_ratio_c3', 'nperfilw1', 'nperfilw2', 'nperfilw3', 'iw', 'zwground', 'xCG', 'Vh', 'ARh', 'nperfilh', 'lt', 'it', 'xTDP', 'AtivaProfundor', 'motorIndex']
 
-    if classe == "micro":
-        nomes = micro
-    else:
-        nomes = regular
+    if classe != None:
+        if isinstance(classe,list):
+            for i in range(len(df.iloc[:0])-3):
+                df = df.rename({df.columns[i]: classe[i]}, axis='columns')
+        else:
+            if classe == "micro":
+                nomes = micro
+            else:
+                nomes = regular
+            for i in range(df.shape[1]-1):
+                df = df.rename({df.columns[i]: nomes[i]}, axis='columns')
+   
+    fig = px.parallel_coordinates(df, color="score", dimensions=df.columns,
+                              title="Parallel Coordinates Plot")
+    fig.show()
 
-    for i in range(nvar):
-        df = df.rename({df.columns[i]: nomes[i]}, axis='columns')
+def parallel_coordinates_per_gen_import_xlsx(path = None, classe = None, generation = int):
+    """Create a parallel coordinates graph of the population history."""
+    
+    df_aux = pd.read_excel(path)
+   
+    filter = df_aux['gen'] == generation
+    df = df_aux[filter]
+
+    del df["gen"]
+    del df["fit"]
+
+    micro = ['c1', 'chord_ratio2','b1','span_ratio2','iw','nperfilw1','nperfilw2','zwGround','xCG','vh', 'ih','nperfilh','motorindex']
+    regular = ['b1', 'span_ratio_2', 'span_ratio_b3', 'c1', 'chord_ratio_c2', 'chord_ratio_c3', 'nperfilw1', 'nperfilw2', 'nperfilw3', 'iw', 'zwground', 'xCG', 'Vh', 'ARh', 'nperfilh', 'lt', 'it', 'xTDP', 'AtivaProfundor', 'motorIndex']
+
+    if classe != None:
+        if isinstance(classe,list):
+            for i in range(len(df.iloc[:0])-3):
+                df = df.rename({df.columns[i]: classe[i]}, axis='columns')
+        else:
+            if classe == "micro":
+                nomes = micro
+            else:
+                nomes = regular
+            for i in range(df.shape[1]-1):
+                df = df.rename({df.columns[i]: nomes[i]}, axis='columns')
    
     fig = px.parallel_coordinates(df, color="score", dimensions=df.columns,
                               title="Parallel Coordinates Plot")
