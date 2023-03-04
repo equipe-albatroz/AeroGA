@@ -16,16 +16,16 @@ from AeroGA.AeroGA import *
 
 # Etapas
 
-### **1. Carregando variáveis**
+### **1. Variáveis de Entrada**
 
-Variáveis relacionadas aos métodos do GA
+*Variáveis relacionadas aos métodos do GA*
 
 * **selection** - Método de seleção ("roulette", "rank", "tournament")
 * **crossover** - Método de recombinação ("SBX, ""arithmetic", "1-point", "2-point")
 * **mutation** - Método de mutação("gaussian", "polynomial")
 * **n_threads** - Número de Threads do processador que devem ser utilizadas para calcular aa função fitness (Para utilizar o máximo de threads possíveis utilizar -1 como input)
 
-Variáveis relacionadas ao problema a ser resolvido
+*Variáveis relacionadas ao problema a ser resolvido*
 
 * **lb** - Lower Bounds
 * **ub** - Upper Bounds
@@ -61,16 +61,14 @@ out = AeroGA.optimize(selection = "tournament", crossover = "1-point", mutation 
     fitness_fn = None                                                  
 ~~~
 
-Algumas variáveis ja possuem valores defaults, caso você não queira alterar o valor default elas não precisam ser definidas ao chamar a função optimize
+Algumas variáveis já possuem valores defaults, caso você não queira alterar o valor default elas não precisam ser definidas ao chamar a função optimize.
 
 O dicionário *out* retorna os seguintes valores:
 
- * **população** - Lista de indivíduos da última geração
  * **history** - Histórico de todos os indivíduos utilizados no GA
+ * **history_valid** - Histórico de todos os indivíduos utilizados no GA que sao válidos, ou seja, pontuação != 1000
  * **best_individual** - Melhor indivíduo encontrado
- * **best_fit** - Lista de Melhores fitness encontrados por geração
- * **avg_fit** - Lista das médias de fitness encontrados por geração
- * **metrics** - Lista dos valores da métrica de diversidade por geração
+ * **values_gen** - Lista com valores de best fitness, average fitness e metrics encontrados por geração
 
 ### **2. Inicialização da População**
 
@@ -119,46 +117,68 @@ O operador de mutação modifica aleatoriamente um ou mais genes de um cromossom
 
 ### **6. Métricas de Qualidade**
 
- * Diversidade da população - A métrica de diversidade de população foi feita como descrito por [(Morrison & Jong, 2001)](https://www.researchgate.net/publication/221024170_Measurement_of_Population_Diversity).
+ * Diversidade da população - A métrica de diversidade é calculada de acordo com a distância euclidiana entre os membros da população, quanto maior as distâncias maior a métrica e maior é a diversidade da população.
  
 
 ### **7. Análise de Sensibilidade**
 
- * Pode ser feita através da função *sensibility*, onde utiliza-se o melhor indivíduo encontrado e a partir do incremento calcula-se a função fitness variando cada variável do indivíduo deixando as outras fixas.
+ * Pode ser feita através da função *sensibility*, onde utiliza-se um indivíduo e a partir do incremento calcula-se a função fitness variando cada variável do indivíduo deixando as outras fixas.
 
 ~~~python                                                
-increment=0.01
-sensibility(out["best_individual"], fitness_fn, increment, min_values, max_values)
+sensibility(individual = list, fitness_fn = None, increment = None, min_values = list, max_values = list)
 ~~~
+
+O incremento pode ser um valor contínuo fixo, assim todas as variáveis terão o mesmo step de cálculo (com excessa das variáveis inteiras, que sempre será de 1), ou pode-se definir uma lista com valores de incremento específicos para cada variável.  
+
 ### **8. Controle Online de Parâmetros**
 
- * O controle online de parâmetros serve para variar ao longo do GA as taxas de crossover e mutação, de modo que, o crossover inicia baixo e tende a aumentar até chegar a 1 (100%) e a mutação começa alta e diminui até chegar a 0.2 (20%) na última geração. Essas medidas são propostas pois é interessante que inicialmente ocorrá a fase de máxima exploração do GA com mutação alta e ao final esse nível de exploração seja baixo, permitindo o GA desenvolver os indivíduos encontrados e ao invés de mutalos completamente.
+ * O controle online de parâmetros serve para variar ao longo do GA a taxa de mutação, de modo que, a mutação começa alta e diminui até chegar ao valor inputado como *mut_prob* na última geração. Essa medidas é propostas pois é interessante que inicialmente ocorrá a fase de máxima exploração do GA com mutação alta e ao final esse nível de exploração seja baixo, permitindo o GA desenvolver os indivíduos encontrados ao invés de mutalos completamente.
 
 ### **9. Plots**
 
- * **BestFit x Generation** - Mostra o melhor resultado de Fitness ao longo das gerações do GA.
+ * **(BestFit, AvgFit, Metrics) x Generation** - Mostra o resultado de Fitness (máximo e médio) e métrica ao longo das gerações do GA.
 
+Pode ser ativado/desativado nos inputs da função *optimize*.
+
+ * **Dispersão dos inputs** - Mostra as variáveis de entrada normalizadas e todos os pontos explorados pelo GA durante as gerações. O intúito desse gráfico é avaliar o quão bem o algoritmo está explorando o espaço de busca.
+
+Pode ser feito de tres formas:
+
+Diretamente na função optimize, e será plotado ao final da otimização (por default essa opção fica desativada).
  ~~~python
- create_plotfit(param.num_generations, out["best_fit"], out["avg_fit"])                                          
+ create_boxplots(out = None, min_values = list, max_values = list)                                       
  ~~~
 
- * **Dispersão dos inputs** - Mostra as variáveis de entrada normalizadas e todos os pontos explorados pelo GA durante as gerações. O intúito desse gráfico é avaliar o quão bem o algoritmo está explorando o espaço de busca. [NÃO TA FUNFANDO DO JEITO QUE QUERO AINDA]
-
+Após a otimização, utilizando o excell de resultados do GA. 
  ~~~python
- create_boxplot(out["history"])                                        
+ create_boxplots_import_xlsx(path = None)                                       
  ~~~
 
- * **Metrics x Generation** - Mostra os valores da métrica de diversidade ao longo das gerações do GA.
-
+Após a otimização, utilizando o excell de resultados do GA. Porém aqui pode ser feita a análise para uma geração específica da otimização.
  ~~~python
- create_plotmetric(out["metrics"])                                         
+ create_boxplots_por_gen_import_xlsx(path = None, min_values = list, max_values = list, generation = int)                                   
  ~~~
 
- * **Curvas paralelas** - tem o intuito de avaliar a convergência do GA. [NÃO TA FUNFANDO DO JEITO QUE QUERO AINDA]
+ * **Curvas paralelas** - tem o intuito de avaliar a convergência do GA, além de possibilitar a limitação dos bounds.
 
+Pode ser feito de duas formas:
+
+Diretamente na função optimize, e será plotado ao final da otimização (por default essa opção fica desativada).
  ~~~python
- parallel_coordinates(out["history"])                                         
+ parallel_coordinates(out = None)                                      
  ~~~
+
+Após a otimização, utilizando o excell de resultados do GA. 
+ ~~~python
+  parallel_coordinates_import_xlsx(path = None, classe = None)                                       
+ ~~~
+
+Após a otimização, utilizando o excell de resultados do GA. Porém aqui pode ser feita a análise para uma geração específica da otimização. 
+ ~~~python
+  parallel_coordinates_per_gen_import_xlsx(path = None, classe = None, generation = int)                                     
+ ~~~
+
+**OBS.:** Para a váriável *classe*, se o input for micro ou regular, serão usados os nomes das variáveis referentes ao projeto de 2023. Caso seja necessário mudar isso, pode inputar *classe* como uma lista contendo os novos nomes as variáveis. Ex. *['c1', 'chord_ratio2','b1','span_ratio2','iw','nperfilw1','nperfilw2','zwGround','xCG','vh', 'ih','nperfilh','motorindex']*
 
 # Contato
 
@@ -173,8 +193,6 @@ Email: krigorsilva13@gmail.com
 GABRIEL, Paulo Henrique Ribeiro; DELBEM, Alexandre Cláudio Botazzo. Fundamentos de algoritmos evolutivos. 2008.
 
 VON ZUBEN, Fernando J. Computação evolutiva: uma abordagem pragmática. Anais da I Jornada de Estudos em Computação de Piracicaba e Região (1a JECOMP), v. 1, p. 25-45, 2000.
-
-MORRISON, Ronald W.; JONG, Kenneth A. De. Measurement of population diversity. In: International conference on artificial evolution (evolution artificielle). Springer, Berlin, Heidelberg, 2001. p. 31-41.
 
 HAMDAN, Mohammad. The distribution index in polynomial mutation for evolutionary multiobjective optimisation algorithms: An experimental study. In: International Conference on Electronics Computer Technology (IEEE, Kanyakumari, India, 2012). 2012.
 	
