@@ -546,6 +546,7 @@ def sensibility(individual = list, fitness_fn = None, increment = None, min_valu
     dict = {"nvar":[],"value":[],"fit":[]}
 
     if isinstance(increment, float): step = [ increment for _ in range(len(min_values))]
+    elif isinstance(increment, list): step = increment
 
     for i in range(len(individual)):
         settings.log.info('Iteração: {} de {}'.format(i, len(individual)))
