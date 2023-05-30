@@ -30,15 +30,9 @@ from AeroGA.AeroGA import *
 * **lb** - Lower Bounds
 * **ub** - Upper Bounds
 * **nvar** - Número de variáveis do problema
-* **population_size** - Tamanho da população
 * **num_generations** - Número de gerações
-* **eta** - Parâmetro referente a mutação Polynomial (Valores maiores representam taxas de mutações menores (Ex.: 20), valores menores representam mutação severas no indivíduos (Ex.: 1)). Para maiores informações ler o artigo [(HAMDAN & Mohammad, 2012)](https://d1wqtxts1xzle7.cloudfront.net/31582313/Main-libre.pdf?1392403242=&response-content-disposition=inline%3B+filename%3DThe_Distribution_Index_in_Polynomial_Mut.pdf&Expires=1676061047&Signature=OpI7L7smR9-jq8TBmTeknRwFK83SJz7bnQ0TcQepI4rMvB96v0BSCjhThyORfaaelhAUaSsUlvsLNvNdxlXgPd7UfReDimPBbPtW0RVeeLBWHdjulrTq3JsjqsaGgtRU55fMbAkhe0grDP8uQ2CDsSf8K58YgtikLSWc1lIfIpMGwxfKZodC2IqEOrUaicxh4kNQohiw9T-SjOcpmNKxpW5kYIDjR-lYWr8JfV1yRMDF07HLLf1GMbAgBIw0p47qdPEE0JJG3Q7QBKHtkxxvd7uU2l5g0aBfOoCc4XPQM9u31V2fRkOfXDTQK-h-IEIFqlczRANawigoD6vscTvtgw__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA)
-* **std_dev** - Desvio padrão aplicado no método de mutação Gaussiana
-* **elite_count** - Número de indivíduos que serão passados para a próxima geração por meio elitista
 * **elite** - "global" ou "local", local avança sempre o melhor da geração, global o melhor da otimização inteira até o momento
-* **online_control** - Uso do controle online de parâmetros (True ou False)
-* **mutation_prob** - Probabilidade de mutação, caso online_control = True é o valor final do polinômio
-* **crossover_prob** - Probabilidade de crossover
+* **elite_count** - Número de indivíduos que serão passados para a próxima geração por meio elitista
 * **fitness_fn** - Função fitness
 
 **Obs.:** Para definir os valores inteiros no GA deve-se usar no lb e ub valores como [0,4], para valores contínuos deve-se usar [0.0, 4.0]
@@ -109,12 +103,15 @@ O operador de recombinação é o mecanismo de obtenção de novos indivíduos p
 
 O operador de mutação modifica aleatoriamente um ou mais genes de um cromossomo. Com esse operador, um indivíduo gera uma cópia de si mesmo, a qual pode sofrer alterações. A probabilidade de ocorrência de mutação em um gene é denominada taxa de mutação. Usualmente, são atribuídos valores pequenos para a taxa de mutação, uma vez que esse operador pode gerar um indivíduo potencialmente pior que o original.
 
+A taxa de mutação foi definida como estocástica e pode variar entre 5% e 10%. Valores maiores que isso não são recomendados pois a otimização começa a se comportar com uma busca aleatória.
+
 ![Img mutação](img/mutação.png)
 
- * *Mutação Polinomial* - Essa mutação segue a mesma distribuição de probabilidade do SBX.
+ * *Mutação Polinomial* - Essa mutação segue a mesma distribuição de probabilidade do SBX, onde o parâmetro eta tem grande influência e se refere a 'força' da mutação (Valores maiores representam taxas de mutações menores (Ex.: 20), valores menores representam mutação severas no indivíduos (Ex.: 1)). Para maiores informações ler o artigo [(HAMDAN & Mohammad, 2012)](https://d1wqtxts1xzle7.cloudfront.net/31582313/Main-libre.pdf?1392403242=&response-content-disposition=inline%3B+filename%3DThe_Distribution_Index_in_Polynomial_Mut.pdf&Expires=1676061047&Signature=OpI7L7smR9-jq8TBmTeknRwFK83SJz7bnQ0TcQepI4rMvB96v0BSCjhThyORfaaelhAUaSsUlvsLNvNdxlXgPd7UfReDimPBbPtW0RVeeLBWHdjulrTq3JsjqsaGgtRU55fMbAkhe0grDP8uQ2CDsSf8K58YgtikLSWc1lIfIpMGwxfKZodC2IqEOrUaicxh4kNQohiw9T-SjOcpmNKxpW5kYIDjR-lYWr8JfV1yRMDF07HLLf1GMbAgBIw0p47qdPEE0JJG3Q7QBKHtkxxvd7uU2l5g0aBfOoCc4XPQM9u31V2fRkOfXDTQK-h-IEIFqlczRANawigoD6vscTvtgw__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA)
 
- * *Mutação Gaussiana* - No caso da mutação Gaussiana, o valor incorporado no(s) alelo(s) é aleatório com média zero e desvio padrão σ.
+ * *Mutação Gaussiana* - No caso da mutação Gaussiana, o valor incorporado no(s) alelo(s) é aleatório com média zero e desvio padrão σ (parâmetro std_dev).
 
+ * *Obs.:* Ambos os parâmetros std_dev e eta são definidos de forma estocástica, std_dev pode assmuir valores entre 0.05 e 0.3 e eta valores entre 10 e 20.
 ### **6. Métricas de Qualidade**
 
  * Diversidade da população - A métrica de diversidade é calculada de acordo com a distância euclidiana entre os membros da população, quanto maior as distâncias maior a métrica e maior é a diversidade da população.
