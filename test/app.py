@@ -32,7 +32,7 @@ if __name__ == '__main__':
     
     # Run the genetic algorithm
     out = optimize(selection = "tournament", crossover = "1-point", mutation = "gaussian", n_threads=-1,
-    min_values = lb, max_values = ub, num_variables = 6, population_size = 6, num_generations = 10, elite_count = 0,
+    min_values = lb, max_values = ub, num_variables = 6, num_generations = 50, elite_count = 0,
     fitness_fn = Rastrigin
     )
 
