@@ -25,61 +25,63 @@ class Individual:
 # #####################################################################################
 
 def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussian", n_threads = -1,
-    min_values = list, max_values = list, num_variables = int, population_size = int, num_generations = int, elite_count = int, elite="local",
-    online_control = False, mutation_prob = 0.4, crossover_prob = 1, eta = 20, std_dev = 0.1,
+    min_values = list, max_values = list, num_variables = int, num_generations = int, elite_count = int, elite="local",
+    mutation_prob = 0.1, crossover_prob = 1, eta = 20, std_dev = 0.1,
     plotfit = True, plotbox = False, plotparallel = False, TabuList = False,
     fitness_fn = None
     ):
     """Perform the genetic algorithm to find an optimal solution."""
-    
-    settings.log.warning("****************** INITIALIZING OPTIMIZATION *******************")
-
     t_inicial = time.time()
+
+    settings.log.warning("****************** INITIALIZING OPTIMIZATION *******************")
 
     # Definition of how many threads will be used to calculate the fitness function
     if n_threads == -1: n_threads = multiprocessing.cpu_count()
     settings.log.info(f"Optimization initialized with {n_threads} threads.")
 
-    # Checking if the population size is an even number and it bigger than 0
-    if population_size == 0: 
-        population_size += 2
-        settings.log.critical("Population size was set at zero, by default the value was defined as 2 to avoid errors")
-    if (population_size%2) != 0: population_size += 1
-
     # Checking if num_varialbes matches the lb and ub sizes
     if len(max_values) != len(min_values) or num_variables != len(min_values):
         settings.log.critical("There is an inconsistency between the number of variables and the size of the bounds")
         return [0]
+    
+    # Creating normalized max and min values list
+    max_values_norm = [1] * num_variables
+    min_values_norm = [0] * num_variables
 
-    # Generating initial population
-    population = generate_population(population_size, num_variables, min_values, max_values)
+    # Defining population size
+    population_size = 50
+    population_size_old = population_size
 
-    # Creating history, metrics and best/avg lists
-    values_gen = {"best_fit":[],"avg_fit":[],"metrics":[]}
-    history = {"ind":[],"gen":[],"fit":[],"score":[]}
-    history_valid = {"ind":[],"gen":[],"fit":[],"score":[]}
-    best_individual = {"ind":[],"fit":[]}
-    tabu_List = []
- 
     # Initial value for the best fitness
     best_fitness = float('inf')
 
+    # Generating initial population
+    population = generate_population_normalized(population_size, num_variables, min_values, max_values)
+
+    # Creating history, metrics and best/avg lists
+    values_gen = {"best_fit":[],"avg_fit":[],"metrics":[]}
+    history = {"ind":[], "ind_norm":[],"gen":[],"fit":[],"score":[]}
+    history_valid = {"ind":[], "ind_norm":[], "gen":[],"fit":[],"score":[]}
+    best_individual = {"ind":[],"fit":[]}
+    tabu_List = []
+
     # Initializing the main loop
     for generation in range(num_generations):
-
         t_gen = time.time()
 
-        # Calculating the fitness values
+        # Getting the fitness values from history if possible
         fit_pop_old = []; pop_old = []; pop_calc_fit = copy.deepcopy(population)
-        for i in range(population_size):
-            if population[i] in history["ind"]:
-                fit_pop_old.append(history["fit"][list(history["ind"]).index(population[i])])
+        for i in range(population_size_old):
+            if population[i] in history["ind_norm"]:
+                fit_pop_old.append(history["fit"][list(history["ind_norm"]).index(population[i])])
                 pop_old.append(population[i])
                 pop_calc_fit.remove(population[i])
+
+        # Fitness calculation        
         if n_threads != 0:
-            fit_values = parallel_fitness(pop_calc_fit, fitness_fn, n_threads)
+            fit_values = parallel_fitness(denormalize_population(pop_calc_fit, min_values, max_values), fitness_fn, n_threads)
         else:
-            fit_values = fitness(pop_calc_fit, fitness_fn)
+            fit_values = fitness(denormalize_population(pop_calc_fit, min_values, max_values), fitness_fn)
         
         fitness_values = fit_values + fit_pop_old
         population = pop_calc_fit + pop_old
@@ -90,7 +92,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
    
         # Add to history and valid fit history
         for i in range(len(population)):
-            history["ind"].append(population[i])
+            history["ind_norm"].append(population[i])
             history["fit"].append(fitness_values[i])
             if fitness_values[i] != 0:
                 history["score"].append(1/fitness_values[i])
@@ -98,7 +100,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
                 history["score"].append(float('inf'))
             history["gen"].append(generation)
             if fitness_values[i] < 1000:
-                history_valid["ind"].append(population[i])
+                history_valid["ind_norm"].append(population[i])
                 history_valid["fit"].append(fitness_values[i])
                 if fitness_values[i] != 0:
                     history_valid["score"].append(1/fitness_values[i])
@@ -109,7 +111,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
                 tabu_List.append(population[i])            
 
         # Best and average fitness and best individual at the generation
-        best_individual["ind"].append(population[fitness_values.index(min(fitness_values))])
+        best_individual["ind"].append(denormalize_individual(population[fitness_values.index(min(fitness_values))], min_values, max_values))
         best_individual["fit"].append(min(fitness_values))
 
         # Checking if the best fit is better than previus generations and the global value to plot the individual
@@ -118,7 +120,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
 
         # Creating list of fitness values with individuals that returns valid score
         fitness_values_valid = []
-        for i in range(population_size):
+        for i in range(population_size_old):
             if fitness_values[i] < 1000:
                 fitness_values_valid.append(fitness_values[i]) 
 
@@ -131,12 +133,13 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         values_gen["metrics"].append(diversity_metric(population))
         
         # Applying the online parameter control
-        MUTPB_LIST, CXPB_LIST = online_parameter(online_control, num_generations, mutation_prob, crossover_prob)
+        MUTPB_LIST, CXPB_LIST = online_parameter(True, num_generations, mutation_prob, crossover_prob)
 
+        # Printing logger informations
         if best_individual["fit"][generation] == 0:
-            settings.log.info('Generation: {} | Time: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}'.format(generation+1, round(time.time() - t_gen, 2), best_individual["fit"][generation], float('inf'), round(values_gen["metrics"][generation],2)))
+            settings.log.info('Generation: {} | Time: {} | Population Size: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}'.format(generation+1, round(time.time() - t_gen, 2), population_size, best_individual["fit"][generation], float('inf'), round(values_gen["metrics"][generation],2)))
         else:    
-            settings.log.info('Generation: {} | Time: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}'.format(generation+1, round(time.time() - t_gen, 2), best_individual["fit"][generation], round(1/best_individual["fit"][generation],2), round(values_gen["metrics"][generation],2)))
+            settings.log.info('Generation: {} | Time: {} | Population Size: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}'.format(generation+1, round(time.time() - t_gen, 2), population_size, best_individual["fit"][generation], round(1/best_individual["fit"][generation],2), round(values_gen["metrics"][generation],2)))
 
         # Creating new population and aplying elitist concept
         new_population = []
@@ -147,7 +150,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
                     elite_pop = population[:1]
                     elite_fit = fitness_values[:1]
                     if elite_count > 1:
-                        for i in range(1,population_size-1):
+                        for i in range(1,population_size_old-1):
                             if len(elite_pop) < elite_count:
                                 if population[i] not in elite_pop:
                                     elite_pop.append(population[i])
@@ -161,7 +164,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
                     elite_pop = population[:1]
                     elite_fit = fitness_values[:1]
                     if elite_count > 1:
-                        for i in range(1,population_size-1):
+                        for i in range(1,population_size_old-1):
                             if len(elite_pop) < elite_count:
                                 if population[i] not in elite_pop:
                                     elite_pop.append(population[i])
@@ -175,7 +178,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
                                 break
 
             elif elite == "local":
-                for i in range(population_size): 
+                for i in range(population_size_old): 
                     count_lst = list({x for x in fitness_values if fitness_values.count(x)})
                     if 1000 in count_lst:
                         del count_lst[count_lst.index(1000)]
@@ -188,7 +191,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
                 
                 new_population = population[:1]
                 if elite_count_gen > 1:
-                    for i in range(1,population_size-1):
+                    for i in range(1,population_size_old-1):
                         if len(new_population) < elite_count_gen:
                             if population[i] not in new_population:
                                 new_population.append(population[i])
@@ -199,35 +202,20 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         for i in range(0, population_size - len(new_population), 2):
             if selection == 'tournament':
                 parent1 = tournament_selection(population, fitness_values, tournament_size=2)
-                fitness_values.remove(fitness_values[population.index(parent1)])
-                population.remove(parent1)
-
                 parent2 = tournament_selection(population, fitness_values, tournament_size=2)
-                fitness_values.remove(fitness_values[population.index(parent2)])
-                population.remove(parent2)
 
             elif selection == 'rank':
                 parent1 = rank_selection(population, fitness_values)
-                fitness_values.remove(fitness_values[population.index(parent1)])
-                population.remove(parent1)
-
                 parent2 = rank_selection(population, fitness_values)
-                fitness_values.remove(fitness_values[population.index(parent2)])
-                population.remove(parent2)
 
             elif selection == 'roulette':
                 parent1 = roulette_selection(population, fitness_values)
-                fitness_values.remove(fitness_values[population.index(parent1)])
-                population.remove(parent1)
-
                 parent2 = roulette_selection(population, fitness_values)
-                fitness_values.remove(fitness_values[population.index(parent2)])
-                population.remove(parent2)
 
             # Applying crossover to the individuals
             if crossover == 'arithmetic':
                 if random.uniform(0, 1) <= CXPB_LIST[generation]: 
-                    offspring1, offspring2 = arithmetic_crossover(parent1, parent2, min_values, max_values, alpha = 0.05)
+                    offspring1, offspring2 = arithmetic_crossover(parent1, parent2, min_values_norm, max_values_norm, alpha = 0.05)
                     new_population.append(offspring1)
                     new_population.append(offspring2)
                 else:
@@ -235,7 +223,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
                     new_population.append(parent2)
             elif crossover == 'SBX':
                 if random.uniform(0, 1) <= CXPB_LIST[generation]: 
-                    offspring1, offspring2 = SBX_crossover(parent1, parent2, min_values, max_values, eta=0.5)
+                    offspring1, offspring2 = SBX_crossover(parent1, parent2, min_values_norm, max_values_norm, eta=0.5)
                     new_population.append(offspring1)
                     new_population.append(offspring2)
                 else:
@@ -262,12 +250,13 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         if len(new_population) > population_size:
             aux = len(new_population) - population_size
             new_population = new_population[ : -aux]
+        population_size_old = population_size
 
         # Applying mutation to the new population
         if mutation == 'polynomial':
-            population = [polynomial_mutation(ind, min_values, max_values, eta) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
+            population = [polynomial_mutation(ind, min_values, max_values_norm, eta) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
         elif mutation == 'gaussian':
-            population = [gaussian_mutation(ind, min_values, max_values, std_dev) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
+            population = [gaussian_mutation(ind, min_values, max_values_norm, std_dev) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
 
         # Checking if any inddividuals are in the Tabu list
         while TabuList is True:
@@ -275,13 +264,19 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
             for i in range(population_size):
                 if population[i] in tabu_List:
                     if mutation == 'polynomial':
-                        polynomial_mutation(population[i], min_values, max_values, eta)
+                        polynomial_mutation(population[i], min_values, max_values_norm, eta)
                     elif mutation == 'gaussian':
-                        gaussian_mutation(population[i], min_values, max_values, std_dev)
+                        gaussian_mutation(population[i], min_values, max_values_norm, std_dev)
                 else:
                     count += 1
             if count == population_size:
                 break
+
+        # New population size       
+        # population_size = population_size_old + random.randint(-1, 1)*int(population_size_old*random.betavariate(1,4))
+        population_size = population_size_old + random.randint(-1, 1)*int(population_size_old*random.gauss(0,0.15))
+        if population_size < population_size_old/2:
+            population_size == population_size_old/2 + population_size_old*random.random()
 
     # Printing global optimization results
     settings.log.warning("***************************** END ******************************")
@@ -291,6 +286,8 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
     settings.log.warning(f"Tempo de Execução: {time.time() - t_inicial}")
 
     # Listing outputs
+    history["ind"] = denormalize_population(history["ind_norm"], min_values, max_values)
+    history_valid["ind"] = denormalize_population(history_valid["ind_norm"], min_values, max_values)
     out = dict(history = history,
                history_valid = history_valid,
                best_individual = best_individual,
@@ -331,6 +328,28 @@ def fitness(population = list, fitness_fn = None):
 def generate_population(size = int, num_variables = int, min_values = list, max_values = list):
     """Generate a population of random genes."""
     population = [[round(random.uniform(min_values[i], max_values[i]),4) if isinstance(min_values[i],float) else random.randint(min_values[i], max_values[i]) for i in range(num_variables)] for _ in range(size)]
+    return population
+
+def generate_population_normalized(size = int, num_variables = int, min_values = list, max_values = list):
+    """Generate a population of normalized random genes."""
+    population = []
+    for _ in range(size):
+        individual = []
+        for i in range(num_variables):
+            if isinstance(min_values[i], float):
+                gene = random.uniform(min_values[i], max_values[i])
+            else:
+                gene = random.randint(min_values[i], max_values[i])
+            
+            if min_values[i] == max_values[i]:
+                normalized_gene = min_values[i]  # Atribui o valor mínimo diretamente
+            else:
+                normalized_gene = (gene - min_values[i]) / (max_values[i] - min_values[i])
+            
+            individual.append(round(normalized_gene, 4))
+        
+        population.append(individual)
+    
     return population
 
 # #####################################################################################
@@ -492,6 +511,36 @@ def polynomial_mutation(individual = list, min_values = list, max_values = list,
         mutated_genes.append(mutated_gene)
     return mutated_genes
 
+# #####################################################################################
+# ################################## Normalization ####################################
+# #####################################################################################
+
+def denormalize_individual(individual, min_values, max_values):
+    """Denormalize the genes of an individual."""
+    denormalized_individual = []
+    for i in range(len(individual)):
+        gene = individual[i]
+        min_val = min_values[i]
+        max_val = max_values[i]
+
+        if isinstance(min_val, int) and isinstance(max_val, int):
+            denormalized_gene = round((gene * (max_val - min_val)) + min_val)
+        else:
+            denormalized_gene = (gene * (max_val - min_val)) + min_val
+
+        denormalized_individual.append(denormalized_gene)
+
+    return denormalized_individual
+
+
+def denormalize_population(population = list, min_values = list, max_values = list):
+    """Denormalize the entire population."""
+    denormalized_population = []
+    for individual in population:
+        denormalized_individual = denormalize_individual(individual, min_values, max_values)
+        denormalized_population.append(denormalized_individual)
+    
+    return denormalized_population
 
 # #####################################################################################
 # #################################### Metrics ########################################
