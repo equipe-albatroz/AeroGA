@@ -26,7 +26,6 @@ class Individual:
 
 def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussian", n_threads = -1,
     min_values = list, max_values = list, num_variables = int, num_generations = int, elite_count = int, elite="local",
-    mutation_prob = 0.1, crossover_prob = 1, eta = 20, std_dev = 0.1,
     plotfit = True, plotbox = False, plotparallel = False, TabuList = False,
     fitness_fn = None
     ):
@@ -49,7 +48,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
     min_values_norm = [0] * num_variables
 
     # Defining population size
-    population_size = 50
+    population_size = 100
     population_size_old = population_size
 
     # Initial value for the best fitness
@@ -133,7 +132,8 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         values_gen["metrics"].append(diversity_metric(population))
         
         # Applying the online parameter control
-        MUTPB_LIST, CXPB_LIST = online_parameter(True, num_generations, mutation_prob, crossover_prob)
+        mutation_prob = random.uniform(0.05, 0.1) 
+        MUTPB_LIST, CXPB_LIST = online_parameter(True, num_generations, mutation_prob, 1)
 
         # Printing logger informations
         if best_individual["fit"][generation] == 0:
@@ -253,6 +253,8 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         population_size_old = population_size
 
         # Applying mutation to the new population
+        std_dev = random.uniform(0.05, 0.3)
+        eta = random.randint(10, 20)
         if mutation == 'polynomial':
             population = [polynomial_mutation(ind, min_values, max_values_norm, eta) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
         elif mutation == 'gaussian':
@@ -520,7 +522,7 @@ def denormalize_individual(individual, min_values, max_values):
         if isinstance(min_val, int) and isinstance(max_val, int):
             denormalized_gene = round((gene * (max_val - min_val)) + min_val)
         else:
-            denormalized_gene = (gene * (max_val - min_val)) + min_val
+            denormalized_gene = round((gene * (max_val - min_val)) + min_val, 4)
 
         denormalized_individual.append(denormalized_gene)
 
