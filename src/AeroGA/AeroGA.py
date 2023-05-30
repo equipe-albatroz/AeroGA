@@ -834,3 +834,41 @@ def export_excell(out):
     string = 'Resultados/Results_' + str(dt_string) + '.xlsx'
 
     df.to_excel(string, index=False)
+
+# #####################################################################################
+# ##################################### Tests #########################################
+# #####################################################################################
+
+def run_n_times(selection1, crossover1, mutation1, n_threads1,
+    min_values1, max_values1, num_variables1, num_generations1, elite_count1,
+    fitness_fn1, classe1, n):
+
+    fit = []
+    best_fit = []
+    
+    for _ in range(0,n):
+
+        out = optimize(selection = selection1, crossover = crossover1, mutation = mutation1, n_threads = n_threads1,
+        min_values = min_values1, max_values = max_values1, num_variables = num_variables1, num_generations = num_generations1, elite_count = elite_count1,
+        fitness_fn = fitness_fn1, classe = classe1, plotfit=False)
+
+        fit.append(out["best_individual"]["fit"])
+        best_fit.append(min(out["best_individual"]["fit"]))
+    
+    aux = list(map(lambda *x: list(x), *fit))
+    df = pd.DataFrame(aux)
+    df2 = pd.DataFrame(best_fit)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    fig.subplots_adjust(hspace=0.5)
+
+    ax1.boxplot(df, vert=True)
+    ax1.set_title('Fitness for '+ str(n) +' Runs')
+    ax1.set_ylabel('Fitness')
+    ax1.grid(True)
+
+    ax2.boxplot(df2, vert=True)
+    ax2.set_title('Best Fitness for All Runs')
+    ax2.grid(True)
+
+    plt.show()
