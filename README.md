@@ -74,13 +74,13 @@ Os critérios de seleção são utilizados para selecionar os indivíduos que se
 
  * **Roleta** - Neste método, cada indivíduo da população é representado na roleta proporcionalmente ao fitness. Assim, aos indivíduos com alto fitness é dada uma porção maior da roleta, enquanto aos de fitness baixo é dada uma porção relativamente menor da roleta. Finalmente, a roleta é girada um determinado número de vezes, dependendo do tamanho da população, e são escolhidos, como indivíduos reprodutores, aqueles sorteados na roleta.
 
- ![Img roleta](img/roleta.png)
+ ![Img roleta](roleta.png)
 
  * **Ranking** - Método semelhante a roleta, a única diferença é que, ao invés da porção da roleta ser dada pelo valor do fitness considera-se a porcentagem do fitness em relação a soma de todos os valores. Desse modo, o método de ranking é mais democrático e dá mais chances aos indivíduos com menor fitness.
 
  * **Torneio** - O método do torneio seleciona aeatóriamente dois indivíduos e realiza um torneio entre eles, o vencedor é aquele com maior valor de fitness. Este é o método mais indicado para preservar a diversidade do algoritmo genético.
 
- ![Img torneio](img/torneio.jpg)
+ ![Img torneio](torneio.jpg)
 
 ### **4. Recombinação (Crossover)**
 
@@ -92,20 +92,19 @@ O operador de recombinação é o mecanismo de obtenção de novos indivíduos p
 
  * **1 ponto** - Na recombinação de 1 ponto, seleciona-se aleatoriamente um ponto de corte nos cromossomos, dividindo este em uma partição à direita e outra à esquerda do corte. Cada descendente é composto pela junção da partição à esquerda (direira) de um pai com a partição à direita (esquerda) do outro pai.
 
-![Img 1point crossover](img/1point.png)
-
+ ![Img 1point crossover](1point.png)
+ 
  * **2 pontos** - A recombinação de 2 pontos tem a mesma ideia da recombinação de 1 ponto, porém são escolhidos aleatoriamente dois pontos de corte nos cromossomos, dividindo o cromossomo em três partições.
 
-![Img 2point crossover](img/2point.png)
-
+ ![Img 2point crossover](2point.png)
 
 ### **5. Mutação (Mutation)**
 
-O operador de mutação modifica aleatoriamente um ou mais genes de um cromossomo. Com esse operador, um indivíduo gera uma cópia de si mesmo, a qual pode sofrer alterações. A probabilidade de ocorrência de mutação em um gene é denominada taxa de mutação. Usualmente, são atribuídos valores pequenos para a taxa de mutação, uma vez que esse operador pode gerar um indivíduo potencialmente pior que o original.
+ O operador de mutação modifica aleatoriamente um ou mais genes de um cromossomo. Com esse operador, um indivíduo gera uma cópia de si mesmo, a qual pode sofrer alterações. A probabilidade de ocorrência de mutação em um gene é denominada taxa de mutação. Usualmente, são atribuídos valores pequenos para a taxa de mutação, uma vez que esse operador pode gerar um indivíduo potencialmente pior que o original.
 
-A taxa de mutação foi definida como estocástica e pode variar entre 5% e 10%. Valores maiores que isso não são recomendados pois a otimização começa a se comportar com uma busca aleatória.
+ A taxa de mutação foi definida como estocástica e pode variar entre 5% e 10%. Valores maiores que isso não são recomendados pois a otimização começa a se comportar com uma busca aleatória.
 
-![Img mutação](img/mutação.png)
+ ![Img mutação](muta%C3%A7%C3%A3o.png)
 
  * *Mutação Polinomial* - Essa mutação segue a mesma distribuição de probabilidade do SBX, onde o parâmetro eta tem grande influência e se refere a 'força' da mutação (Valores maiores representam taxas de mutações menores (Ex.: 20), valores menores representam mutação severas no indivíduos (Ex.: 1)). Para maiores informações ler o artigo [(HAMDAN & Mohammad, 2012)](https://d1wqtxts1xzle7.cloudfront.net/31582313/Main-libre.pdf?1392403242=&response-content-disposition=inline%3B+filename%3DThe_Distribution_Index_in_Polynomial_Mut.pdf&Expires=1676061047&Signature=OpI7L7smR9-jq8TBmTeknRwFK83SJz7bnQ0TcQepI4rMvB96v0BSCjhThyORfaaelhAUaSsUlvsLNvNdxlXgPd7UfReDimPBbPtW0RVeeLBWHdjulrTq3JsjqsaGgtRU55fMbAkhe0grDP8uQ2CDsSf8K58YgtikLSWc1lIfIpMGwxfKZodC2IqEOrUaicxh4kNQohiw9T-SjOcpmNKxpW5kYIDjR-lYWr8JfV1yRMDF07HLLf1GMbAgBIw0p47qdPEE0JJG3Q7QBKHtkxxvd7uU2l5g0aBfOoCc4XPQM9u31V2fRkOfXDTQK-h-IEIFqlczRANawigoD6vscTvtgw__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA)
 
