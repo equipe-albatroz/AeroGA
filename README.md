@@ -1,51 +1,51 @@
 # AeroGA
 
-**Algoritmo heurístico de otimização single-objective utilizando conceitos evolutivos.**
+**Single-objective optimization heuristic algorithm using evolutionary concepts.**
 
-Para utilizar o GA deve-se clonar o repositório, acessar a pasta pelo terminal e fazer a instalação como mostrado abaixo:
+To use the GA, you should clone the repository, access the folder through the terminal, and perform the installation as shown below:
 
 ~~~python
 pip install -e .                             
 ~~~
 
-Para chamar a biblioteca basta adicionar os comandos mostrados abaixo:
+To call the library just add the commands shown below:
 
 ~~~python
 from AeroGA.AeroGA import *                           
 ~~~
 
-# Etapas
+# Steps
 
-### **1. Variáveis de Entrada**
+### **1. Input Variables**
 
-*Variáveis relacionadas aos métodos do GA*
+*Variables related to GA methods*
 
-* **selection** - Método de seleção ("roulette", "rank", "tournament")
-* **crossover** - Método de recombinação ("SBX, ""arithmetic", "1-point", "2-point")
-* **mutation** - Método de mutação("gaussian", "polynomial")
-* **n_threads** - Número de Threads do processador que devem ser utilizadas para calcular aa função fitness (Para utilizar o máximo de threads possíveis utilizar -1 como input)
+* **selection** - Selection Method ("roulette", "rank", "tournament").
+* **crossover** - Crossover Method ("SBX, ""arithmetic", "1-point", "2-point").
+* **mutation** - Mutation Method("gaussian", "polynomial").
+* **n_threads** - Number of Threads of the processor that should be used to calculate the fitness function (To use as many threads as possible use -1 as input).
 
-*Variáveis relacionadas ao problema a ser resolvido*
+*Variables related to the problem to be solved*
 
-* **lb** - Lower Bounds
-* **ub** - Upper Bounds
-* **nvar** - Número de variáveis do problema
-* **num_generations** - Número de gerações
-* **elite** - "global" ou "local", local avança sempre o melhor da geração, global o melhor da otimização inteira até o momento
-* **elite_count** - Número de indivíduos que serão passados para a próxima geração por meio elitista
-* **fitness_fn** - Função fitness
+* **lb** - Lower Bounds.
+* **ub** - Upper Bounds.
+* **nvar** - Number of problem variables.
+* **num_generations** - Number of generation.
+* **elite** - "global" or "local", local always advances the best of the generation, global the best of the entire optimization so far.
+* **elite_count** - Number of individuals that will be passed on to the next generation by elitist means.
+* **fitness_fn** - Fitness Function
 
-**Obs.:** Para definir os valores inteiros no GA deve-se usar no lb e ub valores como [0,4], para valores contínuos deve-se usar [0.0, 4.0]
+**Obs.:** To set integer values in GA one must use in lb and ub values such as [0,4], for continuous values one must use [0.0, 4.0].
 
-Caso a função principal do mdo esteja em um arquivo diferente de onde será feita a otimização, basta importar a função do arquivo como mostrado no exemplo abaixo:
+If the main mdo function is in a different file than the one where the optimization will be done, simply import the function from the file as shown in the example below:
 
 ~~~python
 from MDO2023_albatroz import MDO2023
 ~~~ 
 
-Para funcionar corretamente, a função fitness deve receber uma lista X com os valores dos indivíduos, dentro da função essa lista deve ser aberta e atribuída as respectivas variáveis.
+To work properly, the fitness function must receive a list X with the values of the individuals, inside the function this list must be opened and assigned to the respective variables.
 
-Para realizar a otimização deve-se chamar a função 'optimize' do AeroGA, como mostrado abaixo:
+To perform the optimization one should call the AeroGA function 'optimize', as shown below:
 
 ~~~python
 out = AeroGA.optimize(selection = "tournament", crossover = "1-point", mutation = "gaussian", n_threads = -1,
@@ -55,134 +55,132 @@ out = AeroGA.optimize(selection = "tournament", crossover = "1-point", mutation 
     fitness_fn = None                                                  
 ~~~
 
-Algumas variáveis já possuem valores defaults, caso você não queira alterar o valor default elas não precisam ser definidas ao chamar a função optimize.
+Some variables already have defaults, so if you don't want to change the defaults they don't need to be set when calling the optimize function.
 
-O dicionário *out* retorna os seguintes valores:
+The *out* dictionary returns the following values:
 
- * **history** - Histórico de todos os indivíduos utilizados no GA
- * **history_valid** - Histórico de todos os indivíduos utilizados no GA que sao válidos, ou seja, pontuação != 1000
- * **best_individual** - Melhor indivíduo encontrado
- * **values_gen** - Lista com valores de best fitness, average fitness e metrics encontrados por geração
+ * **history** - History of all individuals used in GA
+ * **history_valid** - History of all individuals used in GA that are valid, i.e. score != 1000
+ * **best_individual** - Best Individual Found
+ * **values_gen** - List with values of best fitness, average fitness and metrics found by generation
 
-### **2. Inicialização da População**
+### **2. Population Initialization**
 
-Etapa inicial do código, onde são gerados indivíduos com valores aleatórios e para cada um o valor de fitness é calculado.
+Initial stage of the code, where individuals with random values are generated and for each one the fitness value is calculated.
 
-### **3. Critérios de Seleção**
+### **3. Selection Criteria**
 
- Os critérios de seleção são utilizados para selecionar os indivíduos que serão usados no crossover e mutação. Os critérios são feitos de modo que qualquer indivíduo possa ser escolhido porém aqueles com maior fitness, tem consequentemente a maior probabilidade de serem escolhidos para gerar filhos. Tal aspecto é importante pois havendo a possibilidade de indivíduos com baixo fitness mantém-se a diversidade da população, não descartando regiões do espaço de procura. Caso somente os melhores indivíduos passem adiante no processo a convergência se torna rápida e as chances do resultado cair em um máximo local são altas. 
+ Selection criteria are used to select the individuals that will be used in crossover and mutation. The criteria are made so that any individual can be chosen, but those with the highest fitness, have the highest probability of being chosen to generate children. This aspect is important because there is the possibility of individuals with low fitness to maintain the diversity of the population, not discarding regions of the search space. If only the best individuals move forward in the process the convergence becomes fast and the chances of the result falling into a local maximum are high.
 
- * **Roleta** - Neste método, cada indivíduo da população é representado na roleta proporcionalmente ao fitness. Assim, aos indivíduos com alto fitness é dada uma porção maior da roleta, enquanto aos de fitness baixo é dada uma porção relativamente menor da roleta. Finalmente, a roleta é girada um determinado número de vezes, dependendo do tamanho da população, e são escolhidos, como indivíduos reprodutores, aqueles sorteados na roleta.
+ * **Roulette** - In this method, each individual in the population is represented on the roulette wheel in proportion to fitness. Thus, individuals with high fitness are given a larger portion of the roulette wheel, while those with low fitness are given a relatively smaller portion of the wheel. Finally, the roulette wheel is spun a certain number of times, depending on the size of the population, and those drawn on the wheel are chosen as breeding individuals.
 
  ![Img roleta](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSAY_WNtrc6cvHKgM4zkftExoqFzNLrCyMZYSnEDCwYnkSQ8UJhtGJ-mxXUriUOQ3HjVeM&usqp=CAU)
 
- * **Ranking** - Método semelhante a roleta, a única diferença é que, ao invés da porção da roleta ser dada pelo valor do fitness considera-se a porcentagem do fitness em relação a soma de todos os valores. Desse modo, o método de ranking é mais democrático e dá mais chances aos indivíduos com menor fitness.
+ * **Ranking** - A method similar to roulette, the only difference is that instead of the roulette portion being given by the fitness value, the fitness percentage is considered in relation to the sum of all values. In this way, the ranking method is more democratic and gives more chances to individuals with lower fitness.
 
- * **Torneio** - O método do torneio seleciona aeatóriamente dois indivíduos e realiza um torneio entre eles, o vencedor é aquele com maior valor de fitness. Este é o método mais indicado para preservar a diversidade do algoritmo genético.
+ * **Tournament** - The tournament method aeatorically selects two individuals and holds a tournament between them, the winner is the one with the higher fitness value. This is the method best suited to preserve the diversity of the genetic algorithm.
 
  ![Img torneio](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsy5-dHawPSJtOWkJ9pZtix7tMyHV12N5vdeqc_i9sKOPUE8A7xaN-sl42xTW4Ruxz8w&usqp=CAU)
 
-### **4. Recombinação (Crossover)**
+### **4. Crossover Criteria**
 
- O operador de recombinação é o mecanismo de obtenção de novos indivíduos pela troca ou combinação dos alelos de dois ou mais indivíduos. Fragmentos das características de um indivíduo são trocadas por um fragmento equivalente oriundo de outro indivíduo. O resultado desta operação é um indivíduo que combina características potencialmente melhores dos pais.
+ The recombination operator is the mechanism for obtaining new individuals by exchanging or combining the alleles of two or more individuals. Fragments of the characteristics of an individual are exchanged with an equivalent fragment from another individual. The result of this operation is an individual combining potentially better characteristics of the parents.
 
  ![Img 1point crossover](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfOL1-3odABVrqx_7KmXVLAbbHupJzM70gHQ&usqp=CAU)
 
  * **SBX** - [Kalyanmoy et al., 2012](https://content.wolfram.com/uploads/sites/13/2018/02/09-6-1.pdf)
 
- * **Aritmética** - A recombinação aritmética cria novos alelos nos descendentes com valores intermediários aos encontrados nos pais. Define-se uma combinação linear entre dois cromossomos x e y, de modo a gerar um descendente z.
+ * **Arithmetic** - Arithmetic recombination creates new alleles in the offspring with values intermediate to those found in the parents. A linear combination is defined between two chromosomes x and y, in order to generate an offspring z.
 
- * **1 ponto** - Na recombinação de 1 ponto, seleciona-se aleatoriamente um ponto de corte nos cromossomos, dividindo este em uma partição à direita e outra à esquerda do corte. Cada descendente é composto pela junção da partição à esquerda (direira) de um pai com a partição à direita (esquerda) do outro pai.
+ * **1 point** - At the 1-point recombination a cut-off point is randomly selected on chromosomes, splitting this into a partition on the right and a partition on the left of the cut-off. Each offspring is composed by joining the left (right) partition of one parent with the right (left) partition of the other parent.
 
- * **2 pontos** - A recombinação de 2 pontos tem a mesma ideia da recombinação de 1 ponto, porém são escolhidos aleatoriamente dois pontos de corte nos cromossomos, dividindo o cromossomo em três partições.
+ * **2 points** - The 2-point recombination has the same idea as the 1-point recombination, but two cut-off points are randomly chosen on the chromosomes, dividing the chromosome into three partitions.
 
-### **5. Mutação (Mutation)**
+### **5. Mutation Criteria**
 
- O operador de mutação modifica aleatoriamente um ou mais genes de um cromossomo. Com esse operador, um indivíduo gera uma cópia de si mesmo, a qual pode sofrer alterações. A probabilidade de ocorrência de mutação em um gene é denominada taxa de mutação. Usualmente, são atribuídos valores pequenos para a taxa de mutação, uma vez que esse operador pode gerar um indivíduo potencialmente pior que o original.
+ The mutation operator randomly changes one or more genes of a chromosome. With this operator an individual generates a copy of itself, which can change. The probability of occurrence of mutation in a gene is called mutation rate. Usually, small values are assigned to the mutation rate, since this operator can generate an individual that is potentially worse than the original.
 
- A taxa de mutação foi definida como estocástica e pode variar entre 5% e 10%. Valores maiores que isso não são recomendados pois a otimização começa a se comportar com uma busca aleatória.
+ The mutation rate has been defined as stochastic and can vary between 5% and 10%. Values larger than this are not recommended as the optimization starts to behave like a random search.
 
  ![Img mutação](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7eP3cPx5gQXiY04vjPKYHZUc3cyfi98EwPg&usqp=CAU)
 
- * *Mutação Polinomial* - Essa mutação segue a mesma distribuição de probabilidade do SBX, onde o parâmetro eta tem grande influência e se refere a 'força' da mutação (Valores maiores representam taxas de mutações menores (Ex.: 20), valores menores representam mutação severas no indivíduos (Ex.: 1)). Para maiores informações ler o artigo [(HAMDAN & Mohammad, 2012)](https://d1wqtxts1xzle7.cloudfront.net/31582313/Main-libre.pdf?1392403242=&response-content-disposition=inline%3B+filename%3DThe_Distribution_Index_in_Polynomial_Mut.pdf&Expires=1676061047&Signature=OpI7L7smR9-jq8TBmTeknRwFK83SJz7bnQ0TcQepI4rMvB96v0BSCjhThyORfaaelhAUaSsUlvsLNvNdxlXgPd7UfReDimPBbPtW0RVeeLBWHdjulrTq3JsjqsaGgtRU55fMbAkhe0grDP8uQ2CDsSf8K58YgtikLSWc1lIfIpMGwxfKZodC2IqEOrUaicxh4kNQohiw9T-SjOcpmNKxpW5kYIDjR-lYWr8JfV1yRMDF07HLLf1GMbAgBIw0p47qdPEE0JJG3Q7QBKHtkxxvd7uU2l5g0aBfOoCc4XPQM9u31V2fRkOfXDTQK-h-IEIFqlczRANawigoD6vscTvtgw__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA)
+ * *Polinomial Mutation* - This mutation follows the same probability distribution as the SBX, where the parameter eta has great influence and refers to the 'strength' of the mutation (Higher values represent lower mutation rates (e.g. 20), lower values represent severe mutation in individuals (e.g. 1)). For more information read the article [(HAMDAN & Mohammad, 2012)](https://d1wqtxts1xzle7.cloudfront.net/31582313/Main-libre.pdf?1392403242=&response-content-disposition=inline%3B+filename%3DThe_Distribution_Index_in_Polynomial_Mut.pdf&Expires=1676061047&Signature=OpI7L7smR9-jq8TBmTeknRwFK83SJz7bnQ0TcQepI4rMvB96v0BSCjhThyORfaaelhAUaSsUlvsLNvNdxlXgPd7UfReDimPBbPtW0RVeeLBWHdjulrTq3JsjqsaGgtRU55fMbAkhe0grDP8uQ2CDsSf8K58YgtikLSWc1lIfIpMGwxfKZodC2IqEOrUaicxh4kNQohiw9T-SjOcpmNKxpW5kYIDjR-lYWr8JfV1yRMDF07HLLf1GMbAgBIw0p47qdPEE0JJG3Q7QBKHtkxxvd7uU2l5g0aBfOoCc4XPQM9u31V2fRkOfXDTQK-h-IEIFqlczRANawigoD6vscTvtgw__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA)
 
- * *Mutação Gaussiana* - No caso da mutação Gaussiana, o valor incorporado no(s) alelo(s) é aleatório com média zero e desvio padrão σ (parâmetro std_dev).
+ * *Gaussian Mutation* - In the case of Gaussian mutation, the embedded value in the allele(s) is random with zero mean and standard deviation σ (parameter std_dev). 
 
- * *Obs.:* Ambos os parâmetros std_dev e eta são definidos de forma estocástica, std_dev pode assmuir valores entre 0.05 e 0.3 e eta valores entre 10 e 20.
-### **6. Métricas de Qualidade**
+ * *Obs.:* Both the parameters std_dev and eta are set stochastically, std_dev can take values between 0.05 and 0.3 and eta values between 10 and 20.
+### **6. Quality Metrics**
 
- * Diversidade da população - A métrica de diversidade é calculada de acordo com a distância euclidiana entre os membros da população, quanto maior as distâncias maior a métrica e maior é a diversidade da população.
+ * Population diversity - The diversity metric is calculated according to the Euclidean distance between members of the population, the greater the distances the higher the metric and the greater the diversity of the population.
  
 
-### **7. Análise de Sensibilidade**
+### **7. Sensitivity Analysis**
 
- * Pode ser feita através da função *sensibility*, onde utiliza-se um indivíduo e a partir do incremento calcula-se a função fitness variando cada variável do indivíduo deixando as outras fixas.
+ * It can be done using the *sensitivity* function, where an individual is used and from the increment the fitness function is calculated by varying each variable of the individual leaving the others fixed.
 
 ~~~python                                                
 sensibility(individual = list, fitness_fn = None, increment = None, min_values = list, max_values = list)
 ~~~
 
-O incremento pode ser um valor contínuo fixo, assim todas as variáveis terão o mesmo step de cálculo (com excessa das variáveis inteiras, que sempre será de 1), ou pode-se definir uma lista com valores de incremento específicos para cada variável.  
+The increment can be a fixed continuous value, so all variables will have the same calculation step (except for integer variables, which will always be 1), or you can define a list with specific increment values for each variable.
 
-### **8. Controle Online de Parâmetros**
+### **8. Online Parameter Control**
 
- * O controle online de parâmetros serve para variar ao longo do GA a taxa de mutação, de modo que, a mutação começa alta e diminui até chegar ao valor inputado como *mut_prob* na última geração. Essa medidas é propostas pois é interessante que inicialmente ocorrá a fase de máxima exploração do GA com mutação alta e ao final esse nível de exploração seja baixo, permitindo o GA desenvolver os indivíduos encontrados ao invés de mutalos completamente.
+ * The online parameter control serves to vary the mutation rate along the GA, so that the mutation starts high and decreases until it reaches the value input as *mut_prob* in the last generation. This measure is proposed because it is interesting that initially the maximum exploration phase of GA occurs with high mutation and at the end this exploration level is low, allowing GA to develop the individuals found instead of mutating them completely.
 
 ### **9. Plots**
 
- * **(BestFit, AvgFit, Metrics) x Generation** - Mostra o resultado de Fitness (máximo e médio) e métrica ao longo das gerações do GA.
+ * **(BestFit, AvgFit, Metrics) x Generation** - It shows the Fitness score (maximum and average) and metrics over the generations of GA. It can be enabled/disabled in the inputs of the *optimize* function.
 
-Pode ser ativado/desativado nos inputs da função *optimize*.
+ * **Input Dispersion** - Shows the normalized input variables and all points explored by GA during generations. The purpose of this graph is to evaluate how well the algorithm is exploring the search space.
 
- * **Dispersão dos inputs** - Mostra as variáveis de entrada normalizadas e todos os pontos explorados pelo GA durante as gerações. O intúito desse gráfico é avaliar o quão bem o algoritmo está explorando o espaço de busca.
+ It can be done in three ways:
 
-Pode ser feito de tres formas:
-
-Diretamente na função optimize, e será plotado ao final da otimização (por default essa opção fica desativada).
+ Directly in the optimize function, and will be plotted at the end of the optimization (by default this option is disabled).
  ~~~python
  create_boxplots(out = None, min_values = list, max_values = list)                                       
  ~~~
 
-Após a otimização, utilizando o excell de resultados do GA. 
+ After optimization, using GA's results excell.
  ~~~python
  create_boxplots_import_xlsx(path = None)                                       
  ~~~
 
-Após a otimização, utilizando o excell de resultados do GA. Porém aqui pode ser feita a análise para uma geração específica da otimização.
+ After the optimization, using the GA results excell. But here the analysis can be done for a specific generation of the optimization.
  ~~~python
  create_boxplots_por_gen_import_xlsx(path = None, min_values = list, max_values = list, generation = int)                                   
  ~~~
 
- * **Curvas paralelas** - tem o intuito de avaliar a convergência do GA, além de possibilitar a limitação dos bounds.
+ * **Parallel Curves** - tem o intuito de avaliar a convergência do GA, além de possibilitar a limitação dos bounds.
 
-Pode ser feito de duas formas:
+ It can be done in two ways:
 
-Diretamente na função optimize, e será plotado ao final da otimização (por default essa opção fica desativada).
+ Directly in the optimize function, and will be plotted at the end of the optimization (by default this option is disabled).
  ~~~python
  parallel_coordinates(out = None)                                      
  ~~~
 
-Após a otimização, utilizando o excell de resultados do GA. 
+ After optimization, using GA's results excell.
  ~~~python
   parallel_coordinates_import_xlsx(path = None, classe = None)                                       
  ~~~
 
-Após a otimização, utilizando o excell de resultados do GA. Porém aqui pode ser feita a análise para uma geração específica da otimização. 
+ After the optimization, using the GA results excell. But here the analysis can be done for a specific generation of the optimization.
  ~~~python
   parallel_coordinates_per_gen_import_xlsx(path = None, classe = None, generation = int)                                     
  ~~~
 
-**OBS.:** Para a váriável *classe*, se o input for micro ou regular, serão usados os nomes das variáveis referentes ao projeto de 2023. Caso seja necessário mudar isso, pode inputar *classe* como uma lista contendo os novos nomes as variáveis. Ex. *['c1', 'chord_ratio2','b1','span_ratio2','iw','nperfilw1','nperfilw2','zwGround','xCG','vh', 'ih','nperfilh','motorindex']*
+**OBS.:** For the *class* variable, if the input is micro or regular, the variable names for the 2023 project will be used. If you need to change this, you can input *class* as a list containing the new variable names. Ex. *['c1', 'chord_ratio2','b1','span_ratio2','iw','nperfilw1','nperfilw2','zwGround','xCG','vh', 'ih','nperfilh','motorindex']*
 
-# Contato
+# Contact
 
-Qualquer dúvidas sobre o código favor contatar o autor.
+Any questions about the code please contact the author.
 
-Autor: Krigor Rosa
+Author: Krigor Rosa
 
 Email: krigorsilva13@gmail.com
 
-# Referências
+# References
 
 GABRIEL, Paulo Henrique Ribeiro; DELBEM, Alexandre Cláudio Botazzo. Fundamentos de algoritmos evolutivos. 2008.
 
