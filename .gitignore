@@ -1,8 +1,15 @@
-# Ignorar pastas
+################################################
+################ Ignorar pastas ################
+################################################
 src\AeroGA.egg-info\
 __pycache__
+Resultados
+img
+env
 
-# Ignorar o arquivo de teste
+################################################
+########## Ignorar o arquivo de teste ##########
+################################################
 test.ipynb
 test.py
 AeroGA_old.py
@@ -11,10 +18,9 @@ AeroGA_copy.py
 AeroGA_copy copy.py
 AeroGA copy.py
 
-Resultados
-img
-
-# Ignorar tipos de arquivo
+################################################
+########### Ignorar tipos de arquivo ###########
+################################################
 *.egg-info
 *.pyc
 *.xlsx
