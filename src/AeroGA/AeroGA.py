@@ -22,7 +22,7 @@ ErrorLog = Log("error.log")
 
 def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussian", n_threads = -1,
     min_values = list, max_values = list, num_variables = int, num_generations = int, elite_count = int, elite="local",
-    plotfit = True, plotbox = False, plotparallel = False, TabuList = False, penalization_list = [550, 600, 650, 700, 750, 800, 850, 900, 950, 1000],
+    plotfit = True, plotbox = False, plotparallel = False, TabuList = False, penalization_list = [1000],
     fitness_fn = None, classe = "default"
     ):
     """Perform the genetic algorithm to find an optimal solution."""
@@ -521,9 +521,9 @@ def denormalize_individual(individual = list, min_values = list, max_values = li
         min_val = min_values[i]
         max_val = max_values[i]
 
-        if classe == "default" or "micro":
+        if classe == "default" or "Micro":
             rounding_value = 4
-        elif classe == "regular":
+        elif classe == "Regular":
             rounding_value = 6
 
         if isinstance(min_val, int) and isinstance(max_val, int):
