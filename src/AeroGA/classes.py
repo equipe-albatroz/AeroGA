@@ -26,3 +26,6 @@ class Log(object):
         
     def info(self, message):
         logger.info(message)
+    
+    def erro(self, message):
+        logger.error(message)

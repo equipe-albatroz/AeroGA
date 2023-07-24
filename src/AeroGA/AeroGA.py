@@ -304,7 +304,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
             parallel_coordinates(out)
 
     except Exception as e:
-        ErrorLog.info(str(e))
+        ErrorLog.erro(str(e))
         return ErrorType("danger", str(e))
 
     return out
