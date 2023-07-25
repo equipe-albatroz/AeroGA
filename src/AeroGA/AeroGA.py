@@ -716,7 +716,7 @@ def create_boxplots_por_gen_import_xlsx(path = None, min_values = list, max_valu
     
     plt.show()
 
-def parallel_coordinates(out = None):
+def parallel_coordinates(out = None, lb = list, ub = list):
     """Create a parallel coordinates graph of the population history."""
     
     history = out["history_valid"]
@@ -737,11 +737,15 @@ def parallel_coordinates(out = None):
     df = pd.DataFrame(data)
     df['Score'] = lista
     
-    fig = px.parallel_coordinates(df, color="score", dimensions=df.columns,
-                              title="Parallel Coordinates Plot")
+    fig = px.parallel_coordinates(df, color="score", dimensions=df.columns,title="Parallel Coordinates Plot")
+
+    # Ajustar os limites dos eixos
+    for i, dim in enumerate(df.columns[:-1]):
+        fig.update_layout(yaxis_range=[lb[i], ub[i]], row=i + 1)
+
     fig.show()
 
-def parallel_coordinates_import_xlsx(path = None, classe = None):
+def parallel_coordinates_import_xlsx(path = None, classe = None, lb = list, ub = list):
     """Create a parallel coordinates graph of the population history."""
     
     df = pd.read_excel(path)
@@ -763,11 +767,15 @@ def parallel_coordinates_import_xlsx(path = None, classe = None):
             for i in range(df.shape[1]-1):
                 df = df.rename({df.columns[i]: nomes[i]}, axis='columns')
    
-    fig = px.parallel_coordinates(df, color="score", dimensions=df.columns,
-                              title="Parallel Coordinates Plot")
+    fig = px.parallel_coordinates(df, color="score", dimensions=df.columns,title="Parallel Coordinates Plot")
+
+    # Ajustar os limites dos eixos
+    for i, dim in enumerate(df.columns[:-1]):
+        fig.update_layout(yaxis_range=[lb[i], ub[i]], row=i + 1)
+    
     fig.show()
 
-def parallel_coordinates_per_gen_import_xlsx(path = None, classe = None, generation = int):
+def parallel_coordinates_per_gen_import_xlsx(path = None, classe = None, lb = list, ub = list, generation = int):
     """Create a parallel coordinates graph of the population history."""
     
     df_aux = pd.read_excel(path)
@@ -793,8 +801,12 @@ def parallel_coordinates_per_gen_import_xlsx(path = None, classe = None, generat
             for i in range(df.shape[1]-1):
                 df = df.rename({df.columns[i]: nomes[i]}, axis='columns')
    
-    fig = px.parallel_coordinates(df, color="score", dimensions=df.columns,
-                              title="Parallel Coordinates Plot")
+    fig = px.parallel_coordinates(df, color="score", dimensions=df.columns,title="Parallel Coordinates Plot")
+
+    # Ajustar os limites dos eixos
+    for i, dim in enumerate(df.columns[:-1]):
+        fig.update_layout(yaxis_range=[lb[i], ub[i]], row=i + 1)
+
     fig.show()
 
 
