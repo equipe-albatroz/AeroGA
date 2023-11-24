@@ -3,6 +3,7 @@ import time
 import random
 import numpy as np
 import pandas as pd
+import math
 import multiprocessing
 from statistics import mean
 from bisect import bisect_left
@@ -59,6 +60,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         history = {"ind":[], "ind_norm":[],"gen":[],"fit":[],"score":[]}
         history_valid = {"ind":[], "ind_norm":[], "gen":[],"fit":[],"score":[]}
         best_individual = {"ind":[],"fit":[]}
+        old_mut_param = {"std_dev":[],"eta":[]}
         tabu_List = []
 
         # Initializing the main loop
@@ -127,9 +129,9 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
             else:
                 values_gen["avg_fit"].append(None)
             values_gen["metrics"].append(diversity_metric(population))
-            
+
             # Applying the online parameter control
-            mutation_prob = random.uniform(0.05, 0.1) 
+            mutation_prob = random.uniform(0.05, 0.15) 
             MUTPB_LIST, CXPB_LIST = online_parameter(True, num_generations, mutation_prob, 1)
 
             # Printing logger informations
@@ -250,9 +252,8 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
                 new_population = new_population[ : -aux]
             population_size_old = population_size
 
-            # Applying mutation to the new population
-            std_dev = random.uniform(0.05, 0.3)
-            eta = random.randint(10, 20)
+            # Applying mutation to the new population 
+            std_dev, eta, old_mut_param = online_expected_diversity(generation, num_generations, values_gen["metrics"][generation], old_mut_param)
             if mutation == 'polynomial':
                 population = [polynomial_mutation(ind, min_values, max_values_norm, eta) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
             elif mutation == 'gaussian':
@@ -283,7 +284,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         settings.log.warning('Best Global Individual: {}'.format(best_individual["ind"][best_individual["fit"].index(min(best_individual["fit"]))]))
         settings.log.warning('Best Global Fitness: {}'.format(min(best_individual["fit"])))
         if min(best_individual["fit"]) != 0: settings.log.warning('Best Global Score: {}'.format(1/min(best_individual["fit"])))
-        settings.log.warning(f"Tempo de Execução: {time.time() - t_inicial}")
+        settings.log.warning(f"Tempo de Execução: {round(time.time() - t_inicial, 2)}")
 
         # Listing outputs
         history["ind"] = denormalize_population(history["ind_norm"], min_values, max_values, classe)
@@ -550,16 +551,28 @@ def denormalize_population(population = list, min_values = list, max_values = li
 # #####################################################################################
 
 def diversity_metric(population = list):
-    """Calculate the sum of euclidian distance for each generation whice represents the diversity of the current population."""
+    """Calculate the normalized average distance between individuals in the population."""
+    
+    if not population or len(population) < 2:
+        return 0.0
 
-    diversity = 0
+    total_distance = 0
+    max_possible_distance = 0
+
     for i in range(len(population)):
-        for j in range(i+1, len(population)):
+        for j in range(i + 1, len(population)):
             ind1 = Individual(population[i])
             ind2 = Individual(population[j])
-            diversity += sum((ind1.genes[k] - ind2.genes[k])**2 for k in range(len(ind1.genes)))
-    return round(diversity,4)
+            total_distance += sum(abs(ind1.genes[k] - ind2.genes[k]) for k in range(len(ind1.genes)))
+            max_possible_distance += max(abs(ind1.genes[k] - ind2.genes[k]) for k in range(len(ind1.genes)))
 
+    # Calculate normalized average distance
+    if max_possible_distance == 0:
+        normalized_average_distance = 0
+    else:
+        normalized_average_distance = total_distance / ((len(population[0])/2.45)*max_possible_distance)
+
+    return round(normalized_average_distance, 4)
 
 # #####################################################################################
 # ################################ Online Parameters ##################################
@@ -585,6 +598,32 @@ def online_parameter(online_control = bool, num_generations = int, mutation_prob
         CXPB_LIST = [crossover_prob]*num_generations
 
     return MUTPB_LIST, CXPB_LIST
+
+def online_expected_diversity(current_generation = int, max_generations = int, current_diversity = float, old_mut_param = dict):
+    """Model the relationship between the number of generations and diversity."""
+    
+    generation = max(0, min(current_generation, max_generations))
+    midpoint = max_generations / 2.0 # Adjusts the parameters of the sigmoidal function
+    steepness = 0.1  # You can adjust this value to control the steepness of the curve
+    expected_diversity = 1 / (1 + math.exp(-steepness * (generation - midpoint))) # Calculates diversity using a sigmoidal function
+
+    if current_generation == 0:
+        std_dev = random.uniform(0.05, 0.3)
+        eta = random.randint(10, 20)
+    else:
+        if current_diversity < expected_diversity:
+            std_dev = abs(old_mut_param["std_dev"][current_generation-1] + old_mut_param["std_dev"][current_generation-1]*(current_diversity/expected_diversity))
+            eta = abs(old_mut_param["eta"][current_generation-1] + old_mut_param["eta"][current_generation-1]*(current_diversity/expected_diversity))
+        elif current_diversity > expected_diversity:
+            std_dev = abs(old_mut_param["std_dev"][current_generation-1] - old_mut_param["std_dev"][current_generation-1]*(expected_diversity/current_diversity))
+            eta = abs(old_mut_param["eta"][current_generation-1] - old_mut_param["eta"][current_generation-1]*(expected_diversity/current_diversity))
+        elif current_diversity == expected_diversity:
+            std_dev = old_mut_param["std_dev"][current_generation-1]
+            eta = old_mut_param["eta"][current_generation-1]
+
+    old_mut_param["std_dev"].append(std_dev); old_mut_param["eta"].append(eta)
+
+    return std_dev, eta, old_mut_param
 
 
 # #####################################################################################
