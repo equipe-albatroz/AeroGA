@@ -274,10 +274,11 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
                     break
 
             # New population size       
-            # population_size = population_size_old + random.randint(-1, 1)*int(population_size_old*random.betavariate(1,4))
-            population_size = population_size_old + random.randint(-1, 1)*int(population_size_old*random.gauss(0,0.15))
+            population_size = population_size_old + random.randint(-1, 1)*int(population_size_old*random.gauss(0,0.1))
             if population_size < population_size_old/2:
-                population_size == population_size_old/2 + population_size_old*random.random()
+                population_size += population_size_old*random.random()
+            elif population_size > 2*population_size_old:
+                population_size -= population_size_old*random.random()
 
         # Printing global optimization results
         settings.log.warning("***************************** END ******************************")
