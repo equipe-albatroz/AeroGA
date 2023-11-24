@@ -1,3 +1,7 @@
+"""
+Functions dedicated to the genetic algorithm's selection operators.
+"""
+
 import random
 from bisect import bisect_left
 

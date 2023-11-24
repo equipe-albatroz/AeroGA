@@ -1,3 +1,7 @@
+"""
+Functions dedicated to the genetic algorithm's crossover operators.
+"""
+
 import random
 
 def arithmetic_crossover(parent1 = list, parent2 = list, min_values = list, max_values = list, alpha = 0.05):

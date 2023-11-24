@@ -1,3 +1,7 @@
+"""
+Dedicated functions for plotting graphs or exporting/importing results.
+"""
+
 import os
 import numpy as np
 import pandas as pd

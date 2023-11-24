@@ -1,3 +1,7 @@
+"""
+Functions dedicated to calculating the fitness of individuals in the population.
+"""
+
 import multiprocessing
 
 def parallel_fitness(population = list, fitness_fn = None, num_processes = int):

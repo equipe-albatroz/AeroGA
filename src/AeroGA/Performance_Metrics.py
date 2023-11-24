@@ -1,3 +1,7 @@
+"""
+Functions dedicated to calculating the performance metrics of the ga population.
+"""
+
 from .Classes import Individual
 
 def diversity_metric(population = list):

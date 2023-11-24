@@ -1,3 +1,7 @@
+"""
+Functions dedicated to the genetic algorithm's mutation operators.
+"""
+
 import numpy as np
 import random
 import math

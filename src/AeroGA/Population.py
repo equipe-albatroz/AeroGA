@@ -1,3 +1,7 @@
+"""
+Functions dedicated to creating and manipulating the population.
+"""
+
 import random
 
 # #####################################################################################
