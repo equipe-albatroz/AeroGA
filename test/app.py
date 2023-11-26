@@ -1,7 +1,8 @@
-import matplotlib.pyplot as plt
-from AeroGA.AeroGA import *
+from AeroGA.AeroGA import optimize
+from AeroGA.Utilities.Plots import *
+from AeroGA.Utilities.PostProcessing import *
 from Benchmarks import *
-from AeroGA.Utilities import *
+import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
 
