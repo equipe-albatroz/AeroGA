@@ -18,8 +18,6 @@ if __name__ == '__main__':
     min_values = lb, max_values = ub, num_variables = 6, num_generations = 15, elite_count = 0,
     fitness_fn = Rastrigin)
 
-# lb = [0, 0, 0.0, 0.0, 0.0, 0.0]
-# ub = [5, 0, 0.4, 1.5, 0.5, 1.0]
 # path = "Resultados\Results_03-03-2023_17-50.xlsx"
 # create_boxplots_por_gen_import_xlsx(path, lb, ub, n_gen = 10, gen = 5)
 # parallel_coordinates_import_xlsx(path,nvar = 13, classe = "micro")
