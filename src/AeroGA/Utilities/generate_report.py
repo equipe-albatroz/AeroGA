@@ -1,3 +1,4 @@
+import os
 import jinja2
 import webbrowser
 from datetime import datetime
@@ -18,12 +19,13 @@ def create_report(titulo_pagina, table_html, plotfit, boxplot, parallel):
 
     # Salvar o HTML em um arquivo
     dt_string = datetime.now().strftime("%d-%m-%Y_%H-%M")
-    report_path = './Resultados/Report_' + str(dt_string) + '.html'
+    report_name = 'Report_' + str(dt_string) + '.html'
+    report_path = os.path.abspath(os.path.join('./Resultados/', report_name))
     with open(report_path, 'w', encoding='utf-8') as html_file:
         html_file.write(html_output)
 
     # Abrir o arquivo HTML no navegador padrão
-    webbrowser.open('report.html')
+    webbrowser.open(report_path)
 
 def open_report(report_name):
     # Abrir o arquivo HTML no navegador padrão
