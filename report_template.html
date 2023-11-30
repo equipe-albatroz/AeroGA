@@ -7,12 +7,26 @@
     <title>{{ titulo_pagina }}</title>
     <style>
         .conteudo-centralizado {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             text-align: center;
         }
 
         .tabela-centralizada {
-            display: inline-block;
             text-align: left;
+            margin: 10px;
+        }
+
+        .graficos {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin: 10px;
+        }
+
+        .grafico {
+            flex: 1;
         }
     </style>
 </head>
@@ -21,32 +35,35 @@
     <h1>{{ titulo_pagina }}</h1>
 
     <div class="conteudo-centralizado">
-        <h2>Best Plane</h2>
-        <!-- <p>Texto de explicação para a tabela...</p> -->
         <div class="tabela-centralizada">
+            <h2>Best Plane</h2>
+            <!-- <p>Texto de explicação para a tabela...</p> -->
             {{ tabela|safe }}
         </div>
 
-        <hr> <!-- Linha de divisão -->
+        <!-- <hr> Linha de divisão -->
 
-        <h2>Fitness/Metrics Plot</h2>
-        <!-- <p>Texto de explicação para o gráfico PlotFit...</p> -->
-        <img src="{{ grafico_plot_fit }}" alt="Fitness Plot">
+        <div class="graficos">
+            <div class="grafico">
+                <h2>Fitness/Metrics Plot</h2>
+                <!-- <p>Texto de explicação para o gráfico PlotFit...</p> -->
+                <img src="{{ grafico_plot_fit }}" alt="Fitness Plot">
+            </div>
 
-        <hr> <!-- Linha de divisão -->
+            <div class="grafico">
+                <h2>Box Plot</h2>
+                <!-- <p>Texto de explicação para o gráfico BoxPlot...</p> -->
+                <img src="{{ grafico_box_plot }}" alt="Box Plot">
+            </div>
+        </div>
 
-        <h2>Box Plot</h2>
-        <!-- <p>Texto de explicação para o gráfico BoxPlot...</p> -->
-        <img src="{{ grafico_box_plot }}" alt="Box Plot">
+        <!-- <hr> Linha de divisão -->
 
-        <hr> <!-- Linha de divisão -->
-
-        <h2>Parallel Coordinates Plot</h2>
-        <!-- <p>Texto de explicação para o gráfico Curvas paralelas...</p> -->
-        {{ grafico_parallel_plot }}
-
-        <hr> <!-- Linha de divisão -->
-
+        <div class="grafico">
+            <h2>Parallel Coordinates Plot</h2>
+            <!-- <p>Texto de explicação para o gráfico Curvas paralelas...</p> -->
+            {{ grafico_parallel_plot }}
+        </div>
     </div>
 </body>
 </html>
