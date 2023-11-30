@@ -12,7 +12,7 @@ from AeroGA.Classes.Error import ErrorType, Log
 # Setting error log file
 ErrorLog = Log("error.log", 'Plots')
 
-def create_plotfit(num_generations = int, values_gen = None, report = bool):
+def create_plotfit(num_generations = int, values_gen = None, report = bool, color = str):
     """Plot the fit and metrics values over the number of generations."""
     try:
         fig, (ax1, ax2, ax3) = plt.subplots(3, 1)
@@ -37,6 +37,12 @@ def create_plotfit(num_generations = int, values_gen = None, report = bool):
         ax3.set_xlabel('Iterations')
         ax3.grid(True)
 
+        if report:
+            ax1.set_facecolor(color)
+            ax2.set_facecolor(color)
+            ax3.set_facecolor(color)
+            fig.set_facecolor(color)
+
         # Salvar o gráfico em um BytesIO para posterior inclusão no HTML
         buffer = BytesIO()
         plt.savefig(buffer, format='png')
@@ -51,7 +57,7 @@ def create_plotfit(num_generations = int, values_gen = None, report = bool):
         ErrorLog.error(str(e))
         return ErrorType("danger", str(e), 'create_plotfit')
 
-def create_boxplots(out = None, min_values = list, max_values = list, report = bool):
+def create_boxplots(out = None, min_values = list, max_values = list, report = bool, color = str):
     """Boxplot of all values used in the optimization for each variable."""
     
     try:
@@ -76,10 +82,15 @@ def create_boxplots(out = None, min_values = list, max_values = list, report = b
 
         df = pd.DataFrame(data_aux)
     
-        plt.boxplot(df, vert=True)
-        plt.title('Dispersion of values')
-        plt.xlabel('Variables')
-        plt.grid(True)
+        fig, ax = plt.subplots()
+        ax.boxplot(df, vert=True)
+        ax.set_title('Dispersion of values')
+        ax.set_xlabel('Variables')
+        ax.grid(True)
+
+        if report:
+            ax.set_facecolor(color)
+            fig.set_facecolor(color)
 
         # Salvar o gráfico em um BytesIO para posterior inclusão no HTML
         buffer2 = BytesIO()
@@ -147,7 +158,7 @@ def create_boxplots_por_gen_import_xlsx(path = None, min_values = list, max_valu
         return ErrorType("danger", str(e), 'create_boxplots_por_gen_import_xlsx')
 
 
-def parallel_coordinates(out = None, lb = list, ub = list, report = bool):
+def parallel_coordinates(out = None, lb = list, ub = list, report = bool, color = str):
     """Create a parallel coordinates graph of the population history."""
     
     try:
@@ -178,6 +189,7 @@ def parallel_coordinates(out = None, lb = list, ub = list, report = bool):
         if not report: 
             fig.show()
         else: 
+            fig.update_layout(plot_bgcolor=color,paper_bgcolor=color)
             file_name = "parallel_plot.html"
             fig.write_html(file_name)
             return file_name
