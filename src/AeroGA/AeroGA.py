@@ -16,7 +16,7 @@ from AeroGA.Operators.Evaluators import parallel_fitness, fitness
 from AeroGA.Operators.Metrics import diversity_metric
 from AeroGA.Utilities.Plots import create_plotfit, create_boxplots, parallel_coordinates
 from AeroGA.Utilities.PostProcessing import export_excell
-from .generate_report import create_report
+from AeroGA.Utilities.generate_report import create_report
 
 # Setting error log file
 # ErrorLog = Log("error.log", 'AeroGA')
