@@ -29,3 +29,10 @@ AeroGA copy.py
 *.log
 *.png
 *.jpg
+
+################################################
+############ Ignorar html do report ############
+################################################
+
+report.html
+parallel_plot.html
