@@ -26,7 +26,7 @@ from AeroGA.Utilities.generate_report import create_report
 # #####################################################################################
 
 def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussian", n_threads = -1,
-    min_values = list, max_values = list, num_variables = int, num_generations = int, elite_count = int, elite="local",
+    min_values = list, max_values = list, population_size = None, num_generations = int, elite_count = int, elite="local",
     plotfit = True, plotbox = False, plotparallel = False, TabuList = False, penalization_list = [1000],
     fitness_fn = None, classe = "default", report = False):
 
@@ -41,8 +41,9 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
     settings.log.info(f"Optimization initialized with {n_threads} threads.")
 
     # Checking if num_varialbes matches the lb and ub sizes
-    if len(max_values) != len(min_values) or num_variables != len(min_values):
-        settings.log.critical("There is an inconsistency between the number of variables and the size of the bounds")
+    num_variables = len(max_values)
+    if len(max_values) != len(min_values):
+        settings.log.critical("There is an inconsistency between the size of lower and upper bounds")
         return [0]
     
     # Creating normalized max and min values list
@@ -50,8 +51,13 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
     min_values_norm = [0] * num_variables
 
     # Defining population size
-    population_size = 100
-    population_size_old = population_size
+    if population_size is None:
+        dynamic_pop_size = True
+        population_size = 100
+        population_size_old = population_size
+    else:
+        dynamic_pop_size = False
+        population_size_old = population_size
 
     # Initial value for the best fitness
     best_fitness = float('inf')
@@ -277,12 +283,13 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
             if count == population_size:
                 break
 
-        # New population size       
-        population_size = population_size_old + random.randint(-1, 1)*int(population_size_old*random.gauss(0,0.1))
-        if population_size < population_size_old/2:
-            population_size += population_size_old*random.random()
-        elif population_size > 2*population_size_old:
-            population_size -= population_size_old*random.random()
+        # New population size  
+        if dynamic_pop_size is True:     
+            population_size = population_size_old + random.randint(-1, 1)*int(population_size_old*random.gauss(0,0.1))
+            if population_size < population_size_old/2:
+                population_size += population_size_old*random.random()
+            elif population_size > 2*population_size_old:
+                population_size -= population_size_old*random.random()
 
     # Printing global optimization results
     settings.log.warning("***************************** END ******************************")
