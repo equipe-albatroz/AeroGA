@@ -27,5 +27,11 @@ AeroGA copy.py
 *.txt
 .ipynb_checkpoints
 *.log
-*.png
 *.jpg
+*.ipynb
+
+################################################
+############ Ignorar html do report ############
+################################################
+report.html
+parallel_plot.html

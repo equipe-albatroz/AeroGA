@@ -1,45 +1,29 @@
-import matplotlib.pyplot as plt
-from AeroGA.AeroGA import *
+from AeroGA.AeroGA import optimize
+from AeroGA.Utilities.Plots import *
+from AeroGA.Utilities.PostProcessing import *
 from Benchmarks import *
+import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
-    """ 
-    **********  Dicas de utilização  ***********
 
-    # Métodos seleção: "roulette", "rank", "tournament" -> Read README.md for detailed info
-    # Métodos crossover: "arithmetic", "SBX" ,"1-point", "2-point" -> Read README.md for detailed info
-    # Métodos mutação: "gaussian", "polynomial" -> Read README.md for detailed info
+    micro = ['c1', 'chord_ratio2','b1','span_ratio2','iw','nperfilw1','nperfilw2','zwGround','xCG','vh', 'ih','nperfilh','motorindex']
+    regular = ['b1', 'span_ratio_2', 'span_ratio_b3', 'c1', 'chord_ratio_c2', 'chord_ratio_c3', 'nperfilw1', 'nperfilw2', 'nperfilw3', 'iw', 'zwground', 'xCG', 'Vh', 'ARh', 'nperfilh', 'lt', 'it', 'xTDP', 'AtivaProfundor', 'motorIndex']
 
-    *VALORES DEFAULT*
-    out = optimize(selection = "tournament", crossover = "1-point", mutation = "gaussian", n_threads = -1,
-    min_values = [], max_values = [], num_variables = [], population_size = [], num_generations = [], elite_count = [],
-    online_control = False, mutation_rate = 0.4, crossover_rate = 1, eta = 5, std_dev = 0.1,
-    plotfit = True, plotbox = False, plotparallel = False, 
-    fitness_fn = function
 
-    # mutação gaussiana -> std_dev                      Ou seja não é neceessário definir eta se estiver usando
-    # mutação polinomial -> eta                         mutação gaussiana, para o polinomial serve o mesmo
-       
-    # mutation_rate e crossover_rate só são ativados caso online_control = False
-
-    *VALORES RETORNADOS PELO OUT -> out = [população, history, best_individual, values_gen]
-
-    # Função de sensibilidade -> sensibility(out["best_individual"], fitness_fn, increment=0.01, lb, ub)
-    """
-    
-    lb = [0, 0, 0.0, 0.0, 0.0, 0.0]
-    ub = [5, 0, 0.4, 1.5, 0.5, 1.0]
+    lb = [0, 0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    ub = [5, 0, 0.4, 1.5, 0.5, 1.0, 5, 0, 0.4, 1.5, 0.5, 1.0, 1.0]
     
     # Run the genetic algorithm
     out = optimize(selection = "tournament", crossover = "1-point", mutation = "polynomial", n_threads=-1,
-    min_values = lb, max_values = ub, num_variables = 6, num_generations = 50, elite_count = 0,
-    fitness_fn = Rastrigin
-    )
+        min_values = lb, max_values = ub, num_generations = 15, elite_count = 2, plotfit=False,
+        fitness_fn = Rastrigin, report=True)
 
+
+# path = "Resultados\Results_08-07-2023_19-48.xlsx"
 # lb = [0, 0, 0.0, 0.0, 0.0, 0.0]
 # ub = [5, 0, 0.4, 1.5, 0.5, 1.0]
-# path = "Resultados\Results_03-03-2023_17-50.xlsx"
-# create_boxplots_por_gen_import_xlsx(path, lb, ub, n_gen = 10, gen = 5)
-# parallel_coordinates_import_xlsx(path,nvar = 13, classe = "micro")
+# var_names = [f'Var_{i+1}' for i in range(6)]; var_names.append('Score')
+# parallel_coordinates_import_xlsx(path, lb, ub, var_names)
+# parallel_coordinates_per_gen_import_xlsx(path, lb, ub, 1, var_names)
 # create_boxplots_import_xlsx(path)
-# create_boxplots_por_gen_import_xlsx(path, 100, 80)
+# create_boxplots_por_gen_import_xlsx(path, lb, ub, 2)

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo_pagina }}</title>
+    <style>
+        body {
+            background-color: #4D83A3; /* background-color */
+            color: #ffffff; /* text color */
+            margin: 0; /* Remover margens padrão do body */
+            padding: 0;
+        }
+
+        header {
+            background-color: #4D83A3; /* Cor de fundo do cabeçalho, substitua conforme necessário */
+            padding: 10px;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header img {
+            max-width: 100%; /* Garante que a imagem não ultrapasse a largura do contêiner pai */
+            height: auto; /* Mantém a proporção da imagem */
+            width: 300px; /* Ajuste este valor para o tamanho desejado */
+        }
+        
+        .conteudo-centralizado {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            text-align: center;
+        }
+
+        h1 {
+            width: 100%; /* Garante que o título se estenda por toda a largura disponível */
+        }
+
+        .tabela-centralizada {
+            text-align: left;
+            margin: 10px;
+        }
+
+        .graficos {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin: 10px;
+        }
+
+        .grafico {
+            flex: 1;
+        }
+    </style>
+</head>
+<body class="conteudo-centralizado">
+
+    <header>
+        <img src="../White_Albatroz.png" alt="Logo da Página">
+    </header>
+
+    <h1>{{ titulo_pagina }}</h1>
+
+    <div class="conteudo-centralizado">
+        <div class="tabela-centralizada">
+            <h2>Best Plane</h2>
+            <!-- <p>Texto de explicação para a tabela...</p> -->
+            {{ tabela|safe }}
+        </div>
+
+        <div class="graficos">
+            <div class="grafico">
+                <h2>Fitness/Metrics Plot</h2>
+                <!-- <p>Texto de explicação para o gráfico PlotFit...</p> -->
+                <img src="{{ grafico_plot_fit }}" alt="Fitness Plot">
+            </div>
+
+            <div class="grafico">
+                <h2>Box Plot</h2>
+                <!-- <p>Texto de explicação para o gráfico BoxPlot...</p> -->
+                <img src="{{ grafico_box_plot }}" alt="Box Plot">
+            </div>
+        </div>
+
+        <div class="grafico">
+            <h2>Parallel Coordinates Plot</h2>
+            <!-- <p>Texto de explicação para o gráfico Curvas paralelas...</p> -->
+            {{ grafico_parallel_plot }}
+        </div>
+    </div>
+</body>
+</html>

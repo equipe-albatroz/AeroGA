@@ -1,18 +1,18 @@
 # AeroGA
 
-**Single-objective optimization heuristic algorithm using evolutionary concepts.**
+ **Single-objective optimization heuristic algorithm using evolutionary concepts.**
 
-To use the GA, you should clone the repository, access the folder through the terminal, and perform the installation as shown below:
+ To use the GA, you should clone the repository, access the folder through the terminal, and perform the installation as shown below:
 
-~~~python
-pip install -e .                             
-~~~
+ ~~~python
+ pip install -e .                             
+ ~~~
 
-To call the library just add the commands shown below:
+ To call the library just add the commands shown below:
 
-~~~python
-from AeroGA.AeroGA import *                           
-~~~
+ ~~~python
+ from AeroGA.AeroGA import optimize                           
+ ~~~
 
 # Steps
 
@@ -49,8 +49,8 @@ To perform the optimization one should call the AeroGA function 'optimize', as s
 
 ~~~python
 out = AeroGA.optimize(selection = "tournament", crossover = "1-point", mutation = "gaussian", n_threads = -1,
-    min_values = list, max_values = list, num_variables = int, population_size = int, num_generations = int, elite_count = int, elite="local",
-    online_control = False, mutation_prob = 0.4, crossover_prob = 1, eta = 20, std_dev = 0.1,
+    min_values = list, max_values = list, num_variables = int, num_generations = int, elite_count = int, elite="local",
+    online_control = False, mutation_prob = 0.4, crossover_prob = 1,
     plotfit = True, plotbox = False, plotparallel = False, 
     fitness_fn = None                                                  
 ~~~
@@ -66,7 +66,7 @@ The *out* dictionary returns the following values:
 
 ### **2. Population Initialization**
 
-Initial stage of the code, where individuals with random values are generated and for each one the fitness value is calculated.
+ Initial stage of the code, where individuals with random values are generated and for each one the fitness value is calculated.
 
 ### **3. Selection Criteria**
 
@@ -116,19 +116,31 @@ Initial stage of the code, where individuals with random values are generated an
 
 ### **7. Sensitivity Analysis**
 
- * It can be done using the *sensitivity* function, where an individual is used and from the increment the fitness function is calculated by varying each variable of the individual leaving the others fixed.
+ To import sensitivity function analysis, add the commands shown below:
 
-~~~python                                                
-sensibility(individual = list, fitness_fn = None, increment = None, min_values = list, max_values = list)
-~~~
+ ~~~python
+ from AeroGA.Utilities.PostProcessing import sensibility                           
+ ~~~
 
-The increment can be a fixed continuous value, so all variables will have the same calculation step (except for integer variables, which will always be 1), or you can define a list with specific increment values for each variable.
+ * For this analysis where an individual is used and from the increment the fitness function is calculated by varying each variable of the individual leaving the others fixed.
+
+ ~~~python                                                
+ sensibility(individual = list, fitness_fn = None, increment = None, min_values = list, max_values = list)
+ ~~~
+
+ The increment can be a fixed continuous value, so all variables will have the same calculation step (except for integer variables, which will always be 1), or you can define a list with specific increment values for each variable.
 
 ### **8. Online Parameter Control**
 
  * The online parameter control serves to vary the mutation rate along the GA, so that the mutation starts high and decreases until it reaches the value input as *mut_prob* in the last generation. This measure is proposed because it is interesting that initially the maximum exploration phase of GA occurs with high mutation and at the end this exploration level is low, allowing GA to develop the individuals found instead of mutating them completely.
 
 ### **9. Plots**
+
+ To import plot functions add the commands shown below:
+
+ ~~~python
+ from AeroGA.Utilities.Plots import *                           
+ ~~~
 
  * **(BestFit, AvgFit, Metrics) x Generation** - It shows the Fitness score (maximum and average) and metrics over the generations of GA. It can be enabled/disabled in the inputs of the *optimize* function.
 
@@ -170,21 +182,21 @@ The increment can be a fixed continuous value, so all variables will have the sa
   parallel_coordinates_per_gen_import_xlsx(path = None, classe = None, generation = int)                                     
  ~~~
 
-**OBS.:** For the *class* variable, if the input is micro or regular, the variable names for the 2023 project will be used. If you need to change this, you can input *class* as a list containing the new variable names. Ex. *['c1', 'chord_ratio2','b1','span_ratio2','iw','nperfilw1','nperfilw2','zwGround','xCG','vh', 'ih','nperfilh','motorindex']*
+ **OBS.:** For the *class* variable, if the input is micro or regular, the variable names for the 2023 project will be used. If you need to change this, you can input *class* as a list containing the new variable names. Ex. *['c1', 'chord_ratio2','b1','span_ratio2','iw','nperfilw1','nperfilw2','zwGround','xCG','vh', 'ih','nperfilh','motorindex']*
 
 # Contact
 
-Any questions about the code please contact the author.
+ Any questions about the code please contact the author.
 
-Author: Krigor Rosa
+ Author: Krigor Rosa
 
-Email: krigorsilva13@gmail.com
+ Email: krigorsilva13@gmail.com
 
 # References
 
-GABRIEL, Paulo Henrique Ribeiro; DELBEM, Alexandre Cláudio Botazzo. Fundamentos de algoritmos evolutivos. 2008.
+ GABRIEL, Paulo Henrique Ribeiro; DELBEM, Alexandre Cláudio Botazzo. Fundamentos de algoritmos evolutivos. 2008.
 
-VON ZUBEN, Fernando J. Computação evolutiva: uma abordagem pragmática. Anais da I Jornada de Estudos em Computação de Piracicaba e Região (1a JECOMP), v. 1, p. 25-45, 2000.
+ VON ZUBEN, Fernando J. Computação evolutiva: uma abordagem pragmática. Anais da I Jornada de Estudos em Computação de Piracicaba e Região (1a JECOMP), v. 1, p. 25-45, 2000.
 
-HAMDAN, Mohammad. The distribution index in polynomial mutation for evolutionary multiobjective optimisation algorithms: An experimental study. In: International Conference on Electronics Computer Technology (IEEE, Kanyakumari, India, 2012). 2012.
+ HAMDAN, Mohammad. The distribution index in polynomial mutation for evolutionary multiobjective optimisation algorithms: An experimental study. In: International Conference on Electronics Computer Technology (IEEE, Kanyakumari, India, 2012). 2012.
 	
