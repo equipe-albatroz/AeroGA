@@ -2,15 +2,17 @@
 Dedicated functions for plotting graphs or exporting/importing results.
 """
 
+import base64
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
+from io import BytesIO
 from AeroGA.Classes.Error import ErrorType, Log
 
 # Setting error log file
 ErrorLog = Log("error.log", 'Plots')
 
-def create_plotfit(num_generations = int, values_gen = None):
+def create_plotfit(num_generations = int, values_gen = None, report = bool):
     """Plot the fit and metrics values over the number of generations."""
     try:
         fig, (ax1, ax2, ax3) = plt.subplots(3, 1)
@@ -35,12 +37,21 @@ def create_plotfit(num_generations = int, values_gen = None):
         ax3.set_xlabel('Iterations')
         ax3.grid(True)
 
-        plt.show()
+        # Salvar o gráfico em um BytesIO para posterior inclusão no HTML
+        buffer = BytesIO()
+        plt.savefig(buffer, format='png')
+        buffer.seek(0)
+
+        # Codificar a imagem em base64
+        fitplot_data_uri = "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+        if not report: plt.show()
+        else: plt.close(fig); return fitplot_data_uri
     except Exception as e:
         ErrorLog.error(str(e))
         return ErrorType("danger", str(e), 'create_plotfit')
 
-def create_boxplots(out = None, min_values = list, max_values = list):
+def create_boxplots(out = None, min_values = list, max_values = list, report = bool):
     """Boxplot of all values used in the optimization for each variable."""
     
     try:
@@ -58,7 +69,10 @@ def create_boxplots(out = None, min_values = list, max_values = list):
 
         for i in range(len(data)):
             for j in range(len(min_values)):
-                data_aux[i][j] = ((data[i][j] - min_values[j])/(max_values[j] - min_values[j]))
+                if max_values[j] - min_values[j] != 0:
+                    data_aux[i][j] = (data[i][j] - min_values[j]) / (max_values[j] - min_values[j])
+                else:
+                    data_aux[i][j] = 0
 
         df = pd.DataFrame(data_aux)
     
@@ -67,7 +81,16 @@ def create_boxplots(out = None, min_values = list, max_values = list):
         plt.xlabel('Variables')
         plt.grid(True)
 
-        plt.show()
+        # Salvar o gráfico em um BytesIO para posterior inclusão no HTML
+        buffer2 = BytesIO()
+        plt.savefig(buffer2, format='png')
+        buffer2.seek(0)
+
+        # Codificar a imagem em base64
+        boxplot_data_uri = "data:image_box/png;base64," + base64.b64encode(buffer2.getvalue()).decode('utf-8')
+
+        if not report: plt.show()
+        else: return boxplot_data_uri
     except Exception as e:
         ErrorLog.error(str(e))
         return ErrorType("danger", str(e), 'create_boxplots')
@@ -124,7 +147,7 @@ def create_boxplots_por_gen_import_xlsx(path = None, min_values = list, max_valu
         return ErrorType("danger", str(e), 'create_boxplots_por_gen_import_xlsx')
 
 
-def parallel_coordinates(out = None, lb = list, ub = list):
+def parallel_coordinates(out = None, lb = list, ub = list, report = bool):
     """Create a parallel coordinates graph of the population history."""
     
     try:
@@ -146,13 +169,18 @@ def parallel_coordinates(out = None, lb = list, ub = list):
         df = pd.DataFrame(data)
         df['Score'] = lista
         
-        fig = px.parallel_coordinates(df, color="score", dimensions=df.columns,title="Parallel Coordinates Plot")
+        fig = px.parallel_coordinates(df, color="Score", dimensions=df.columns,title="Parallel Coordinates Plot")
 
         # Ajustar os limites dos eixos
         for i, dim in enumerate(df.columns[:-1]):
-            fig.update_layout(yaxis_range=[lb[i], ub[i]], row=i + 1)
+            fig.update_layout(yaxis_range=[lb[i], ub[i]])
 
-        fig.show()
+        if not report: 
+            fig.show()
+        else: 
+            file_name = "parallel_plot.html"
+            fig.write_html(file_name)
+            return file_name
     except Exception as e:
         ErrorLog.error(str(e))
         return ErrorType("danger", str(e), 'parallel_coordinates')
