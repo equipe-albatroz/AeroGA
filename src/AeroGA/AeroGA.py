@@ -318,7 +318,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         parallel_coordinates(out, min_values, max_values, False, '#FFFFFF')
 
     if report:
-        color = '#4D83A3'
+        color = '#4D83A3'  # '#FFFFFF' -> white
         plotfit_html = create_plotfit(num_generations, values_gen, report, color)
         boxplot_html = create_boxplots(out, min_values, max_values, report, color)
         parallel_html = parallel_coordinates(out, min_values, max_values, report, color)
