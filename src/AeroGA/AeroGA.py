@@ -26,9 +26,10 @@ from AeroGA.Utilities.generate_report import create_report
 # #####################################################################################
 
 def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussian", n_threads = -1,
-            min_values = list, max_values = list, population_size = None, num_generations = int,
-            elite_count = int, elite="local", control_func = 'inverse_sigmoidal', TabuList = False, penalization_list = [1000],
-            plotfit = True, plotbox = False, plotparallel = False,fitness_fn = None, classe = "default", report = False
+            min_values = list, max_values = list, population_size = None, num_generations = int, 
+            var_names = None, classe = "default", elite_count = int, elite = "local",
+            control_func = 'inverse_sigmoidal', TabuList = False, penalization_list = [1000],
+            plotfit = True, plotbox = False, plotparallel = False,fitness_fn = None, report = False
             ):
 
     """Perform the genetic algorithm to find an optimal solution."""
@@ -46,6 +47,10 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
     if len(max_values) != len(min_values):
         settings.log.critical("There is an inconsistency between the size of lower and upper bounds")
         return [0]
+    
+    # Defining variables names in case none is given
+    if var_names is None:
+        var_names = [f'Var_{i+1}' for i in range(num_variables)]
     
     # Creating normalized max and min values list
     max_values_norm = [1] * num_variables
@@ -326,7 +331,9 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         dt_string = datetime.now().strftime("%d-%m-%Y_%H-%M")
         page_title = 'AeroGA Report - ' + str(dt_string)
         lst_html = best_individual["ind"][best_individual["fit"].index(min(best_individual["fit"]))]
-        df_html = pd.DataFrame(lst_html).transpose(); df_html['Score'] = 1/min(best_individual["fit"])
+        df_html = pd.DataFrame(lst_html).transpose()
+        for i in range(df_html.shape[1]): df_html = df_html.rename({df_html.columns[i]: var_names[i]}, axis='columns')
+        df_html['Score'] = 1/min(best_individual["fit"])
         table_html = df_html.to_html(index=False)
 
         create_report(page_title, table_html, plotfit_html, boxplot_html, parallel_html)
