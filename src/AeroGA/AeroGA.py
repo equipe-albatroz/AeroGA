@@ -26,9 +26,10 @@ from AeroGA.Utilities.generate_report import create_report
 # #####################################################################################
 
 def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussian", n_threads = -1,
-    min_values = list, max_values = list, population_size = None, num_generations = int, elite_count = int, elite="local",
-    plotfit = True, plotbox = False, plotparallel = False, TabuList = False, penalization_list = [1000],
-    fitness_fn = None, classe = "default", report = False):
+            min_values = list, max_values = list, population_size = None, num_generations = int,
+            elite_count = int, elite="local", control_func = 'inverse_sigmoidal', TabuList = False, penalization_list = [1000],
+            plotfit = True, plotbox = False, plotparallel = False,fitness_fn = None, classe = "default", report = False
+            ):
 
     """Perform the genetic algorithm to find an optimal solution."""
 
@@ -263,7 +264,7 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
         population_size_old = population_size
 
         # Applying mutation to the new population 
-        std_dev, eta, old_mut_param = online_expected_diversity(generation, num_generations, values_gen["metrics"][generation], old_mut_param)
+        std_dev, eta, old_mut_param = online_expected_diversity(generation, num_generations, values_gen["metrics"][generation], old_mut_param, control_func)
         if mutation == 'polynomial':
             population = [polynomial_mutation(ind, min_values, max_values_norm, eta) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
         elif mutation == 'gaussian':
