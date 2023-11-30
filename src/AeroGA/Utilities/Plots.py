@@ -142,7 +142,10 @@ def create_boxplots_por_gen_import_xlsx(path = None, min_values = list, max_valu
         aux = [ [ 0 for _ in range(len(lista[0]))] for _ in range(len(lista)) ]
         for i in range(len(lista)):
             for j in range(len(lista[0])):
-                aux[i][j] = (lista[i][j]-min_values[j])/(max_values[j]-min_values[j])
+                if (max_values[j]-min_values[j]) == 0:
+                    aux[i][j] = 0
+                else:
+                    aux[i][j] = (lista[i][j]-min_values[j])/(max_values[j]-min_values[j])
 
         df = pd.DataFrame(aux)
 
@@ -197,7 +200,7 @@ def parallel_coordinates(out = None, lb = list, ub = list, report = bool, color 
         ErrorLog.error(str(e))
         return ErrorType("danger", str(e), 'parallel_coordinates')
 
-def parallel_coordinates_import_xlsx(path = None, classe = None, lb = list, ub = list):
+def parallel_coordinates_import_xlsx(path = None, lb = list, ub = list, var_names = list):
     """Create a parallel coordinates graph of the population history."""
     
     try:
@@ -205,33 +208,22 @@ def parallel_coordinates_import_xlsx(path = None, classe = None, lb = list, ub =
         del df["gen"]
         del df["fit"]
 
-        micro = ['c1', 'chord_ratio2','b1','span_ratio2','iw','nperfilw1','nperfilw2','zwGround','xCG','vh', 'ih','nperfilh','motorindex']
-        regular = ['b1', 'span_ratio_2', 'span_ratio_b3', 'c1', 'chord_ratio_c2', 'chord_ratio_c3', 'nperfilw1', 'nperfilw2', 'nperfilw3', 'iw', 'zwground', 'xCG', 'Vh', 'ARh', 'nperfilh', 'lt', 'it', 'xTDP', 'AtivaProfundor', 'motorIndex']
-
-        if classe != None:
-            if isinstance(classe,list):
-                for i in range(df.shape[1]-1):
-                    df = df.rename({df.columns[i]: classe[i]}, axis='columns')
-            else:
-                if classe == "micro":
-                    nomes = micro
-                else:
-                    nomes = regular
-                for i in range(df.shape[1]-1):
-                    df = df.rename({df.columns[i]: nomes[i]}, axis='columns')
+        if isinstance(var_names,list):
+            for i in range(df.shape[1]):
+                df = df.rename({df.columns[i]: var_names[i]}, axis='columns')
     
-        fig = px.parallel_coordinates(df, color="score", dimensions=df.columns,title="Parallel Coordinates Plot")
+        fig = px.parallel_coordinates(df, color="Score", dimensions=df.columns,title="Parallel Coordinates Plot")
 
         # Ajustar os limites dos eixos
         for i, dim in enumerate(df.columns[:-1]):
-            fig.update_layout(yaxis_range=[lb[i], ub[i]], row=i + 1)
+            fig.update_layout(yaxis_range=[lb[i], ub[i]])
         
         fig.show()
     except Exception as e:
         ErrorLog.error(str(e))
         return ErrorType("danger", str(e), 'parallel_coordinates_import_xlsx')
 
-def parallel_coordinates_per_gen_import_xlsx(path = None, classe = None, lb = list, ub = list, generation = int):
+def parallel_coordinates_per_gen_import_xlsx(path = None, lb = list, ub = list, generation = int, var_names = list):
     """Create a parallel coordinates graph of the population history."""
     
     try:
@@ -243,26 +235,15 @@ def parallel_coordinates_per_gen_import_xlsx(path = None, classe = None, lb = li
         del df["gen"]
         del df["fit"]
 
-        micro = ['c1', 'chord_ratio2','b1','span_ratio2','iw','nperfilw1','nperfilw2','zwGround','xCG','vh', 'ih','nperfilh','motorindex']
-        regular = ['b1', 'span_ratio_2', 'span_ratio_b3', 'c1', 'chord_ratio_c2', 'chord_ratio_c3', 'nperfilw1', 'nperfilw2', 'nperfilw3', 'iw', 'zwground', 'xCG', 'Vh', 'ARh', 'nperfilh', 'lt', 'it', 'xTDP', 'AtivaProfundor', 'motorIndex']
-
-        if classe != None:
-            if isinstance(classe,list):
-                for i in range(df.shape[1]-1):
-                    df = df.rename({df.columns[i]: classe[i]}, axis='columns')
-            else:
-                if classe == "micro":
-                    nomes = micro
-                else:
-                    nomes = regular
-                for i in range(df.shape[1]-1):
-                    df = df.rename({df.columns[i]: nomes[i]}, axis='columns')
+        if isinstance(var_names,list):
+            for i in range(df.shape[1]):
+                df = df.rename({df.columns[i]: var_names[i]}, axis='columns')
     
-        fig = px.parallel_coordinates(df, color="score", dimensions=df.columns,title="Parallel Coordinates Plot")
+        fig = px.parallel_coordinates(df, color="Score", dimensions=df.columns,title="Parallel Coordinates Plot")
 
         # Ajustar os limites dos eixos
         for i, dim in enumerate(df.columns[:-1]):
-            fig.update_layout(yaxis_range=[lb[i], ub[i]], row=i + 1)
+            fig.update_layout(yaxis_range=[lb[i], ub[i]])
 
         fig.show()
     except Exception as e:
