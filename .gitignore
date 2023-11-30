@@ -27,7 +27,6 @@ AeroGA copy.py
 *.txt
 .ipynb_checkpoints
 *.log
-*.png
 *.jpg
 *.ipynb
 
