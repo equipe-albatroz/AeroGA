@@ -1,5 +1,6 @@
 import jinja2
 import webbrowser
+from datetime import datetime
 
 def create_report(titulo_pagina, table_html, plotfit, boxplot, parallel):
     # Renderizar o HTML usando o Jinja2
@@ -15,8 +16,10 @@ def create_report(titulo_pagina, table_html, plotfit, boxplot, parallel):
     html_output = template.render(titulo_pagina=titulo_pagina, grafico_plot_fit=plotfit, grafico_box_plot=boxplot, 
                                   grafico_parallel_plot=parallel_content, tabela=table_html)
 
-     # Salvar o HTML em um arquivo
-    with open('report.html', 'w', encoding='utf-8') as html_file:
+    # Salvar o HTML em um arquivo
+    dt_string = datetime.now().strftime("%d-%m-%Y_%H-%M")
+    report_path = './Resultados/Report_' + str(dt_string) + '.html'
+    with open(report_path, 'w', encoding='utf-8') as html_file:
         html_file.write(html_output)
 
     # Abrir o arquivo HTML no navegador padrão
