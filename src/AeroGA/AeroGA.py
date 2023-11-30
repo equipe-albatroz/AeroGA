@@ -311,16 +311,17 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
     export_excell(out)
 
     if plotfit == True:
-        create_plotfit(num_generations, values_gen, False)
+        create_plotfit(num_generations, values_gen, False, '#FFFFFF')
     if plotbox == True:
-        create_boxplots(out, min_values, max_values, False)
+        create_boxplots(out, min_values, max_values, False, '#FFFFFF')
     if plotparallel == True:
-        parallel_coordinates(out)
+        parallel_coordinates(out, min_values, max_values, False, '#FFFFFF')
 
     if report:
-        plotfit_html = create_plotfit(num_generations, values_gen, report)
-        boxplot_html = create_boxplots(out, min_values, max_values, report)
-        parallel_html = parallel_coordinates(out, min_values, max_values, report)
+        color = '#4D83A3'
+        plotfit_html = create_plotfit(num_generations, values_gen, report, color)
+        boxplot_html = create_boxplots(out, min_values, max_values, report, color)
+        parallel_html = parallel_coordinates(out, min_values, max_values, report, color)
 
         dt_string = datetime.now().strftime("%d-%m-%Y_%H-%M")
         page_title = 'AeroGA Report - ' + str(dt_string)
