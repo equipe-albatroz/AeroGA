@@ -15,8 +15,8 @@ if __name__ == '__main__':
     
     # Run the genetic algorithm
     out = optimize(selection = "tournament", crossover = "1-point", mutation = "polynomial", n_threads=-1,
-    min_values = lb, max_values = ub, num_variables = 6, num_generations = 15, elite_count = 0,
-    fitness_fn = Rastrigin)
+        min_values = lb, max_values = ub, num_variables = 6, num_generations = 2, elite_count = 2, plotfit=False,
+        fitness_fn = Rastrigin, report=True)
 
 # path = "Resultados\Results_03-03-2023_17-50.xlsx"
 # create_boxplots_por_gen_import_xlsx(path, lb, ub, n_gen = 10, gen = 5)
