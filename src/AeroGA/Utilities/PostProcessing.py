@@ -71,7 +71,7 @@ def export_excell(out):
 
         df['gen'] = lista
         df['fit'] = lista2
-        df['score'] = lista3
+        df['Score'] = lista3
 
         # Check whether the specified path exists or not
         path = "Resultados"
