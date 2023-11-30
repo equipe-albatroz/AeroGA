@@ -2,7 +2,9 @@ import copy
 import time
 import random
 import multiprocessing
+import pandas as pd
 from statistics import mean
+from datetime import datetime
 from . import settings
 from AeroGA.Classes.Individual import Individual
 from AeroGA.Classes.Error import ErrorType, Log
@@ -14,6 +16,7 @@ from AeroGA.Operators.Evaluators import parallel_fitness, fitness
 from AeroGA.Operators.Metrics import diversity_metric
 from AeroGA.Utilities.Plots import create_plotfit, create_boxplots, parallel_coordinates
 from AeroGA.Utilities.PostProcessing import export_excell
+from .generate_report import create_report
 
 # Setting error log file
 # ErrorLog = Log("error.log", 'AeroGA')
@@ -25,7 +28,7 @@ from AeroGA.Utilities.PostProcessing import export_excell
 def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussian", n_threads = -1,
     min_values = list, max_values = list, num_variables = int, num_generations = int, elite_count = int, elite="local",
     plotfit = True, plotbox = False, plotparallel = False, TabuList = False, penalization_list = [1000],
-    fitness_fn = None, classe = "default"):
+    fitness_fn = None, classe = "default", report = False):
 
     """Perform the genetic algorithm to find an optimal solution."""
 
@@ -300,10 +303,23 @@ def optimize(selection = "tournament", crossover = "1-point", mutation = "gaussi
     export_excell(out)
 
     if plotfit == True:
-        create_plotfit(num_generations, values_gen)
+        create_plotfit(num_generations, values_gen, False)
     if plotbox == True:
-        create_boxplots(out, num_generations, min_values, max_values)
+        create_boxplots(out, min_values, max_values, False)
     if plotparallel == True:
         parallel_coordinates(out)
+
+    if report:
+        plotfit_html = create_plotfit(num_generations, values_gen, report)
+        boxplot_html = create_boxplots(out, min_values, max_values, report)
+        parallel_html = parallel_coordinates(out, min_values, max_values, report)
+
+        dt_string = datetime.now().strftime("%d-%m-%Y_%H-%M")
+        page_title = 'AeroGA Report - ' + str(dt_string)
+        lst_html = best_individual["ind"][best_individual["fit"].index(min(best_individual["fit"]))]
+        df_html = pd.DataFrame(lst_html).transpose(); df_html['Score'] = 1/min(best_individual["fit"])
+        table_html = df_html.to_html(index=False)
+
+        create_report(page_title, table_html, plotfit_html, boxplot_html, parallel_html)
     
     return out
