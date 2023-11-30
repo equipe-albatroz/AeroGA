@@ -91,15 +91,22 @@ def online_parameter(online_control = bool, num_generations = int, mutation_prob
         ErrorLog.error(str(e))
         return ErrorType("danger", str(e), 'online_parameter')
 
-def online_expected_diversity(current_generation = int, max_generations = int, current_diversity = float, old_mut_param = dict):
+def online_expected_diversity(current_generation = int, max_generations = int, current_diversity = float, old_mut_param = dict, func = str):
     """Model the relationship between the number of generations and diversity."""
     
     try:
         generation = max(0, min(current_generation, max_generations))
         midpoint = max_generations / 2.0 # Adjusts the parameters of the sigmoidal function
         steepness = 0.1  # You can adjust this value to control the steepness of the curve
-        expected_diversity = 1 / (1 + math.exp(-steepness * (generation - midpoint))) # Calculates diversity using a sigmoidal function
-
+        
+        # functions to control diversity
+        if func == 'sigmoidal':
+            expected_diversity = 1 / (1 + math.exp(-steepness * (generation - midpoint)))
+        elif func == 'inverse_sigmoidal':
+            expected_diversity = 1 - (1 / (1 + math.exp(-steepness * (generation - midpoint))))
+        elif func == 'linear':
+            expected_diversity = 1 + (-1 / max_generations) * generation
+        
         if current_generation == 0:
             std_dev = random.uniform(0.05, 0.3)
             eta = random.randint(10, 20)
