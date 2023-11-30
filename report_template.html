@@ -9,6 +9,23 @@
         body {
             background-color: #4D83A3; /* background-color */
             color: #ffffff; /* text color */
+            margin: 0; /* Remover margens padrão do body */
+            padding: 0;
+        }
+
+        header {
+            background-color: #4D83A3; /* Cor de fundo do cabeçalho, substitua conforme necessário */
+            padding: 10px;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header img {
+            max-width: 100%; /* Garante que a imagem não ultrapasse a largura do contêiner pai */
+            height: auto; /* Mantém a proporção da imagem */
+            width: 300px; /* Ajuste este valor para o tamanho desejado */
         }
         
         .conteudo-centralizado {
@@ -16,6 +33,10 @@
             flex-wrap: wrap;
             justify-content: center;
             text-align: center;
+        }
+
+        h1 {
+            width: 100%; /* Garante que o título se estenda por toda a largura disponível */
         }
 
         .tabela-centralizada {
@@ -37,6 +58,10 @@
 </head>
 <body class="conteudo-centralizado">
 
+    <header>
+        <img src="../White_Albatroz.png" alt="Logo da Página">
+    </header>
+
     <h1>{{ titulo_pagina }}</h1>
 
     <div class="conteudo-centralizado">
@@ -45,8 +70,6 @@
             <!-- <p>Texto de explicação para a tabela...</p> -->
             {{ tabela|safe }}
         </div>
-
-        <!-- <hr> Linha de divisão -->
 
         <div class="graficos">
             <div class="grafico">
@@ -61,8 +84,6 @@
                 <img src="{{ grafico_box_plot }}" alt="Box Plot">
             </div>
         </div>
-
-        <!-- <hr> Linha de divisão -->
 
         <div class="grafico">
             <h2>Parallel Coordinates Plot</h2>
