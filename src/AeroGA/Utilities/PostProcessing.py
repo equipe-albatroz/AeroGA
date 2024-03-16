@@ -25,14 +25,15 @@ def sensibility(individual = list, fitness_fn = None, increment = None, min_valu
 
         for i in range(len(individual)):
             settings.log.info('Iteração: {} de {}'.format(i, len(individual)))
-            for new_value in np.arange(min_values[i], max_values[i], step[i]):
-                new_individual = individual.copy()
-                if isinstance(new_individual[i], int):
-                    new_value = int(new_value)
-                new_individual[i] = new_value
-                dict["nvar"].append(i)
-                dict["value"].append(new_value)
-                dict["fit"].append(fitness_fn(new_individual))
+            if step[i] != 0:
+                for new_value in np.arange(min_values[i], max_values[i], step[i]):
+                    new_individual = individual.copy()
+                    if isinstance(new_individual[i], int):
+                        new_value = int(new_value)
+                    new_individual[i] = new_value
+                    dict["nvar"].append(i)
+                    dict["value"].append(new_value)
+                    dict["fit"].append(fitness_fn(new_individual))
 
         df = pd.DataFrame(dict)
         now = datetime.now()
