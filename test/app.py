@@ -19,6 +19,13 @@ if __name__ == '__main__':
         fitness_fn = Rastrigin, report=True)
 
 
+# sensibility(individual = [3, 3, 3.0, 3.0, 3.0, 3.0, 3, 3, 3.0, 3.0, 3.0, 3.0, 3.0], 
+#             fitness_fn = Rastrigin, 
+#             increment  = [1, 1, 0.1, 0.1, 0.1, 0.1, 1, 1, 0.1, 0.0, 0.1, 0.1, 0.1], 
+#             min_values = [0, 0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0], 
+#             max_values = [5, 5, 5.0, 5.0, 5.0, 5.0, 5, 0, 5.0, 5.0, 5.0, 5.0, 5.0]
+#             )
+
 # path = "Resultados\Results_08-07-2023_19-48.xlsx"
 # lb = [0, 0, 0.0, 0.0, 0.0, 0.0]
 # ub = [5, 0, 0.4, 1.5, 0.5, 1.0]
