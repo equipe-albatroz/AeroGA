@@ -20,6 +20,7 @@ def parallel_fitness(population = list, fitness_fn = None, num_processes = int):
         ErrorLog.error(str(e))
         return ErrorType("danger", str(e), 'parallel_fitness')   
 
+
 # def parallel_fitness(population = list, fitness_fn = None, num_processes = int):
 #     """Calculate the fitness of each individual in the population."""
 #     try:
