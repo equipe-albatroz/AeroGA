@@ -1,6 +1,7 @@
 from AeroGA.AeroGA import optimize
 from AeroGA.Utilities.Plots import *
 from AeroGA.Utilities.PostProcessing import *
+from AeroGA.Utilities.generate_report import *
 from Benchmarks import *
 import matplotlib.pyplot as plt
 
@@ -34,3 +35,5 @@ if __name__ == '__main__':
 # parallel_coordinates_per_gen_import_xlsx(path, lb, ub, 1, var_names)
 # create_boxplots_import_xlsx(path)
 # create_boxplots_por_gen_import_xlsx(path, lb, ub, 2)
+
+# open_report("Report_29-11-2023_22-29.html")

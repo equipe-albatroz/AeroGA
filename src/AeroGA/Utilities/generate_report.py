@@ -29,4 +29,4 @@ def create_report(titulo_pagina, table_html, plotfit, boxplot, parallel):
 
 def open_report(report_name):
     # Abrir o arquivo HTML no navegador padrão
-    webbrowser.open(report_name)
+    webbrowser.open(os.path.abspath(os.path.join('./Resultados/', report_name)))
