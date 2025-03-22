@@ -3,39 +3,30 @@ Functions dedicated to calculating the fitness of individuals in the population.
 """
 
 import multiprocessing
-from AeroGA.Classes.Error import ErrorType, Log
+from AeroGA.Classes.Error import ErrorType
 from joblib import Parallel, delayed
 
-# Setting error log file
-ErrorLog = Log("error.log", 'Evaluators')
-
-def parallel_fitness(population = list, fitness_fn = None, num_processes = int):
-    if num_processes == -1:
-        num_processes = multiprocessing.cpu_count()
+def evaluate(population = list, history = dict, fitness_fn = None, num_processes = int):
+    """Evaluate the fitness of the population."""
+    
+    # Verificar se o indivíduo já está no histórico
+    def get_fitness(individual, history):
+        if individual in history["ind_norm"]:
+            index = history["ind_norm"].index(individual)
+            return history["fit"][index]
+        else:
+            return fitness_fn(individual)
 
     try:
-        fitness_values = Parallel(n_jobs=num_processes)(delayed(fitness_fn)(individual) for individual in population)
-        return fitness_values
+        fitness_values = []
+        if num_processes != 0:
+            fitness_values = Parallel(n_jobs=num_processes)(delayed(get_fitness)(individual, history) for individual in population)
+        else:
+            fitness_values = [get_fitness(individual) for individual in population]
+
+        fitness_values_float = [float(x) for x in fitness_values]
+
+        return fitness_values_float
     except Exception as e:
-        ErrorLog.error(str(e))
-        return ErrorType("danger", str(e), 'parallel_fitness')   
-
-
-# def parallel_fitness(population = list, fitness_fn = None, num_processes = int):
-#     """Calculate the fitness of each individual in the population."""
-#     try:
-#         with multiprocessing.Pool(num_processes) as pool:
-#             fitness_values = pool.map(fitness_fn, population)
-#         return fitness_values
-#     except Exception as e:
-#         ErrorLog.error(str(e))
-#         return ErrorType("danger", str(e), 'parallel_fitness')
-
-# Fitness function without using multi threads
-def fitness(population = list, fitness_fn = None):
-    """Calculate the fitness of each individual in the population."""
-    try:
-        return [fitness_fn(ind) for ind in population]
-    except Exception as e:
-        ErrorLog.error(str(e))
-        return ErrorType("danger", str(e), 'fitness')
+        error = ErrorType("ValueError", str(e), 'parallel_fitness')
+        return error.message
