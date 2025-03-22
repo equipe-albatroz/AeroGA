@@ -7,10 +7,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 from AeroGA import settings
-from AeroGA.Classes.Error import ErrorType, Log
-
-# Setting error log file
-ErrorLog = Log("error.log", 'Postprocessing')
+from AeroGA.Classes.Error import ErrorType
 
 def sensibility(individual = list, fitness_fn = None, increment = None, min_values = list, max_values = list):
     """Calculate the fitness of an individual for each iteration, where one variable is incremented by a given value within the range of min and max values.
@@ -43,8 +40,8 @@ def sensibility(individual = list, fitness_fn = None, increment = None, min_valu
 
         return print(pd.DataFrame(dict))
     except Exception as e:
-        ErrorLog.error(str(e))
-        return ErrorType("danger", str(e), 'sensibility')
+        error = ErrorType("ValueError", str(e), 'sensibility')
+        return error.message
 
 
 def export_excell(out):
@@ -86,8 +83,8 @@ def export_excell(out):
 
         df.to_excel(string, index=False)
     except Exception as e:
-        ErrorLog.error(str(e))
-        return ErrorType("danger", str(e), 'export_excell')
+        error = ErrorType("ValueError", str(e), 'export_excell')
+        return error.message
 
 # #####################################################################################
 # ##################################### Tests #########################################
