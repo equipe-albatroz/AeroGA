@@ -1,7 +1,7 @@
 """Main module of the AeroGA package."""
 
 from AeroGA.Operators.Mutation import gaussian_mutation, polynomial_mutation, online_expected_diversity, online_parameter
-from AeroGA.Operators.Population import denormalize_population, denormalize_individual, generate_population_normalized, create_new_population
+from AeroGA.Operators.Population import denormalize_population, denormalize_individual, generate_population_normalized, create_new_population, init_history
 from AeroGA.Operators.Crossover import arithmetic_crossover, SBX_crossover, crossover_1pt, crossover_2pt
 from AeroGA.Operators.Selection import roulette_selection, tournament_selection, rank_selection
 from AeroGA.Utilities.Plots import create_plotfit, create_boxplots, parallel_coordinates
@@ -35,26 +35,18 @@ def optimize(selection: str = "tournament", crossover: str = "1-point", mutation
 
     t_inicial = time.time()
     if n_threads == -1: n_threads = multiprocessing.cpu_count()
-
-    # Creating history, metrics and best/avg lists
-    values_gen = {"best_fit":[],"avg_fit":[],"metrics":[]}
-    history = {"ind":[], "ind_norm":[],"gen":[],"fit":[],"score":[]}
-    history_valid = {"ind":[], "ind_norm":[], "gen":[],"fit":[],"score":[]}
-    best_individual = {"ind":[],"fit":[]}
-    old_mut_param = {"std_dev":[],"eta":[]}
-    tabu_List = []
+    num_variables = len(max_values)
 
     settings.log.warning("****************** INITIALIZING OPTIMIZATION *******************")
     settings.log.info(f"Optimization initialized with {n_threads} threads.")
 
+    # Creating history, metrics and best/avg lists
+    values_gen, history, history_valid, best_individual, old_mut_param, tabu_List = init_history()
+
     # Checking if num_varialbes matches the lb and ub sizes
     check_bounds(max_values, min_values)
 
-    # Initial value for the best fitness
-    best_fitness = float('inf')
-
     #### Generating initial random population
-    num_variables = len(max_values)
     population = generate_population_normalized(population_size, num_variables, min_values, max_values)
 
     #### Initial Fitness calculation for rand pop
@@ -135,7 +127,7 @@ def optimize(selection: str = "tournament", crossover: str = "1-point", mutation
             population = [gaussian_mutation(ind, min_values, [1] * num_variables, std_dev) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
 
         # Checking if any inddividuals are in the Tabu list
-        while TabuList is True:
+        if TabuList:
             count = 0
             for i in range(population_size):
                 if population[i] in tabu_List:
@@ -153,21 +145,17 @@ def optimize(selection: str = "tournament", crossover: str = "1-point", mutation
 
         #### Add to history and valid fit history
         for i in range(len(population)):
+            score = float('inf') if fitness_values[i] == 0 else 1/fitness_values[i]
             history["ind_norm"].append(population[i])
             history["ind"] = denormalize_individual(population[i], min_values, max_values, classe)
             history["fit"].append(fitness_values[i])
-            if fitness_values[i] != 0:
-                history["score"].append(1/fitness_values[i])
-            else:
-                history["score"].append(float('inf'))
-            history["gen"].append(generation)
+            history["gen"].append(generation)           
+            history["score"].append(score)
+
             if fitness_values[i] < min(penalization_list):
                 history_valid["ind_norm"].append(population[i])
                 history_valid["fit"].append(fitness_values[i])
-                if fitness_values[i] != 0:
-                    history_valid["score"].append(1/fitness_values[i])
-                else:
-                    history_valid["score"].append(float('inf'))
+                history_valid["score"].append(score)
                 history_valid["gen"].append(generation)
             else:
                 tabu_List.append(population[i])            
@@ -177,8 +165,7 @@ def optimize(selection: str = "tournament", crossover: str = "1-point", mutation
         best_individual["fit"].append(min(fitness_values))
 
         # Checking if the best fit is better than previus generations and the global value to plot the individual
-        if best_individual["fit"][generation] < best_fitness:
-            best_fitness = best_individual["fit"][generation]
+        best_fitness = best_individual["fit"][generation] if generation == 0 else min(best_fitness, best_individual["fit"][generation])
 
         # Creating list of fitness values with individuals that returns valid score
         fitness_values_valid = []
@@ -195,17 +182,16 @@ def optimize(selection: str = "tournament", crossover: str = "1-point", mutation
         values_gen["metrics"].append(diversity_metric(population))
 
         # Printing logger informations
-        if best_individual["fit"][generation] == 0:
-            settings.log.info('Generation: {} | Time: {} | Population Size: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}'.format(generation+1, round(time.time() - t_gen, 2), population_size, best_individual["fit"][generation], float('inf'), round(values_gen["metrics"][generation],2)))
-        else:    
-            settings.log.info('Generation: {} | Time: {} | Population Size: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}'.format(generation+1, round(time.time() - t_gen, 2), population_size, best_individual["fit"][generation], round(1/best_individual["fit"][generation],2), round(values_gen["metrics"][generation],2)))
+        score = float('inf') if best_individual["fit"][generation] == 0 else round(1 / best_individual["fit"][generation], 2)
+        settings.log.info('Generation: {} | Time: {} | Best Fitness: {} -> Score: {} | Diversity Metric: {}'.format(
+            generation + 1, round(time.time() - t_gen, 2), best_individual["fit"][generation], score, round(values_gen["metrics"][generation], 2)))
 
 
     #### Printing global optimization results
     settings.log.warning("***************************** END ******************************")
     settings.log.warning('Best Global Individual: {}'.format(best_individual["ind"][best_individual["fit"].index(min(best_individual["fit"]))]))
     settings.log.warning('Best Global Fitness: {}'.format(min(best_individual["fit"])))
-    if min(best_individual["fit"]) != 0: settings.log.warning('Best Global Score: {}'.format(1/min(best_individual["fit"])))
+    settings.log.warning('Best Global Score: {}'.format(1 / min(best_individual["fit"]))) if min(best_individual["fit"]) != 0 else None
     settings.log.warning(f"Tempo de Execução: {round(time.time() - t_inicial, 2)}")
 
     # Listing outputs

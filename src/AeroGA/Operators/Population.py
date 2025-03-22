@@ -46,7 +46,10 @@ def generate_population_normalized(size = int, num_variables = int, min_values =
     except Exception as e:
         error = ErrorType("ValueError", str(e), 'generate_population_normalized')
         return error.message
-    
+
+# #####################################################################################
+# ################################## New Population ###################################
+# #####################################################################################
 
 def create_new_population(population = list, fitness_values = list, elite_count = int, penalization_list = list, elite = str, generation = int, population_size = int):
     new_population = []
@@ -109,7 +112,6 @@ def create_new_population(population = list, fitness_values = list, elite_count 
     return new_population
 
 
-
 # #####################################################################################
 # ################################## Normalization ####################################
 # #####################################################################################
@@ -152,3 +154,17 @@ def denormalize_population(population = list, min_values = list, max_values = li
     except Exception as e:
         error = ErrorType("ValueError", str(e), 'denormalize_population')
         return error.message
+    
+
+# #####################################################################################
+# ############################### Populating history ##################################
+# #####################################################################################
+
+def init_history():
+    values_gen = {"best_fit":[],"avg_fit":[],"metrics":[]}
+    history = {"ind":[], "ind_norm":[],"gen":[],"fit":[],"score":[]}
+    history_valid = {"ind":[], "ind_norm":[], "gen":[],"fit":[],"score":[]}
+    best_individual = {"ind":[],"fit":[]}
+    old_mut_param = {"std_dev":[],"eta":[]}
+    tabu_List = []
+    return values_gen, history, history_valid, best_individual, old_mut_param, tabu_List
