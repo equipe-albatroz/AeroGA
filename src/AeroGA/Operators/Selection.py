@@ -4,10 +4,7 @@ Functions dedicated to the genetic algorithm's selection operators.
 
 import random
 from bisect import bisect_left
-from AeroGA.Classes.Error import ErrorType, Log
-
-# Setting error log file
-ErrorLog = Log("error.log", 'Selection')
+from AeroGA.Classes.Error import ErrorType
 
 def roulette_selection(population = list, fitness_values = list):
     """Select two parents using roulette wheel selection."""
@@ -24,8 +21,8 @@ def roulette_selection(population = list, fitness_values = list):
         
         return parent
     except Exception as e:
-        ErrorLog.error(str(e))
-        return ErrorType("danger", str(e), 'roulette_selection')
+        error = ErrorType("ValueError", str(e), 'roulette_selection')
+        return error.message
 
 def tournament_selection(population = list, fitness_values = list, tournament_size = int):
     """Select two parents using tournament selection."""
@@ -38,8 +35,8 @@ def tournament_selection(population = list, fitness_values = list, tournament_si
         parent = tournament_pop[tournament_fitness.index(min(tournament_fitness))]
         return parent
     except Exception as e:
-        ErrorLog.error(str(e))
-        return ErrorType("danger", str(e), 'tournament_selection')
+        error = ErrorType("ValueError", str(e), 'tournament_selection')
+        return error.message
 
 def rank_selection(population = list, fitness_values = list):
     """Select two parents using rank selection."""
@@ -50,5 +47,5 @@ def rank_selection(population = list, fitness_values = list):
         parent = population[bisect_left(cumulative_prob, random.random())]
         return parent
     except Exception as e:
-        ErrorLog.error(str(e))
-        return ErrorType("danger", str(e), 'rank_selection')
+        error = ErrorType("ValueError", str(e), 'rank_selection')
+        return error.message

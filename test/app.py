@@ -16,7 +16,7 @@ if __name__ == '__main__':
     
     # Run the genetic algorithm
     out = optimize(selection = "tournament", crossover = "1-point", mutation = "polynomial", n_threads=-1,
-        min_values = lb, max_values = ub, num_generations = 15, elite_count = 2, plotfit=False,
+        min_values = lb, max_values = ub, num_generations = 10, elite_count = 2, plotfit=False,
         fitness_fn = Rastrigin, report=True)
 
 

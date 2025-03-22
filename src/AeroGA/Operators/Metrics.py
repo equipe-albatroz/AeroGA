@@ -2,11 +2,8 @@
 Functions dedicated to calculating the performance metrics of the ga population.
 """
 
-from AeroGA.Classes.Error import ErrorType, Log
+from AeroGA.Classes.Error import ErrorType
 from AeroGA.Classes.Individual import Individual
-
-# Setting error log file
-ErrorLog = Log("error.log", 'Metrics')
 
 def diversity_metric(population = list):
     """Calculate the normalized average distance between individuals in the population."""
@@ -34,5 +31,5 @@ def diversity_metric(population = list):
 
         return round(normalized_average_distance, 4)
     except Exception as e:
-        ErrorLog.error(str(e))
-        return ErrorType("danger", str(e), 'diversity_metric')
+        error = ErrorType("ValueError", str(e), 'diversity_metric')
+        return error.message

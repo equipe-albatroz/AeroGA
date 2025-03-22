@@ -7,10 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
 from io import BytesIO
-from AeroGA.Classes.Error import ErrorType, Log
-
-# Setting error log file
-ErrorLog = Log("error.log", 'Plots')
+from AeroGA.Classes.Error import ErrorType
 
 def create_plotfit(num_generations = int, values_gen = None, report = bool, color = str):
     """Plot the fit and metrics values over the number of generations."""
@@ -54,8 +51,8 @@ def create_plotfit(num_generations = int, values_gen = None, report = bool, colo
         if not report: plt.show()
         else: plt.close(fig); return fitplot_data_uri
     except Exception as e:
-        ErrorLog.error(str(e))
-        return ErrorType("danger", str(e), 'create_plotfit')
+        error = ErrorType("ValueError", str(e), 'create_plotfit')
+        return error.message
 
 def create_boxplots(out = None, min_values = list, max_values = list, report = bool, color = str):
     """Boxplot of all values used in the optimization for each variable."""
@@ -103,8 +100,8 @@ def create_boxplots(out = None, min_values = list, max_values = list, report = b
         if not report: plt.show()
         else: return boxplot_data_uri
     except Exception as e:
-        ErrorLog.error(str(e))
-        return ErrorType("danger", str(e), 'create_boxplots')
+        error = ErrorType("ValueError", str(e), 'create_boxplots')
+        return error.message
 
 
 def create_boxplots_import_xlsx(path = None):
@@ -123,8 +120,8 @@ def create_boxplots_import_xlsx(path = None):
 
         plt.show()
     except Exception as e:
-        ErrorLog.error(str(e))
-        return ErrorType("danger", str(e), 'create_boxplots_import_xlsx')
+        error = ErrorType("ValueError", str(e), 'create_boxplots_import_xlsx')
+        return error.message
 
 def create_boxplots_por_gen_import_xlsx(path = None, min_values = list, max_values = list, generation = int):
     """Boxplot of all values used in the generation for each variable."""
@@ -157,8 +154,8 @@ def create_boxplots_por_gen_import_xlsx(path = None, min_values = list, max_valu
 
         plt.show()
     except Exception as e:
-        ErrorLog.error(str(e))
-        return ErrorType("danger", str(e), 'create_boxplots_por_gen_import_xlsx')
+        error = ErrorType("ValueError", str(e), 'create_boxplots_por_gen_import_xlsx')
+        return error.message
 
 
 def parallel_coordinates(out = None, lb = list, ub = list, report = bool, color = str):
@@ -197,8 +194,8 @@ def parallel_coordinates(out = None, lb = list, ub = list, report = bool, color 
             fig.write_html(file_name)
             return file_name
     except Exception as e:
-        ErrorLog.error(str(e))
-        return ErrorType("danger", str(e), 'parallel_coordinates')
+        error = ErrorType("ValueError", str(e), 'parallel_coordinates')
+        return error.message
 
 def parallel_coordinates_import_xlsx(path = None, lb = list, ub = list, var_names = list):
     """Create a parallel coordinates graph of the population history."""
@@ -220,8 +217,8 @@ def parallel_coordinates_import_xlsx(path = None, lb = list, ub = list, var_name
         
         fig.show()
     except Exception as e:
-        ErrorLog.error(str(e))
-        return ErrorType("danger", str(e), 'parallel_coordinates_import_xlsx')
+       error = ErrorType("ValueError", str(e), 'parallel_coordinates_import_xlsx')
+       return error.message
 
 def parallel_coordinates_per_gen_import_xlsx(path = None, lb = list, ub = list, generation = int, var_names = list):
     """Create a parallel coordinates graph of the population history."""
@@ -247,13 +244,42 @@ def parallel_coordinates_per_gen_import_xlsx(path = None, lb = list, ub = list, 
 
         fig.show()
     except Exception as e:
-        ErrorLog.error(str(e))
-        return ErrorType("danger", str(e), 'parallel_coordinates_per_gen_import_xlsx')
+        error = ErrorType("ValueError", str(e), 'parallel_coordinates_per_gen_import_xlsx')
+        return error.message
 
 
 # #####################################################################################
 # ##################################### Tests #########################################
 # #####################################################################################
+
+if __name__ == '__main__':
+
+    # Teste de create_plotfit
+    num_generations = 15
+    values_gen = {"best_fit": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                  "avg_fit": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                  "metrics": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+    create_plotfit(num_generations, values_gen, report=False, color='white')
+
+    # Teste de create_boxplots
+    out = {"history_valid": {"ind": [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]],
+                             "score": [1, 2, 3, 4]}}
+    min_values = [0, 0, 0]
+    max_values = [10, 10, 10]
+    create_boxplots(out, min_values, max_values, report=False, color='white')
+
+    # Teste de parallel_coordinates
+    out = {"history_valid": {"ind": [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]],
+                             "score": [1, 2, 3, 4]}}
+    min_values = [0, 0, 0]
+    max_values = [10, 10, 10]
+    parallel_coordinates(out, min_values, max_values, report=False, color='white')
+
+    # Teste de parallel_coordinates_import_xlsx
+    path = "Resultados\Results_08-07-2023_19-48.xlsx"
+    lb = [0, 0, 0.0, 0.0, 0.0, 0.0]
+    ub = [5, 0, 0.4, 1.5, 0.5, 1.0]
+    var_names = [f'Var_{i+1}' for i in range(6)]; var_names.append('Score')
 
 # def run_n_times(selection1, crossover1, mutation1, n_threads1,
 #     min_values1, max_values1, num_variables1, num_generations1, elite_count1,
