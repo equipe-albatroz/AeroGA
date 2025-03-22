@@ -126,7 +126,6 @@ def denormalize_individual(individual = list, min_values = list, max_values = li
                 rounding_value = 4
             elif classe == "Regular":
                 rounding_value = 6
-
             if isinstance(min_values[i], int):
                 denormalized_gene = int(round((individual[i] * (max_values[i] - min_values[i])) + min_values[i]))
             else:

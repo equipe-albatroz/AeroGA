@@ -2,7 +2,6 @@
 Functions dedicated to calculating the fitness of individuals in the population.
 """
 
-import multiprocessing
 from AeroGA.Classes.Error import ErrorType
 from joblib import Parallel, delayed
 
@@ -11,8 +10,8 @@ def evaluate(population = list, history = dict, fitness_fn = None, num_processes
     
     # Verificar se o indivíduo já está no histórico
     def get_fitness(individual, history):
-        if individual in history["ind_norm"]:
-            index = history["ind_norm"].index(individual)
+        if individual in history["ind"]:
+            index = history["ind"].index(individual)
             return history["fit"][index]
         else:
             return fitness_fn(individual)
@@ -22,11 +21,11 @@ def evaluate(population = list, history = dict, fitness_fn = None, num_processes
         if num_processes != 0:
             fitness_values = Parallel(n_jobs=num_processes)(delayed(get_fitness)(individual, history) for individual in population)
         else:
-            fitness_values = [get_fitness(individual) for individual in population]
+            fitness_values = [get_fitness(individual, history) for individual in population]
 
         fitness_values_float = [float(x) for x in fitness_values]
 
         return fitness_values_float
     except Exception as e:
-        error = ErrorType("ValueError", str(e), 'parallel_fitness')
+        error = ErrorType("ValueError", str(e), 'fitness')
         return error.message

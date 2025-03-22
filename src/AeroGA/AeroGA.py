@@ -16,9 +16,10 @@ import multiprocessing
 from . import settings
 import random
 import time
+import os
 
-# Setting error log file
-# ErrorLog = Log("error.log", 'AeroGA')
+# Setting error log folder
+os.makedirs('./Logs', exist_ok=True)
 
 # #####################################################################################
 # ###################################### Main #########################################
@@ -129,9 +130,9 @@ def optimize(selection: str = "tournament", crossover: str = "1-point", mutation
         #### Applying mutation to the new population
         std_dev, eta, old_mut_param = online_expected_diversity(generation, num_generations, values_gen["metrics"][generation], old_mut_param, control_func)
         if mutation == 'polynomial':
-            population = [polynomial_mutation(ind, min_values, [1] * num_generations, eta) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
+            population = [polynomial_mutation(ind, min_values, [1] * num_variables, eta) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
         elif mutation == 'gaussian':
-            population = [gaussian_mutation(ind, min_values, [1] * num_generations, std_dev) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
+            population = [gaussian_mutation(ind, min_values, [1] * num_variables, std_dev) if random.uniform(0, 1) <= MUTPB_LIST[generation] else ind for ind in new_population]
 
         # Checking if any inddividuals are in the Tabu list
         while TabuList is True:
@@ -139,9 +140,9 @@ def optimize(selection: str = "tournament", crossover: str = "1-point", mutation
             for i in range(population_size):
                 if population[i] in tabu_List:
                     if mutation == 'polynomial':
-                        polynomial_mutation(population[i], min_values, [1] * num_generations, eta)
+                        polynomial_mutation(population[i], min_values, [1] * num_variables, eta)
                     elif mutation == 'gaussian':
-                        gaussian_mutation(population[i], min_values, [1] * num_generations, std_dev)
+                        gaussian_mutation(population[i], min_values, [1] * num_variables, std_dev)
                 else:
                     count += 1
                 if count == population_size:
@@ -153,6 +154,7 @@ def optimize(selection: str = "tournament", crossover: str = "1-point", mutation
         #### Add to history and valid fit history
         for i in range(len(population)):
             history["ind_norm"].append(population[i])
+            history["ind"] = denormalize_individual(population[i], min_values, max_values, classe)
             history["fit"].append(fitness_values[i])
             if fitness_values[i] != 0:
                 history["score"].append(1/fitness_values[i])
@@ -207,10 +209,7 @@ def optimize(selection: str = "tournament", crossover: str = "1-point", mutation
     settings.log.warning(f"Tempo de Execução: {round(time.time() - t_inicial, 2)}")
 
     # Listing outputs
-    history["ind"] = denormalize_population(history["ind_norm"], min_values, max_values, classe)
     history_valid["ind"] = denormalize_population(history_valid["ind_norm"], min_values, max_values, classe)
-
-    # Returning the results
     out = dict(history = history, history_valid = history_valid, best_individual = best_individual, values_gen = values_gen)
 
     # Exporting results to Excell
