@@ -2,8 +2,8 @@
 Functions dedicated to creating and manipulating the population.
 """
 
-from AeroGA.Classes.Error import ErrorType
 from statistics import mean
+from .. import settings
 import random
 import copy
 
@@ -12,46 +12,39 @@ import copy
 # #####################################################################################
 
 # define the genetic algorithm functions
-def generate_population(size = int, num_variables = int, min_values = list, max_values = list):
+def generate_population(size = int, num_variables = int, min_values = list, max_values = list) -> list[list]:
     """Generate a population of random genes."""
-    try:
-        population = [[round(random.uniform(min_values[i], max_values[i]),4) if isinstance(min_values[i],float) else random.randint(min_values[i], max_values[i]) for i in range(num_variables)] for _ in range(size)]
-        return population
-    except Exception as e:
-        error = ErrorType("ValueError", str(e), 'generate_population')
-        return error.message
 
-def generate_population_normalized(size = int, num_variables = int, min_values = list, max_values = list):
+    population = [[round(random.uniform(min_values[i], max_values[i]),4) if isinstance(min_values[i],float) else random.randint(min_values[i], max_values[i]) for i in range(num_variables)] for _ in range(size)]
+    return population
+
+def generate_population_normalized(size = int, num_variables = int, min_values = list, max_values = list)-> list[list]:
     """Generate a population of normalized random genes."""
 
-    try:
-        population = []
-        for _ in range(size):
-            individual = []
-            for i in range(num_variables):
-                if isinstance(min_values[i], float):
-                    gene = random.uniform(min_values[i], max_values[i])
-                else:
-                    gene = random.randint(min_values[i], max_values[i])
-                
-                if min_values[i] == max_values[i]:
-                    normalized_gene = min_values[i]  # Atribui o valor mínimo diretamente
-                else:
-                    normalized_gene = (gene - min_values[i]) / (max_values[i] - min_values[i])
-                
-                individual.append(round(normalized_gene, 4))
+    population = []
+    for _ in range(size):
+        individual = []
+        for i in range(num_variables):
+            if isinstance(min_values[i], float):
+                gene = random.uniform(min_values[i], max_values[i])
+            else:
+                gene = random.randint(min_values[i], max_values[i])
             
-            population.append(individual)
-        return population
-    except Exception as e:
-        error = ErrorType("ValueError", str(e), 'generate_population_normalized')
-        return error.message
+            if min_values[i] == max_values[i]:
+                normalized_gene = min_values[i]  # Atribui o valor mínimo diretamente
+            else:
+                normalized_gene = (gene - min_values[i]) / (max_values[i] - min_values[i])
+            
+            individual.append(round(normalized_gene, 4))
+        
+        population.append(individual)
+    return population
 
 # #####################################################################################
 # ################################## New Population ###################################
 # #####################################################################################
 
-def create_new_population(population = list, fitness_values = list, elite_count = int, penalization_list = list, elite = str, generation = int, population_size = int):
+def create_new_population(population = list, fitness_values = list, elite_count = int, penalization_list = list, elite = str, generation = int, population_size = int) -> list:
     new_population = []
     elite_count_gen = 0
     if elite_count != 0 and mean(fitness_values) < min(penalization_list):
@@ -111,49 +104,49 @@ def create_new_population(population = list, fitness_values = list, elite_count 
     
     return new_population
 
+def check_population_validity(population: list):
+    """ Check if pop is correct. """
+    for individuo in population:
+        if not all(isinstance(valor, (int, float)) for valor in individuo):
+            settings.log.error("There is an invalid type within the population.")
+            return False
+    return True
+
 
 # #####################################################################################
 # ################################## Normalization ####################################
 # #####################################################################################
 
-def denormalize_individual(individual = list, min_values = list, max_values = list, classe = str):
+def denormalize_individual(individual = list, min_values = list, max_values = list, classe = str) -> list:
     """Denormalize the genes of an individual."""
 
-    try:
-        denormalized_individual = []
+    denormalized_individual = []
 
-        for i in range(len(individual)):
+    for i in range(len(individual)):
 
-            if classe == "default" or "Micro":
-                rounding_value = 4
-            elif classe == "Regular":
-                rounding_value = 6
-            if isinstance(min_values[i], int):
-                denormalized_gene = int(round((individual[i] * (max_values[i] - min_values[i])) + min_values[i]))
-            else:
-                denormalized_gene = round((individual[i] * (max_values[i] - min_values[i])) + min_values[i], rounding_value)
+        if classe == "default" or "Micro":
+            rounding_value = 4
+        elif classe == "Regular":
+            rounding_value = 6
+        if isinstance(min_values[i], int):
+            denormalized_gene = int(round((individual[i] * (max_values[i] - min_values[i])) + min_values[i]))
+        else:
+            denormalized_gene = round((individual[i] * (max_values[i] - min_values[i])) + min_values[i], rounding_value)
 
-            denormalized_individual.append(denormalized_gene)
-        return denormalized_individual
-    except Exception as e:
-        error = ErrorType("ValueError", str(e), 'denormalize_individual')
-        return error.message
+        denormalized_individual.append(denormalized_gene)
+    return denormalized_individual
 
 
-def denormalize_population(population = list, min_values = list, max_values = list, classe = str):
+def denormalize_population(population = list, min_values = list, max_values = list, classe = str) -> list[list]:
     """Denormalize the entire population."""
 
-    try:
-        denormalized_population = []
+    denormalized_population = []
 
-        for individual in population:
-            denormalized_individual = denormalize_individual(individual, min_values, max_values, classe)
-            denormalized_population.append(denormalized_individual)
-        
-        return denormalized_population
-    except Exception as e:
-        error = ErrorType("ValueError", str(e), 'denormalize_population')
-        return error.message
+    for individual in population:
+        denormalized_individual = denormalize_individual(individual, min_values, max_values, classe)
+        denormalized_population.append(denormalized_individual)
+    
+    return denormalized_population
     
 
 # #####################################################################################
