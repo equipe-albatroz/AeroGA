@@ -7,51 +7,68 @@ from bisect import bisect_left
 
 def apply_selection_operator(selection: str, population: list, fitness_values: list):
     if selection == 'tournament':
-        parent1 = tournament_selection(population, fitness_values, tournament_size=2)
-        parent2 = tournament_selection(population, fitness_values, tournament_size=2)
+        parent1, parent2 = tournament_selection(population, fitness_values, tournament_size=3)
 
     elif selection == 'rank':
-        parent1 = rank_selection(population, fitness_values)
-        parent2 = rank_selection(population, fitness_values)
+        parent1, parent2 = rank_selection(population, fitness_values)
 
     elif selection == 'roulette':
-        parent1 = roulette_selection(population, fitness_values)
-        parent2 = roulette_selection(population, fitness_values)
+        parent1, parent2 = roulette_selection(population, fitness_values)
     
     return parent1, parent2
 
 
-def roulette_selection(population = list, fitness_values = list):
-    """Select two parents using roulette wheel selection."""
+def tournament_selection(population: list, fitness_values: list, tournament_size: int):
+    """Seleciona dois pais usando seleção por torneio, onde menor fitness é melhor."""
 
-    total_fitness = sum(fitness_values)
-    pick = random.uniform(0, 1/total_fitness)
+    def select_one():
+        # Seleciona aleatoriamente 'tournament_size' indivíduos
+        tournament = random.sample(list(zip(population, fitness_values)), tournament_size)
+        # Retorna o indivíduo com menor fitness (melhor solução)
+        return min(tournament, key=lambda x: x[1])[0]
 
-    current = 0
-    for i, ind in enumerate(population):
-        current += 1/fitness_values[i]
-        if current > pick:
-            parent = ind
-            break
+    parent1 = select_one()
+    parent2 = select_one()
     
-    return parent
+    return parent1, parent2
 
-def tournament_selection(population = list, fitness_values = list, tournament_size = int):
-    """Select two parents using tournament selection."""
+def roulette_selection(population: list, fitness_values: list):
+    """Seleciona dois pais usando roleta viciada, onde menor fitness é melhor."""
 
-    if len(population) < tournament_size:
-        tournament_pop = population
-    else:
-        tournament_pop = random.sample(population, tournament_size)
-    tournament_fitness = [fitness_values[population.index(ind)] for ind in tournament_pop]
-    parent = tournament_pop[tournament_fitness.index(min(tournament_fitness))]
-    return parent
+    # Evita divisão por zero (substitui fitness 0 por um pequeno valor)
+    adjusted_fitness = [f if f > 0 else 1e-6 for f in fitness_values]
 
-def rank_selection(population = list, fitness_values = list):
-    """Select two parents using rank selection."""
+    # Inverte os valores de fitness para que o menor fitness tenha maior chance
+    inv_fitness = [1/f for f in adjusted_fitness]
+    total_fitness = sum(inv_fitness)
 
+    # Normaliza as probabilidades
+    probabilities = [f/total_fitness for f in inv_fitness]
+
+    # Seleciona dois pais com base nas probabilidades acumuladas
+    parent1 = random.choices(population, weights=probabilities, k=1)[0]
+    parent2 = random.choices(population, weights=probabilities, k=1)[0]
+
+    return parent1, parent2
+
+def rank_selection(population: list, fitness_values: list):
+    """Seleciona dois pais usando seleção por ranking, onde menor fitness é melhor."""
+    
     n = len(population)
-    fitness_ranks = list(reversed(sorted(range(1, n+1), key=lambda x: fitness_values[x-1])))
-    cumulative_prob = [sum(fitness_ranks[:i+1])/sum(fitness_ranks) for i in range(n)]
-    parent = population[bisect_left(cumulative_prob, random.random())]
-    return parent
+
+    # Ordena população e fitness em ordem crescente de fitness (menor fitness = melhor)
+    sorted_pop_fit = sorted(zip(population, fitness_values), key=lambda x: x[1])
+    sorted_population, sorted_fitness = zip(*sorted_pop_fit)
+
+    # Atribui rankings (o melhor indivíduo recebe o maior ranking)
+    fitness_ranks = list(range(n, 0, -1))  # Ranking de N até 1 (menor fitness = maior ranking)
+
+    # Calcula probabilidades acumuladas
+    total_rank = sum(fitness_ranks)
+    cumulative_prob = [sum(fitness_ranks[:i+1]) / total_rank for i in range(n)]
+
+    # Seleciona dois pais usando roleta viciada no ranking
+    parent1 = sorted_population[bisect_left(cumulative_prob, random.random())]
+    parent2 = sorted_population[bisect_left(cumulative_prob, random.random())]
+
+    return parent1, parent2
