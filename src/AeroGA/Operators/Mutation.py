@@ -3,66 +3,64 @@ Functions dedicated to the genetic algorithm's mutation operators.
 """
 
 import numpy as np
+import traceback
 import random
 import math
-from AeroGA.Classes.Error import ErrorType
 
-def gaussian_mutation(individual = list, min_values = list, max_values = list, std_dev = float):
+def gaussian_mutation(individual = list, min_values = list, max_values = list, std_dev = float) -> list:
     """Perform gaussian mutation on an individual."""
 
-    try:
-        mutated_genes = []
+    mutated_genes = []
 
-        for i in range(len(individual)):
-            if isinstance(individual[i], int):
-                mutated_gene = min(max(round(random.gauss(individual[i], std_dev)),min_values[i]), max_values[i])
-            else:
-                mutated_gene = round(min(max(random.gauss(individual[i], std_dev),min_values[i]), max_values[i]),4)
-            mutated_genes.append(mutated_gene)
+    for i in range(len(individual)):
+        if isinstance(individual[i], int):
+            mutated_gene = int(min(max(round(random.gauss(individual[i], std_dev)), min_values[i]), max_values[i]))
+        else:
+            mutated_gene = round(min(max(random.gauss(individual[i], std_dev),min_values[i]), max_values[i]),4)
+        mutated_genes.append(mutated_gene)
 
-        return mutated_genes
-    except Exception as e:
-        error = ErrorType("ValueError", str(e), 'gaussian_mutation')
-        return error.message
+    return mutated_genes
 
-def polynomial_mutation(individual, min_values, max_values, eta):
+def polynomial_mutation(individual, min_values, max_values, eta) -> list:
     """Perform polynomial mutation on an individual with relative adjustments."""
-    try:
-        mutated_genes = []
+    
+    mutated_genes = []
 
-        for i in range(len(individual)):
-            if isinstance(individual[i], int):
-                if max_values[i] != min_values[i]:
-                    if ((individual[i] - min_values[i]) / (max_values[i] - min_values[i])) < 0.5:
-                        delta = (2 * (individual[i] - min_values[i]) / (max_values[i] - min_values[i])) ** (1 + (eta + random.uniform(0,1))) - 1
-                    else:
-                        delta = 1 - (2 * (max_values[i] - individual[i]) / (max_values[i] - min_values[i])) ** (1 + (eta + random.uniform(0,1)))
-                    mutated_gene = round(max(min_values[i], min(individual[i] + delta, max_values[i])))
+    for i in range(len(individual)):
+        try:
+
+            if max_values[i] == min_values[i]:  
+                mutated_genes.append(min_values[i])
+                continue
+
+            probability = (individual[i] - min_values[i]) / (max_values[i] - min_values[i])
+
+            if 0 <= probability < 0.5:
+                base = 2 * probability
+                if base >= 0:
+                    delta = base ** (1 + (eta + random.uniform(0, 1))) - 1
                 else:
-                    if ((individual[i] - min_values[i])) < 0.5:
-                        delta = 0
-                    else:
-                        delta = 0
-                    mutated_gene = round(max(min_values[i], min(individual[i] + delta, max_values[i])))
+                    delta = 0
             else:
-                if max_values[i] != min_values[i]:
-                    if ((individual[i] - min_values[i]) / (max_values[i] - min_values[i])) < 0.5:
-                        delta = (2 * (individual[i] - min_values[i]) / (max_values[i] - min_values[i])) ** (1 + (eta + random.uniform(0,1))) - 1
-                    else:
-                        delta = 1 - (2 * (max_values[i] - individual[i]) / (max_values[i] - min_values[i])) ** (1 + (eta + random.uniform(0,1)))
-                    mutated_gene = round(max(min_values[i], min(individual[i] + delta, max_values[i])),4)
+                base = 2 * (max_values[i] - individual[i]) / (max_values[i] - min_values[i])
+                if base >= 0:
+                    delta = 1 - base ** (1 + (eta + random.uniform(0, 1)))
                 else:
-                    if ((individual[i] - min_values[i])) < 0.5:
-                        delta = 0
-                    else:
-                        delta = 0
-                    mutated_gene = round(max(min_values[i], min(individual[i] + delta, max_values[i])),4)
-            mutated_genes.append(mutated_gene)
-        return mutated_genes
-    except Exception as e:
-        return f"Error in polynomial_mutation: {str(e)}"
+                    delta = 0
 
-def online_parameter(online_control = bool, num_generations = int):
+            mutated_gene = round(max(min_values[i], min(individual[i] + delta, max_values[i])), 4)
+
+            mutated_genes.append(mutated_gene)
+
+        except Exception as e:
+            print(f"Erro inesperado na posição {i}: {e}")
+            print(traceback.format_exc())  # Exibe traceback completo para depuração
+            mutated_genes.append(min_values[i])  # Usa o valor válido
+
+    return mutated_genes
+
+
+def online_parameter(online_control: bool, num_generations: int, mutation_prob: float):
     """Calculate the probability for crossover and mutation each generation, the values respscts a exponencial function, that for mutation
        decreases each generation and increases for crossover. If online control is False than it is used the fixed parameters. 
     
@@ -70,30 +68,26 @@ def online_parameter(online_control = bool, num_generations = int):
         # CXPB_LIST: Crossover Probability
     """
 
-    mutation_prob = 0.2
     crossover_prob = 1
 
-    try:
-        if online_control:
-            line_x = np.linspace(start=1, stop=50, num=num_generations)
-            MUTPB_LIST = (-(np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0])) + 1) * mutation_prob
-            
-            # line_x = np.linspace(start=1, stop=5, num=num_generations)
-            # CXPB_LIST = (np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0]))
-            CXPB_LIST = [crossover_prob]*num_generations
-        else:
-            MUTPB_LIST = [mutation_prob]*num_generations
-            CXPB_LIST = [crossover_prob]*num_generations
+    if online_control:
+        line_x = np.linspace(start=1, stop=50, num=num_generations)
+        MUTPB_LIST = (-(np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0])) + 1) * mutation_prob
         
-        return MUTPB_LIST, CXPB_LIST
-    except Exception as e:
-        error = ErrorType("ValueError", str(e), 'online_parameter')
-        return error.message
+        # line_x = np.linspace(start=1, stop=5, num=num_generations)
+        # CXPB_LIST = (np.log10(line_x) - np.log10(line_x[0]))/(np.log10(line_x[-1]) - np.log10(line_x[0]))
+        CXPB_LIST = [crossover_prob]*num_generations
+    else:
+        MUTPB_LIST = [mutation_prob]*num_generations
+        CXPB_LIST = [crossover_prob]*num_generations
+    
+    return MUTPB_LIST, CXPB_LIST
 
-def online_expected_diversity(current_generation = int, max_generations = int, current_diversity = float, old_mut_param = dict, func = str):
+
+def online_expected_diversity(online_control = bool, current_generation = int, max_generations = int, current_diversity = float, old_mut_param = dict, func = str, std_dev_offline = float, eta_offline = int):
     """Model the relationship between the number of generations and diversity."""
     
-    try:
+    if online_control:
         generation = max(0, min(current_generation, max_generations))
         midpoint = max_generations / 2.0 # Adjusts the parameters of the sigmoidal function
         steepness = 0.1  # You can adjust this value to control the steepness of the curve
@@ -107,24 +101,27 @@ def online_expected_diversity(current_generation = int, max_generations = int, c
             expected_diversity = 1 + (-1 / max_generations) * generation
         
         if current_generation == 0:
-            std_dev = random.uniform(0.1, 0.3)
-            eta = random.randint(10, 20)
+            std_dev = random.uniform(0.05, 0.2)
+            eta = random.randint(5, 20)
         else:
             if current_diversity < expected_diversity:
                 std_dev = abs(old_mut_param["std_dev"][current_generation-1] + old_mut_param["std_dev"][current_generation-1]*(current_diversity/expected_diversity))
-                eta = abs(old_mut_param["eta"][current_generation-1] + old_mut_param["eta"][current_generation-1]*(current_diversity/expected_diversity))
+                eta = int(abs(old_mut_param["eta"][current_generation-1] + old_mut_param["eta"][current_generation-1]*(current_diversity/expected_diversity)))
             elif current_diversity > expected_diversity:
                 std_dev = abs(old_mut_param["std_dev"][current_generation-1] - old_mut_param["std_dev"][current_generation-1]*(expected_diversity/current_diversity))
-                eta = abs(old_mut_param["eta"][current_generation-1] - old_mut_param["eta"][current_generation-1]*(expected_diversity/current_diversity))
+                eta = int(abs(old_mut_param["eta"][current_generation-1] - old_mut_param["eta"][current_generation-1]*(expected_diversity/current_diversity)))
             elif current_diversity == expected_diversity:
                 std_dev = old_mut_param["std_dev"][current_generation-1]
-                eta = old_mut_param["eta"][current_generation-1]
+                eta = int(old_mut_param["eta"][current_generation-1])
 
-        old_mut_param["std_dev"].append(std_dev); old_mut_param["eta"].append(eta)
-        return std_dev, eta, old_mut_param
-    except Exception as e:
-        error = ErrorType("ValueError", str(e), 'online_expected_diversity')
-        return error.message
+        std_dev = min(std_dev, 0.2)
+        eta = min(eta, 20)
+    else:
+        std_dev = std_dev_offline
+        eta = eta_offline
+
+    old_mut_param["std_dev"].append(std_dev); old_mut_param["eta"].append(eta)
+    return std_dev, eta, old_mut_param
     
 
 

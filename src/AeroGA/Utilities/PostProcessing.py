@@ -35,8 +35,10 @@ def sensibility(individual = list, fitness_fn = None, increment = None, min_valu
         df = pd.DataFrame(dict)
         now = datetime.now()
         dt_string = now.strftime("%d-%m-%Y_%H-%M")
-        string = 'Resultados/Sensibility_' + str(dt_string) + '.xlsx'
-        df.to_excel(string, index=False)
+        string = 'Sensibility_' + str(dt_string) + '.xlsx'
+        folder = os.path.join(os.getcwd(), "Results_AeroGA")
+        os.makedirs(folder, exist_ok=True)
+        df.to_excel(os.path.join(folder, string), index=False)
 
         return print(pd.DataFrame(dict))
     except Exception as e:
@@ -79,9 +81,11 @@ def export_excell(out):
 
         now = datetime.now()
         dt_string = now.strftime("%d-%m-%Y_%H-%M")
-        string = 'Resultados/Results_' + str(dt_string) + '.xlsx'
+        string = 'Results_' + str(dt_string) + '.xlsx'
 
-        df.to_excel(string, index=False)
+        folder = os.path.join(os.getcwd(), "Results_AeroGA")
+        os.makedirs(folder, exist_ok=True)
+        df.to_excel(os.path.join(folder, string), index=False)
     except Exception as e:
         error = ErrorType("ValueError", str(e), 'export_excell')
         return error.message

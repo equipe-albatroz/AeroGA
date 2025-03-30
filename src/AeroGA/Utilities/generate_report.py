@@ -24,28 +24,35 @@ def create_report(titulo_pagina: str = 'AeroGA Report', num_variables: int = Non
     table_html = df_html.to_html(index=False)
 
     # Renderizar o HTML usando o Jinja2
-    template_loader = jinja2.FileSystemLoader(searchpath="./")
+    template_dir = os.path.abspath(os.path.dirname(__file__))
+    template_loader = jinja2.FileSystemLoader(searchpath=os.path.dirname(os.path.dirname(os.path.dirname(template_dir))))
     template_env = jinja2.Environment(loader=template_loader)
     template = template_env.get_template('report_template.html')
 
     # Ler o conteúdo do arquivo HTML do gráfico paralelo
-    with open(parallel, 'r', encoding='utf-8') as parallel_file:
-        parallel_content = parallel_file.read()
+    with open(parallel, 'r', encoding='utf-8') as parallel_file: parallel_content = parallel_file.read()
 
     # Incluir o gráfico no HTML
-    html_output = template.render(titulo_pagina=page_title, grafico_plot_fit=plotfit, grafico_box_plot=boxplot, 
-                                  grafico_parallel_plot=parallel_content, tabela=table_html)
+    html_output = template.render(titulo_pagina=page_title, grafico_plot_fit=plotfit, grafico_box_plot=boxplot, grafico_parallel_plot=parallel_content, tabela=table_html)
 
     # Salvar o HTML em um arquivo
+    folder = os.path.join(os.getcwd(), "Results_AeroGA")
+    os.makedirs(folder, exist_ok=True)
+
     dt_string = datetime.now().strftime("%d-%m-%Y_%H-%M")
     report_name = 'Report_' + str(dt_string) + '.html'
-    report_path = os.path.abspath(os.path.join('./Resultados/', report_name))
-    with open(report_path, 'w', encoding='utf-8') as html_file:
-        html_file.write(html_output)
+    report_path = os.path.join(folder, report_name)
+
+    # Save report
+    with open(report_path, 'w', encoding='utf-8') as html_file: html_file.write(html_output)
 
     # Abrir o arquivo HTML no navegador padrão
     webbrowser.open(report_path)
 
+    # Excluir parallel html
+    if os.path.exists(os.path.join(folder, "parallel_plot.html")): os.remove(os.path.join(folder, "parallel_plot.html"))
+
 def open_report(report_name):
     # Abrir o arquivo HTML no navegador padrão
-    webbrowser.open(os.path.abspath(os.path.join('./Resultados/', report_name)))
+    folder = os.path.join(os.getcwd(), "Results_AeroGA")
+    webbrowser.open(os.path.join(folder, report_name))

@@ -7,8 +7,13 @@ def check_bounds(max_values: list = None, min_values: list = None):
     """
 
     if len(max_values) != len(min_values):
-        settings.log.critical("There is an inconsistency between the size of lower and upper bounds")
+        settings.log.critical("There is an inconsistency in the bounds: Between the size of lower and upper bounds")
         return dict(error = 1)
     
+    for i in range(len(max_values)):
+        if max_values[i] < min_values[i]:
+            settings.log.critical("There is an inconsistency in the bounds: Upper bound - {max_values[i]} is lower then the lower bounds - {min_values[i]}")
+            return dict(error = 1)
+        
     pass
     

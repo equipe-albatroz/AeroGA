@@ -2,34 +2,28 @@
 Functions dedicated to calculating the performance metrics of the ga population.
 """
 
-from AeroGA.Classes.Error import ErrorType
 from AeroGA.Classes.Individual import Individual
 
-def diversity_metric(population = list):
+def diversity_metric(population = list) -> float:
     """Calculate the normalized average distance between individuals in the population."""
     
-    try:
+    if not population or len(population) < 2:
+        return 0.0
 
-        if not population or len(population) < 2:
-            return 0.0
+    total_distance = 0
+    max_possible_distance = 0
 
-        total_distance = 0
-        max_possible_distance = 0
+    for i in range(len(population)):
+        for j in range(i + 1, len(population)):
+            ind1 = Individual(population[i])
+            ind2 = Individual(population[j])
+            total_distance += sum(abs(ind1.genes[k] - ind2.genes[k]) for k in range(len(ind1.genes)))
+            max_possible_distance += max(abs(ind1.genes[k] - ind2.genes[k]) for k in range(len(ind1.genes)))
 
-        for i in range(len(population)):
-            for j in range(i + 1, len(population)):
-                ind1 = Individual(population[i])
-                ind2 = Individual(population[j])
-                total_distance += sum(abs(ind1.genes[k] - ind2.genes[k]) for k in range(len(ind1.genes)))
-                max_possible_distance += max(abs(ind1.genes[k] - ind2.genes[k]) for k in range(len(ind1.genes)))
+    # Calculate normalized average distance
+    if max_possible_distance == 0:
+        normalized_average_distance = 0.0
+    else:
+        normalized_average_distance = total_distance / ((len(population[0])/2.45)*max_possible_distance)
 
-        # Calculate normalized average distance
-        if max_possible_distance == 0:
-            normalized_average_distance = 0
-        else:
-            normalized_average_distance = total_distance / ((len(population[0])/2.45)*max_possible_distance)
-
-        return round(normalized_average_distance, 4)
-    except Exception as e:
-        error = ErrorType("ValueError", str(e), 'diversity_metric')
-        return error.message
+    return round(normalized_average_distance, 4)
