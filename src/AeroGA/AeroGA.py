@@ -27,10 +27,14 @@ os.makedirs('./Logs', exist_ok=True)
 # #####################################################################################
 
 def optimize(selection: str = "tournament", crossover: str = "1-point", mutation: str = "polynomial", n_threads: int = -1, 
-            min_values: list = None, max_values: list = None, population_size: int = 100, num_generations: int = 100, var_names: list[str] | None = None,
-            classe: str = "default", elite_count: int = 5, elite: str = "local", mutation_prob: float = 0.35, std_dev_offline: float = 0.01, eta_offline: int = 15,
-            control_func: str = 'inverse_sigmoidal', Online_control: bool = True, penalization_list: list = [1000],
-            plotfit: bool = True, plotbox: bool = False, plotparallel: bool = False, fitness_fn: callable = None, report: bool = False) -> dict:
+            min_values: list = None, max_values: list = None, population_size: int = 100, num_generations: int = 100, 
+            var_names: list[str] | None = None, classe: str = "default", 
+            elite_count: int = 5, elite: str = "local", Online_control: bool = True, control_func: str = 'inverse_sigmoidal',
+            mutation_prob: float = 0.35, std_dev_offline: float = 0.2, eta_offline: int = 15,
+            penalization_list: list = [1000],
+            plotfit: bool = True, plotbox: bool = False, plotparallel: bool = False, report: bool = False,
+            fitness_fn: callable = None
+    ) -> dict:
 
     """Perform the genetic algorithm to find an optimal solution."""
     try:
@@ -38,6 +42,8 @@ def optimize(selection: str = "tournament", crossover: str = "1-point", mutation
         t_inicial = time.time()
         if n_threads == -1: n_threads = multiprocessing.cpu_count()
         num_variables = len(max_values)
+        elite_fit_glob = None
+        elite_pop_glob = None
 
         settings.log.warning("****************** INITIALIZING OPTIMIZATION *******************")
         settings.log.info(f"Optimization initialized with {n_threads} threads.")
@@ -66,7 +72,7 @@ def optimize(selection: str = "tournament", crossover: str = "1-point", mutation
             t_gen = time.time()
 
             #### Creating new population and aplying elitist concept
-            new_pop = create_new_population(population, fitness_values, elite_count, penalization_list, elite, generation, population_size)
+            new_pop, elite_fit_glob, elite_pop_glob = create_new_population(population, fitness_values, elite_count, penalization_list, elite, elite_fit_glob, elite_pop_glob, generation, population_size)
             try: len_new_pop = len(new_pop)
             except: len_new_pop = 0
 
