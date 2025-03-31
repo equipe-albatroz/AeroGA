@@ -74,26 +74,25 @@ def create_new_population(population: list, fitness_values: list, elite_count: i
             # print("Elite_glob_pop: ", new_population)
 
         elif elite == "local":
-            for i in range(population_size): 
-                count_lst = list({x for x in fitness_values_sorted if fitness_values_sorted.count(x)})
-                for penality in penalization_list:
-                    if penality in count_lst:
-                        del count_lst[count_lst.index(penality)]
-                    count = len(count_lst)
+            elite_pop, elite_fit = [], []
+            
+            count_lst = list({x for x in fitness_values_sorted if fitness_values_sorted.count(x)})
+            for penality in penalization_list:
+                if penality in count_lst:
+                    del count_lst[count_lst.index(penality)]
+            count = len(count_lst)
 
             if count < elite_count: 
                 elite_count_gen = count
             else:
                 elite_count_gen = elite_count
             
-            new_population = population_sorted[:1]
-            if elite_count_gen > 1:
-                for i in range(1,population_size-1):
-                    if len(new_population) < elite_count_gen:
-                        if population_sorted[i] not in new_population:
-                            new_population.append(population_sorted[i])
-                    else:
-                        break
+            for ind, fit in zip(population_sorted, fitness_values_sorted):
+                if len(elite_pop) < elite_count_gen and ind not in elite_pop:
+                    elite_pop.append(ind)
+                    elite_fit.append(fit)
+
+            new_population = elite_pop[:]
     
     return new_population, elite_fit_glob, elite_pop_glob
 
