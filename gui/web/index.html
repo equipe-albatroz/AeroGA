@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroGA - Optimization Interface</title>
+    <link rel="icon" href="aero_ico2.ico">
+
+    <!-- Local Tailwind CSS -->
+    <script src="libs/tailwindcss.js"></script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Local Plotly -->
+    <script src="libs/plotly.min.js"></script>
+
+    <!-- Local Marked.js -->
+    <script src="libs/marked.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <nav class="glass-header sticky top-0 z-50 border-b border-gray-700/50 shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <img src="White_Albatroz.png" alt="Logo" class="h-10 w-auto object-contain drop-shadow-md">
+                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
+                    AeroGA</h1>
+            </div>
+            <div class="flex gap-2">
+                <button class="nav-btn active" data-tab="opt-tab"><i
+                        class="fas fa-sliders-h mr-2"></i>Optimization</button>
+                <button class="nav-btn" data-tab="plots-tab"><i class="fas fa-chart-line mr-2"></i>Plots</button>
+                <button class="nav-btn" data-tab="help-tab"><i class="fas fa-question-circle mr-2"></i>Help</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 flex-grow">
+
+        <!-- Optimization Tab -->
+        <section id="opt-tab" class="tab-content active space-y-6">
+            <div class="glass-panel p-6 rounded-2xl shadow-xl">
+                <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2"><i
+                        class="fas fa-folder-open text-blue-400 mr-2"></i>Project Setup</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Path to Main File (.py) / Project
+                            Dir</label>
+                        <div class="flex">
+                            <input type="text" id="project_path"
+                                class="w-full bg-gray-800 border border-gray-600 rounded-l-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition-colors"
+                                placeholder="C:\path\to\your\project.py">
+                            <button id="btn_browse"
+                                class="bg-gray-700 hover:bg-gray-600 border border-gray-600 border-l-0 rounded-r-lg px-4 py-2 transition-colors"><i
+                                    class="fas fa-folder"></i></button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Objective Function Name</label>
+                        <input type="text" id="fitness_fn_name"
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition-colors"
+                            placeholder="e.g. calculate_drag">
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl shadow-xl">
+                <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2"><i
+                        class="fas fa-cogs text-cyan-400 mr-2"></i>GA Parameters</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Generations</label>
+                        <input type="number" id="num_generations" value="10"
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Population Size</label>
+                        <input type="number" id="population_size" value="100"
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Elite Count</label>
+                        <input type="number" id="elite_count" value="5"
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Selection Method</label>
+                        <select id="selection"
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500">
+                            <option value="tournament">Tournament</option>
+                            <option value="roulette">Roulette</option>
+                            <option value="rank">Rank</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Crossover Method</label>
+                        <select id="crossover"
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500">
+                            <option value="1-point">1-Point</option>
+                            <option value="2-point">2-Point</option>
+                            <option value="uniform">Uniform</option>
+                            <option value="arithmetic">Arithmetic</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Mutation Method</label>
+                        <select id="mutation"
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500">
+                            <option value="polynomial">Polynomial</option>
+                            <option value="gaussian">Gaussian</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Min Values (lb) <span
+                                class="text-xs text-gray-500">- comma separated</span></label>
+                        <input type="text" id="min_values"
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 font-mono text-sm"
+                            placeholder="0, -3, 0.0, 0.0">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Max Values (ub) <span
+                                class="text-xs text-gray-500">- comma separated</span></label>
+                        <input type="text" id="max_values"
+                            class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 font-mono text-sm"
+                            placeholder="5, 3, 0.4, 1.5">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-center mt-6">
+                <button id="btn_run"
+                    class="run-btn bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold py-3 px-10 rounded-full shadow-lg transform transition-all hover:scale-105 flex items-center">
+                    <i class="fas fa-play mr-2"></i> Run Optimization
+                </button>
+            </div>
+
+            <!-- Terminal Logs -->
+            <div id="logs_container" class="glass-panel p-4 rounded-xl shadow-xl mt-6 hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-sm font-semibold text-gray-300"><i class="fas fa-terminal mr-2"></i>Optimization
+                        Logs</h3>
+                    <div id="status_indicator" class="flex items-center text-sm font-medium text-yellow-400">
+                        <i class="fas fa-circle-notch fa-spin mr-2"></i> Running...
+                    </div>
+                </div>
+                <div id="terminal_output"
+                    class="bg-gray-950 text-green-400 font-mono text-sm p-4 rounded-lg h-64 overflow-y-auto custom-scrollbar">
+                    <!-- Logs will be appended here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Plots Tab -->
+        <section id="plots-tab" class="tab-content hidden h-full flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-white"><i class="fas fa-chart-area mr-2"></i>Optimization Results
+                </h2>
+                <div class="flex space-x-4">
+                    <button id="btn_load_xlsx"
+                        class="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors">
+                        <i class="fas fa-upload mr-2"></i> Load .xlsx
+                    </button>
+                    <button id="btn_export_xlsx"
+                        class="bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors hidden">
+                        <i class="fas fa-download mr-2"></i> Export Data
+                    </button>
+                </div>
+            </div>
+
+            <div id="plots_placeholder"
+                class="flex-grow flex flex-col items-center justify-center text-gray-500 glass-panel rounded-2xl h-[60vh]">
+                <i class="fas fa-chart-pie text-6xl mb-4 text-gray-700"></i>
+                <p class="text-xl">No plots available.</p>
+                <p class="text-sm">Run an optimization to generate visualizations.</p>
+            </div>
+
+            <div id="plots_container" class="hidden space-y-6">
+                <div class="glass-panel p-4 rounded-2xl">
+                    <h3 class="text-lg font-semibold mb-2 ml-2">Fitness Over Generations</h3>
+                    <div id="plotly_fitplot" class="w-full h-96"></div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-2xl">
+                    <h3 class="text-lg font-semibold mb-2 ml-2">Parallel Coordinates</h3>
+                    <div id="plotly_parallel" class="w-full h-[500px]"></div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-2xl">
+                    <h3 class="text-lg font-semibold mb-2 ml-2">Variables Dispersion (Boxplots)</h3>
+                    <div id="plotly_boxplot" class="w-full h-[500px]"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Help Tab -->
+        <section id="help-tab" class="tab-content hidden glass-panel p-8 rounded-2xl">
+            <div id="readme_content" class="prose prose-invert max-w-none">
+                <!-- Markdown content will be loaded here -->
+                <div class="flex justify-center items-center h-32">
+                    <i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Eel script must be loaded to enable Python-JS communication -->
+    <script type="text/javascript" src="/eel.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

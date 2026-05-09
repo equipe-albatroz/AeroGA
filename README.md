@@ -14,6 +14,37 @@
  from AeroGA.AeroGA import optimize                           
  ~~~
 
+## AeroGA Offline GUI
+
+The AeroGA library now features a modern, fully offline Graphical User Interface (GUI) to configure, execute, and analyze your optimization projects in real time, with interactive Plotly graphs and a dark-mode, glassmorphism design.
+
+### How to use the GUI
+To start the interface directly via Python, run:
+~~~bash
+python gui/main.py
+~~~
+1. **Optimization Tab**: 
+   - Click the "Browse" button to select the Python file containing your fitness function.
+   - Set the exact name of the fitness function inside the file.
+   - Configure all GA parameters (Generations, Population Size, Bounds, Crossover, Mutation, etc.).
+   - Click "Run Optimization". You can track the progress through the real-time terminal logs directly in the UI.
+
+2. **Plots Tab**:
+   - Once the optimization finishes, the interface will automatically switch to this tab, rendering three fully interactive graphs: Fitness Evolution, Variable Dispersion (Boxplot), and Parallel Coordinates.
+   - **Export Data**: Download the raw optimization data as an `.xlsx` file.
+   - **Load Data**: Import past `.xlsx` results to reconstruct and analyze the graphs.
+   - *Note on downloads*: You can download any graph as a `.png` by clicking the camera icon on the plot toolbar. The downloaded image is configured to have a transparent background, making it perfect for technical reports.
+
+### Creating the Executable (.exe)
+To distribute or use the interface as a standalone Windows application without needing the terminal or Python, you can compile it into a single `.exe` file.
+
+1. Ensure your icon file (`aero_ico2.ico`) is in the root directory.
+2. Run the build script:
+~~~bash
+python build_exe.py
+~~~
+3. Once completed, your executable `AeroGA_GUI.exe` will be available in the `dist/` folder. You can double-click it to run the AeroGA interface.
+
 ## Steps
 
 * **1. Input Variables**

@@ -32,7 +32,7 @@ def optimize(selection: str = "tournament", crossover: str = "1-point", mutation
             elite_count: int = 5, elite: str = "local", Online_control: bool = True, control_func: str = 'inverse_sigmoidal',
             mutation_prob: float = 0.35, std_dev_offline: float = 0.2, eta_offline: int = 15,
             penalization_list: list = [1000],
-            plotfit: bool = True, plotbox: bool = False, plotparallel: bool = False, report: bool = False,
+            plotfit: bool = True, plotbox: bool = False, plotparallel: bool = False, report: bool = False, export_xlsx: bool = True,
             fitness_fn: callable = None
     ) -> dict:
 
@@ -149,7 +149,8 @@ def optimize(selection: str = "tournament", crossover: str = "1-point", mutation
         out = dict(history = history, history_valid = history_valid, best_individual = best_individual, values_gen = values_gen)
 
         # Exporting results to Excell
-        export_excell(out)
+        if export_xlsx:
+            export_excell(out)
 
         # Plotting
         if out["history_valid"]["ind"]:

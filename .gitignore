@@ -6,7 +6,11 @@ __pycache__
 Results_AeroGA
 Resultados
 img
-env
+*env
+build
+dist
+*.spec
+*.pkg
 
 ################################################
 ########## Ignorar o arquivo de teste ##########

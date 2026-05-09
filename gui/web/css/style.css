@@ -1,0 +1,92 @@
+/* Custom Scrollbar for Terminal */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #0f172a; 
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #334155; 
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #475569; 
+}
+
+/* Glassmorphism utility classes */
+.glass-panel {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.hidden {
+    display: none !important;
+}
+
+.glass-header {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* Navbar Buttons */
+.nav-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    color: #94a3b8;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+.nav-btn:hover {
+    color: #e2e8f0;
+    background: rgba(255, 255, 255, 0.05);
+}
+.nav-btn.active {
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+/* Input Styles overriding tailwind when focused */
+input:focus, select:focus {
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tab-content.active {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Markdown prose overrides for Dark mode */
+.prose-invert h1, .prose-invert h2, .prose-invert h3 {
+    color: #e2e8f0;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 0.3rem;
+}
+.prose-invert code {
+    background: #0f172a;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    color: #38bdf8;
+}
+.prose-invert pre {
+    background: #0f172a;
+    border: 1px solid #334155;
+}
+.prose-invert a {
+    color: #38bdf8;
+    text-decoration: none;
+}
+.prose-invert a:hover {
+    text-decoration: underline;
+}
